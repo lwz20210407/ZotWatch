@@ -10,6 +10,14 @@ queries:
   - "temperature dependent constitutive model Ti-6Al-4V plasticity damage"
   - "strain rate dependent fracture criterion titanium alloy"
   - "temperature dependent ductile fracture criterion titanium alloy"
+  - "dynamic plasticity ductile fracture aluminum alloy stress triaxiality Lode"
+  - "dynamic plasticity ductile fracture magnesium alloy strain rate temperature"
+  - "dynamic plasticity ductile fracture steel stress triaxiality Lode"
+  - "high strength steel ductile fracture criterion stress triaxiality Lode"
+  - "aluminum alloy dynamic constitutive model ductile fracture strain rate"
+  - "magnesium alloy dynamic constitutive model fracture criterion"
+  - "steel dynamic fracture toughness stress triaxiality Lode"
+  - "metal alloy dynamic plasticity damage fracture criterion"
   - "stress state dependent plasticity Lode parameter titanium alloy"
   - "ductile fracture criterion stress triaxiality Lode angle Ti-6Al-4V"
   - "stress triaxiality Lode parameter ductile fracture metal"
@@ -79,12 +87,14 @@ include_keywords:
 required_keyword_groups:
   - ["Ti-6Al-4V", "Ti6Al4V", "TC4", "titanium alloy", "titanium alloys"]
   - ["plasticity", "plastic behavior", "constitutive", "ductile fracture", "fracture criterion", "damage", "stress triaxiality", "triaxiality", "Lode", "strain rate", "temperature dependent", "Johnson-Cook", "Johnson Cook", "GISSMO", "DIEM", "UMAT", "VUMAT", "LS-DYNA", "ABAQUS", "impact", "penetration", "ballistic"]
+required_any_group_sets:
+  -
+    - ["Ti-6Al-4V", "Ti6Al4V", "TC4", "titanium alloy", "titanium alloys"]
+    - ["plasticity", "plastic behavior", "constitutive", "ductile fracture", "fracture criterion", "damage", "stress triaxiality", "triaxiality", "Lode", "strain rate", "temperature dependent", "Johnson-Cook", "Johnson Cook", "GISSMO", "DIEM", "UMAT", "VUMAT", "LS-DYNA", "ABAQUS", "impact", "penetration", "ballistic"]
+  -
+    - ["aluminum alloy", "aluminium alloy", "magnesium alloy", "steel", "high strength steel", "stainless steel", "metal alloy"]
+    - ["dynamic plasticity", "dynamic constitutive", "ductile fracture", "fracture criterion", "stress triaxiality", "triaxiality", "Lode", "strain rate", "temperature dependent", "damage evolution", "damage initiation", "Johnson-Cook", "Johnson Cook", "GISSMO", "DIEM"]
 exclude_keywords:
-  - "aluminum alloy"
-  - "aluminium alloy"
-  - "steel"
-  - "stainless steel"
-  - "magnesium"
   - "composite"
   - "ceramic"
   - "Inconel"
