@@ -92,6 +92,7 @@ class PublicCandidatesApiConfig(BaseModel):
 class SourcesConfig(BaseModel):
     window_days: int = 30
     queries: List[str] = Field(default_factory=list)
+    tracked_venues: List[str] = Field(default_factory=list)
     include_keywords: List[str] = Field(default_factory=list)
     required_keyword_groups: List[List[str]] = Field(default_factory=list)
     required_any_group_sets: List[List[List[str]]] = Field(default_factory=list)
