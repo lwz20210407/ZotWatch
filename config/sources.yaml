@@ -42,6 +42,10 @@ queries:
   - "aluminum alloy dynamic constitutive model ductile fracture strain rate"
   - "magnesium alloy dynamic constitutive model fracture criterion"
   - "steel dynamic fracture toughness stress triaxiality Lode"
+  - "copper alloy dynamic plasticity ductile fracture strain rate"
+  - "high entropy alloy dynamic plasticity ductile fracture damage"
+  - "machine learning constitutive model ductile fracture metal alloy"
+  - "neural network constitutive model plasticity fracture metal"
   - "metal alloy dynamic plasticity damage fracture criterion"
   - "stress state dependent plasticity Lode parameter titanium alloy"
   - "ductile fracture criterion stress triaxiality Lode angle Ti-6Al-4V"
@@ -117,29 +121,23 @@ required_any_group_sets:
     - ["Ti-6Al-4V", "Ti6Al4V", "TC4", "titanium alloy", "titanium alloys"]
     - ["plasticity", "plastic behavior", "constitutive", "ductile fracture", "fracture criterion", "damage", "stress triaxiality", "triaxiality", "Lode", "strain rate", "temperature dependent", "Johnson-Cook", "Johnson Cook", "GISSMO", "DIEM", "UMAT", "VUMAT", "LS-DYNA", "ABAQUS", "impact", "penetration", "ballistic"]
   -
-    - ["aluminum alloy", "aluminium alloy", "magnesium alloy", "steel", "high strength steel", "stainless steel", "metal alloy"]
-    - ["dynamic plasticity", "dynamic constitutive", "ductile fracture", "fracture criterion", "stress triaxiality", "triaxiality", "Lode", "strain rate", "temperature dependent", "damage evolution", "damage initiation", "Johnson-Cook", "Johnson Cook", "GISSMO", "DIEM"]
+    - ["aluminum alloy", "aluminium alloy", "magnesium alloy", "steel", "high strength steel", "stainless steel", "copper", "copper alloy", "high-entropy alloy", "entropy alloy", "Inconel", "nickel", "metal alloy"]
+    - ["dynamic plasticity", "dynamic constitutive", "ductile fracture", "fracture criterion", "stress triaxiality", "triaxiality", "Lode", "strain rate", "temperature dependent", "damage evolution", "damage initiation", "Johnson-Cook", "Johnson Cook", "GISSMO", "DIEM", "constitutive model", "fracture analysis", "damage mechanics"]
+  -
+    - ["machine learning", "neural network", "deep learning", "surrogate model", "Bayesian optimization"]
+    - ["constitutive model", "plasticity", "ductile fracture", "fracture criterion", "damage", "stress triaxiality", "strain rate", "temperature dependent", "metal", "alloy"]
 exclude_keywords:
-  - "composite"
-  - "ceramic"
-  - "Inconel"
-  - "nickel"
-  - "copper"
   - "biomedical"
   - "corrosion"
   - "oxidation"
   - "coating"
   - "weld joint"
-  - "hardness"
-  - "high-entropy alloy"
-  - "entropy alloy"
   - "gene"
   - "genome"
   - "protein"
   - "cell"
   - "clinical"
   - "patient"
-  - "neural network"
   - "large language model"
   - "reinforcement learning"
 require_topic_match: true
