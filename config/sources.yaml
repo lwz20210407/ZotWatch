@@ -76,7 +76,28 @@ include_keywords:
   - "projectile"
   - "target plate"
   - "impact dynamics"
+required_keyword_groups:
+  - ["Ti-6Al-4V", "Ti6Al4V", "TC4", "titanium alloy", "titanium alloys"]
+  - ["plasticity", "plastic behavior", "constitutive", "ductile fracture", "fracture criterion", "damage", "stress triaxiality", "triaxiality", "Lode", "strain rate", "temperature dependent", "Johnson-Cook", "Johnson Cook", "GISSMO", "DIEM", "UMAT", "VUMAT", "LS-DYNA", "ABAQUS", "impact", "penetration", "ballistic"]
 exclude_keywords:
+  - "aluminum alloy"
+  - "aluminium alloy"
+  - "steel"
+  - "stainless steel"
+  - "magnesium"
+  - "composite"
+  - "ceramic"
+  - "Inconel"
+  - "nickel"
+  - "copper"
+  - "biomedical"
+  - "corrosion"
+  - "oxidation"
+  - "coating"
+  - "weld joint"
+  - "hardness"
+  - "high-entropy alloy"
+  - "entropy alloy"
   - "gene"
   - "genome"
   - "protein"

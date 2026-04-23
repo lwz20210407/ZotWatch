@@ -394,8 +394,13 @@ class CandidateFetcher:
 
     def _filter_by_topic(self, candidates: List[CandidateWork]) -> List[CandidateWork]:
         include = [term.lower() for term in self.settings.sources.include_keywords if term.strip()]
+        required_groups = [
+            [term.lower() for term in group if term.strip()]
+            for group in self.settings.sources.required_keyword_groups
+        ]
         exclude = [term.lower() for term in self.settings.sources.exclude_keywords if term.strip()]
-        if not include and not exclude:
+        required_groups = [group for group in required_groups if group]
+        if not include and not required_groups and not exclude:
             return _dedupe_candidates(candidates)
 
         kept: List[CandidateWork] = []
@@ -405,6 +410,9 @@ class CandidateFetcher:
             ).lower()
             if exclude and any(term in haystack for term in exclude):
                 continue
+            if required_groups:
+                if not all(any(term in haystack for term in group) for group in required_groups):
+                    continue
             if self.settings.sources.require_topic_match and include:
                 if not any(term in haystack for term in include):
                     continue
