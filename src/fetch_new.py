@@ -103,7 +103,7 @@ class CandidateFetcher:
 
         if self.settings.sources.crossref.enabled:
             top_venue_results, _ = self._run_fetch_source(
-                "Crossref top venues",
+                "Crossref tracked/top venues",
                 lambda: self._fetch_crossref_top_venues(since),
             )
             results.extend(top_venue_results)
@@ -435,10 +435,11 @@ class CandidateFetcher:
         return _dedupe_candidates(kept)
 
     def _fetch_crossref_top_venues(self, since: datetime) -> List[CandidateWork]:
-        if not self.top_venues:
+        venues = self._tracked_venues()
+        if not venues:
             return []
         results: List[CandidateWork] = []
-        for venue in self.top_venues:
+        for venue in venues:
             params = {
                 "filter": f"from-pub-date:{since.date().isoformat()},container-title:{venue}",
                 "sort": "created",
@@ -488,8 +489,13 @@ class CandidateFetcher:
                     )
                 )
         if results:
-            logger.info("Fetched %d additional works from top venues", len(results))
+            logger.info("Fetched %d additional works from tracked/top venues", len(results))
         return results
+
+    def _tracked_venues(self) -> List[str]:
+        configured = [venue.strip() for venue in self.settings.sources.tracked_venues if venue.strip()]
+        venues = configured + self.top_venues
+        return list(dict.fromkeys(venues))
 
     def _fetch_arxiv(self) -> List[CandidateWork]:
         categories = self.settings.sources.arxiv.categories
