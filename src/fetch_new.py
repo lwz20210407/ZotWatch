@@ -1,0 +1,600 @@
+from __future__ import annotations
+
+import logging
+import json
+import html
+import re
+import time
+from datetime import datetime, timedelta, timezone
+from pathlib import Path
+from typing import List
+
+import feedparser
+import requests
+
+from .http_utils import request_with_retry
+from .models import CandidateWork
+from .settings import Settings
+from .utils import ensure_isoformat, iso_to_datetime, utc_now
+
+logger = logging.getLogger(__name__)
+ARXIV_REQUEST_DELAY_SECONDS = 3.1
+ARXIV_MAX_RESULTS = 50
+
+
+class CandidateFetcher:
+    def __init__(self, settings: Settings, base_dir: Path):
+        self.settings = settings
+        self.session = requests.Session()
+        self.session.headers.update({"User-Agent": "ZotWatcher/0.1 (https://github.com/Yorks0n/ZotWatch)"})
+        self.base_dir = Path(base_dir)
+        self.cache_path = self.base_dir / "data" / "cache" / "candidate_cache.json"
+        self.cache_path.parent.mkdir(parents=True, exist_ok=True)
+        self.profile_path = self.base_dir / "data" / "profile.json"
+        self.top_venues = self._load_top_venues()
+
+    def fetch_all(self) -> List[CandidateWork]:
+        stale_candidates: List[CandidateWork] | None = None
+        cached = self._load_cache()
+        if cached:
+            fetched_at, candidates = cached
+            stale_candidates = candidates
+            age = datetime.now(timezone.utc) - fetched_at
+            if age <= timedelta(hours=12):
+                logger.info(
+                    "Using cached candidate list from %s (age %.1f hours)",
+                    fetched_at.isoformat(),
+                    age.total_seconds() / 3600,
+                )
+                return candidates
+            logger.info(
+                "Candidate cache is stale (age %.1f hours); refreshing",
+                age.total_seconds() / 3600,
+            )
+        window_days = self.settings.sources.window_days
+        now = datetime.now(timezone.utc)
+        since = now - timedelta(days=window_days)
+        results: List[CandidateWork] = []
+        enabled_sources = 0
+        failed_sources = 0
+
+        if self.settings.sources.public_api.enabled:
+            public_sources = self._enabled_public_sources()
+            if public_sources:
+                enabled_sources += 1
+                source_results, failed = self._run_fetch_source(
+                    "Public candidate API",
+                    lambda: self._fetch_public_candidates(since, now, public_sources),
+                )
+                results.extend(source_results)
+                failed_sources += int(failed)
+        else:
+            if self.settings.sources.openalex.enabled:
+                enabled_sources += 1
+                source_results, failed = self._run_fetch_source("OpenAlex", lambda: self._fetch_openalex(since))
+                results.extend(source_results)
+                failed_sources += int(failed)
+            if self.settings.sources.crossref.enabled:
+                enabled_sources += 1
+                source_results, failed = self._run_fetch_source("Crossref", lambda: self._fetch_crossref(since))
+                results.extend(source_results)
+                failed_sources += int(failed)
+            if self.settings.sources.arxiv.enabled:
+                enabled_sources += 1
+                source_results, failed = self._run_fetch_source("arXiv", self._fetch_arxiv)
+                results.extend(source_results)
+                failed_sources += int(failed)
+            if self.settings.sources.biorxiv.enabled:
+                enabled_sources += 1
+                source_results, failed = self._run_fetch_source(
+                    "bioRxiv",
+                    lambda: self._fetch_biorxiv(self.settings.sources.biorxiv.from_days_ago),
+                )
+                results.extend(source_results)
+                failed_sources += int(failed)
+            if self.settings.sources.medrxiv.enabled:
+                enabled_sources += 1
+                source_results, failed = self._run_fetch_source(
+                    "medRxiv",
+                    lambda: self._fetch_biorxiv(self.settings.sources.medrxiv.from_days_ago, medrxiv=True),
+                )
+                results.extend(source_results)
+                failed_sources += int(failed)
+
+        if self.settings.sources.crossref.enabled:
+            top_venue_results, _ = self._run_fetch_source(
+                "Crossref top venues",
+                lambda: self._fetch_crossref_top_venues(since),
+            )
+            results.extend(top_venue_results)
+
+        if enabled_sources and failed_sources == enabled_sources and stale_candidates:
+            logger.warning(
+                "All %d enabled sources failed; falling back to stale cache with %d candidates",
+                enabled_sources,
+                len(stale_candidates),
+            )
+            return stale_candidates
+
+        logger.info("Fetched %d candidate works", len(results))
+        self._save_cache(results)
+        return results
+
+    def _run_fetch_source(self, source_name: str, fetcher) -> tuple[List[CandidateWork], bool]:
+        try:
+            return fetcher(), False
+        except requests.RequestException as exc:
+            logger.warning("%s fetch failed; continuing without this source: %s", source_name, exc)
+            return [], True
+
+    def _enabled_public_sources(self) -> List[str]:
+        source_flags = (
+            ("openalex", self.settings.sources.openalex.enabled),
+            ("crossref", self.settings.sources.crossref.enabled),
+            ("arxiv", self.settings.sources.arxiv.enabled),
+            ("biorxiv", self.settings.sources.biorxiv.enabled),
+            ("medrxiv", self.settings.sources.medrxiv.enabled),
+        )
+        return [name for name, enabled in source_flags if enabled]
+
+    def _fetch_public_candidates(
+        self,
+        since: datetime,
+        until: datetime,
+        public_sources: List[str],
+    ) -> List[CandidateWork]:
+        config = self.settings.sources.public_api
+        url = f"{config.base_url.rstrip('/')}/public-candidates-v1"
+        api_key = config.api_key()
+        headers = {
+            "apikey": api_key,
+        }
+        include_preprints = any(source in {"arxiv", "biorxiv", "medrxiv"} for source in public_sources)
+        offset = 0
+        results: List[CandidateWork] = []
+
+        while True:
+            params = {
+                "sources": ",".join(public_sources),
+                "since": since.isoformat(),
+                "until": until.isoformat(),
+                "include_preprints": str(include_preprints).lower(),
+                "limit": config.page_size,
+                "offset": offset,
+            }
+            logger.info(
+                "Fetching public candidates from Supabase (sources=%s, since=%s, offset=%d, limit=%d)",
+                ",".join(public_sources),
+                since.date(),
+                offset,
+                config.page_size,
+            )
+            resp = request_with_retry(
+                self.session,
+                "GET",
+                url,
+                params=params,
+                headers=headers,
+                timeout=config.timeout_seconds,
+                logger=logger,
+                context=f"Public candidate fetch offset {offset}",
+            )
+            payload = resp.json() or {}
+            items = payload.get("data") or []
+            paging = payload.get("paging") or {}
+
+            for item in items:
+                candidate = self._candidate_from_public_api(item)
+                if candidate:
+                    results.append(candidate)
+
+            next_offset = paging.get("next_offset")
+            if next_offset is None or next_offset == offset or not items:
+                break
+            offset = int(next_offset)
+
+        logger.info("Fetched %d public candidates from Supabase", len(results))
+        return results
+
+    def _candidate_from_public_api(self, item: dict) -> CandidateWork | None:
+        title = _clean_title(item.get("title"))
+        if not title:
+            return None
+        authors = item.get("authors") or []
+        if not isinstance(authors, list):
+            authors = [str(authors)]
+        metrics = item.get("metrics") if isinstance(item.get("metrics"), dict) else {}
+        extra = {
+            "candidate_type": item.get("candidate_type"),
+            "candidate_group": item.get("candidate_group"),
+            "updated_at": item.get("updated_at"),
+            "public_id": item.get("id"),
+        }
+        return CandidateWork(
+            source=item.get("source") or "public-api",
+            identifier=item.get("source_identifier") or item.get("id") or title,
+            title=title,
+            abstract=item.get("abstract"),
+            authors=[str(author).strip() for author in authors if str(author).strip()],
+            doi=item.get("doi"),
+            url=item.get("url"),
+            published=_parse_date(item.get("published_at")),
+            venue=item.get("venue"),
+            metrics={str(key): float(value) for key, value in metrics.items() if _is_number(value)},
+            extra={key: value for key, value in extra.items() if value is not None},
+        )
+
+    def _load_top_venues(self) -> List[str]:
+        if not self.profile_path.exists():
+            return []
+        try:
+            data = json.loads(self.profile_path.read_text(encoding="utf-8"))
+        except Exception as exc:
+            logger.warning("Failed to load profile when reading top venues: %s", exc)
+            return []
+        venues: List[str] = []
+        for entry in data.get("top_venues", []):
+            name = entry.get("venue") if isinstance(entry, dict) else None
+            if name:
+                venues.append(name)
+        if venues:
+            unique = list(dict.fromkeys(venues))
+        else:
+            unique = []
+        if unique:
+            logger.info("Loaded %d top venues from profile", len(unique))
+        return unique[:20]
+
+    def _load_cache(self):
+        if not getattr(self, "cache_path", None) or not self.cache_path.exists():
+            return None
+        try:
+            payload = json.loads(self.cache_path.read_text(encoding="utf-8"))
+        except Exception as exc:
+            logger.warning("Failed to read candidate cache: %s", exc)
+            return None
+        fetched_at = iso_to_datetime(payload.get("fetched_at"))
+        if not fetched_at:
+            return None
+        items = payload.get("candidates", [])
+        candidates: List[CandidateWork] = []
+        for item in items:
+            published = item.get("published")
+            if published:
+                item["published"] = _ensure_aware(iso_to_datetime(published))
+            candidates.append(CandidateWork(**item))
+        return fetched_at, candidates
+
+    def _save_cache(self, candidates: List[CandidateWork]) -> None:
+        if not getattr(self, "cache_path", None):
+            return
+        payload = {
+            "fetched_at": ensure_isoformat(utc_now()),
+            "candidates": [self._serialize_candidate(c) for c in candidates],
+        }
+        try:
+            self.cache_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
+        except Exception as exc:
+            logger.warning("Failed to write candidate cache: %s", exc)
+
+    @staticmethod
+    def _serialize_candidate(candidate: CandidateWork) -> dict:
+        data = candidate.dict()
+        data["published"] = ensure_isoformat(candidate.published)
+        return data
+
+    def _fetch_openalex(self, since: datetime) -> List[CandidateWork]:
+        url = "https://api.openalex.org/works"
+        params = {
+            "filter": f"from_publication_date:{since.date().isoformat()}",
+            "sort": "publication_date:desc",
+            "per-page": 200,
+            "mailto": self.settings.sources.openalex.mailto,
+        }
+        logger.info("Fetching OpenAlex works since %s", since.date())
+        resp = request_with_retry(
+            self.session,
+            "GET",
+            url,
+            params=params,
+            timeout=30,
+            logger=logger,
+            context="OpenAlex fetch",
+        )
+        data = resp.json()
+        results = []
+        for item in data.get("results", []):
+            title = _clean_title(item.get("display_name"))
+            if not title:
+                continue
+            work_id = item.get("id") or item.get("ids", {}).get("openalex")
+            primary_location = item.get("primary_location") or {}
+            source_info = primary_location.get("source") or {}
+            landing_page = primary_location.get("landing_page_url")
+            results.append(
+                CandidateWork(
+                    source="openalex",
+                    identifier=work_id or item.get("doi") or title,
+                    title=title,
+                    abstract=_extract_openalex_abstract(item),
+                    authors=[auth.get("author", {}).get("display_name", "") for auth in item.get("authorships", [])],
+                    doi=item.get("doi"),
+                    url=source_info.get("url") or landing_page,
+                    published=_parse_date(item.get("publication_date")),
+                    venue=source_info.get("display_name"),
+                    metrics={"cited_by": float(item.get("cited_by_count", 0))},
+                    extra={"concepts": [c.get("display_name") for c in item.get("concepts", [])]},
+                )
+            )
+        return results
+
+    def _fetch_crossref(self, since: datetime) -> List[CandidateWork]:
+        url = "https://api.crossref.org/works"
+        params = {
+            "filter": f"from-pub-date:{since.date().isoformat()}",
+            "sort": "created",
+            "order": "desc",
+            "rows": 200,
+            "mailto": self.settings.sources.crossref.mailto,
+        }
+        logger.info("Fetching Crossref works since %s", since.date())
+        resp = request_with_retry(
+            self.session,
+            "GET",
+            url,
+            params=params,
+            timeout=30,
+            logger=logger,
+            context="Crossref fetch",
+        )
+        message = resp.json().get("message", {})
+        results = []
+        for item in message.get("items", []):
+            title = _clean_title((item.get("title") or [""])[0])
+            if not title:
+                continue
+            doi = item.get("DOI")
+            authors = [
+                " ".join(filter(None, [p.get("given"), p.get("family")])).strip()
+                for p in item.get("author", [])
+            ]
+            results.append(
+                CandidateWork(
+                    source="crossref",
+                    identifier=doi or item.get("URL", "unknown"),
+                    title=title,
+                    abstract=_clean_crossref_abstract(item.get("abstract")),
+                    authors=[a for a in authors if a],
+                    doi=doi,
+                    url=item.get("URL"),
+                    published=_parse_date(item.get("created", {}).get("date-time")),
+                    venue=(item.get("container-title") or [None])[0],
+                    metrics={"is-referenced-by": float(item.get("is-referenced-by-count", 0))},
+                    extra={"type": item.get("type")},
+                )
+            )
+        return results
+
+    def _fetch_crossref_top_venues(self, since: datetime) -> List[CandidateWork]:
+        if not self.top_venues:
+            return []
+        results: List[CandidateWork] = []
+        for venue in self.top_venues:
+            params = {
+                "filter": f"from-pub-date:{since.date().isoformat()},container-title:{venue}",
+                "sort": "created",
+                "order": "desc",
+                "rows": 100,
+                "mailto": self.settings.sources.crossref.mailto,
+            }
+            try:
+                resp = request_with_retry(
+                    self.session,
+                    "GET",
+                    "https://api.crossref.org/works",
+                    params=params,
+                    timeout=30,
+                    logger=logger,
+                    context=f"Crossref top venue fetch for {venue}",
+                )
+            except Exception as exc:
+                logger.warning("Failed to fetch Crossref top venue %s: %s", venue, exc)
+                continue
+            message = resp.json().get("message", {})
+            for item in message.get("items", []):
+                title = _clean_title((item.get("title") or [""])[0])
+                if not title:
+                    continue
+                doi = item.get("DOI")
+                authors = [
+                    " ".join(filter(None, [p.get("given"), p.get("family")])).strip()
+                    for p in item.get("author", [])
+                ]
+                results.append(
+                    CandidateWork(
+                        source="crossref",
+                        identifier=doi or item.get("URL", "unknown"),
+                        title=title,
+                        abstract=_clean_crossref_abstract(item.get("abstract")),
+                        authors=[a for a in authors if a],
+                        doi=doi,
+                        url=item.get("URL"),
+                        published=_parse_date(item.get("created", {}).get("date-time")),
+                        venue=venue,
+                        metrics={"is-referenced-by": float(item.get("is-referenced-by-count", 0))},
+                        extra={
+                            "source": "top_venue",
+                            "type": item.get("type"),
+                        },
+                    )
+                )
+        if results:
+            logger.info("Fetched %d additional works from top venues", len(results))
+        return results
+
+    def _fetch_arxiv(self) -> List[CandidateWork]:
+        categories = self.settings.sources.arxiv.categories
+        query = " OR ".join(f"cat:{cat}" for cat in categories)
+        url = "https://export.arxiv.org/api/query"
+        params = {
+            "search_query": query,
+            "sortBy": "submittedDate",
+            "sortOrder": "descending",
+            "max_results": ARXIV_MAX_RESULTS,
+        }
+        logger.info(
+            "Fetching arXiv entries for categories: %s (max_results=%d, delay=%.1fs)",
+            ", ".join(categories),
+            ARXIV_MAX_RESULTS,
+            ARXIV_REQUEST_DELAY_SECONDS,
+        )
+        # arXiv's legacy API asks clients to keep to a single request every 3 seconds.
+        time.sleep(ARXIV_REQUEST_DELAY_SECONDS)
+        resp = request_with_retry(
+            self.session,
+            "GET",
+            url,
+            params=params,
+            timeout=60,
+            logger=logger,
+            context="arXiv fetch",
+        )
+        if "rate exceeded" in resp.text.lower():
+            raise requests.HTTPError("arXiv API rate limit exceeded", response=resp)
+        feed = feedparser.parse(resp.text)
+        results = []
+        for entry in feed.entries:
+            title = _clean_title(entry.get("title"))
+            if not title:
+                continue
+            identifier = entry.get("id")
+            published = _parse_date(entry.get("published"))
+            results.append(
+                CandidateWork(
+                    source="arxiv",
+                    identifier=identifier or title,
+                    title=title,
+                    abstract=(entry.get("summary") or "").strip() or None,
+                    authors=[a.get("name") for a in entry.get("authors", [])],
+                    doi=entry.get("arxiv_doi"),
+                    url=entry.get("link"),
+                    published=published,
+                    venue="arXiv",
+                    extra={"primary_category": entry.get("arxiv_primary_category", {}).get("term")},
+                )
+            )
+        return results
+
+    def _fetch_biorxiv(self, window_days: int, medrxiv: bool = False) -> List[CandidateWork]:
+        base = "medrxiv" if medrxiv else "biorxiv"
+        to_date = datetime.now(timezone.utc)
+        from_date = to_date - timedelta(days=window_days)
+        url = f"https://api.biorxiv.org/details/{base}/{from_date:%Y-%m-%d}/{to_date:%Y-%m-%d}"
+        logger.info("Fetching %s preprints from %s to %s", base, from_date.date(), to_date.date())
+        resp = request_with_retry(
+            self.session,
+            "GET",
+            url,
+            timeout=30,
+            logger=logger,
+            context=f"{base} fetch",
+        )
+        data = resp.json()
+        results = []
+        for entry in data.get("collection", []):
+            title = _clean_title(entry.get("title"))
+            if not title:
+                continue
+            doi = entry.get("doi")
+            rel_link = entry.get("rel_link") or entry.get("url")
+            if not rel_link and doi:
+                rel_link = f"https://doi.org/{doi}"
+            results.append(
+                CandidateWork(
+                    source=base,
+                    identifier=doi or entry.get("biorxiv_id") or title,
+                    title=title,
+                    abstract=entry.get("abstract"),
+                    authors=[a.strip() for a in entry.get("authors", "").split(";") if a.strip()],
+                    doi=doi,
+                    url=rel_link,
+                    published=_parse_date(entry.get("date")),
+                    venue=base,
+                    extra={"category": entry.get("category"), "version": entry.get("version")},
+                )
+            )
+        return results
+
+
+def _clean_title(value: str | None) -> str:
+    if not value:
+        return ""
+    return value.strip()
+
+
+def _extract_openalex_abstract(item: dict) -> str | None:
+    abstract = item.get("abstract")
+    if isinstance(abstract, dict):
+        text = abstract.get("text")
+        if text:
+            return text
+    if isinstance(abstract, str) and abstract.strip():
+        return abstract.strip()
+    inverted = item.get("abstract_inverted_index")
+    if isinstance(inverted, dict) and inverted:
+        try:
+            size = max(pos for positions in inverted.values() for pos in positions) + 1
+        except ValueError:
+            size = 0
+        tokens = ["" for _ in range(size)]
+        for word, positions in inverted.items():
+            for pos in positions:
+                if 0 <= pos < size:
+                    tokens[pos] = word
+        summary = " ".join(filter(None, tokens)).strip()
+        return summary or None
+    return None
+
+
+def _clean_crossref_abstract(value: str | None) -> str | None:
+    if not value:
+        return None
+    text = html.unescape(value)
+    text = re.sub(r"<[^>]+>", " ", text)
+    text = re.sub(r"\s+", " ", text).strip()
+    return text or None
+
+
+def _ensure_aware(dt):
+    if dt is None:
+        return None
+    if dt.tzinfo is None:
+        return dt.replace(tzinfo=timezone.utc)
+    return dt
+
+
+def _parse_date(value):
+    if not value:
+        return None
+    if isinstance(value, (int, float)):
+        return datetime.fromtimestamp(value, tz=timezone.utc)
+    if isinstance(value, str):
+        try:
+            return _ensure_aware(datetime.fromisoformat(value.replace("Z", "+00:00")))
+        except ValueError:
+            try:
+                return _ensure_aware(datetime.strptime(value, "%Y-%m-%d"))
+            except ValueError:
+                return None
+    return None
+
+
+def _is_number(value) -> bool:
+    try:
+        float(value)
+    except (TypeError, ValueError):
+        return False
+    return True
+
+
+__all__ = ["CandidateFetcher"]
