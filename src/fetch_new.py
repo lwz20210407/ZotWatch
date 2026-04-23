@@ -116,6 +116,7 @@ class CandidateFetcher:
             )
             return stale_candidates
 
+        results = self._filter_by_topic(results)
         logger.info("Fetched %d candidate works", len(results))
         self._save_cache(results)
         return results
@@ -285,95 +286,133 @@ class CandidateFetcher:
 
     def _fetch_openalex(self, since: datetime) -> List[CandidateWork]:
         url = "https://api.openalex.org/works"
-        params = {
-            "filter": f"from_publication_date:{since.date().isoformat()}",
-            "sort": "publication_date:desc",
-            "per-page": 200,
-            "mailto": self.settings.sources.openalex.mailto,
-        }
-        logger.info("Fetching OpenAlex works since %s", since.date())
-        resp = request_with_retry(
-            self.session,
-            "GET",
-            url,
-            params=params,
-            timeout=30,
-            logger=logger,
-            context="OpenAlex fetch",
-        )
-        data = resp.json()
         results = []
-        for item in data.get("results", []):
-            title = _clean_title(item.get("display_name"))
-            if not title:
-                continue
-            work_id = item.get("id") or item.get("ids", {}).get("openalex")
-            primary_location = item.get("primary_location") or {}
-            source_info = primary_location.get("source") or {}
-            landing_page = primary_location.get("landing_page_url")
-            results.append(
-                CandidateWork(
-                    source="openalex",
-                    identifier=work_id or item.get("doi") or title,
-                    title=title,
-                    abstract=_extract_openalex_abstract(item),
-                    authors=[auth.get("author", {}).get("display_name", "") for auth in item.get("authorships", [])],
-                    doi=item.get("doi"),
-                    url=source_info.get("url") or landing_page,
-                    published=_parse_date(item.get("publication_date")),
-                    venue=source_info.get("display_name"),
-                    metrics={"cited_by": float(item.get("cited_by_count", 0))},
-                    extra={"concepts": [c.get("display_name") for c in item.get("concepts", [])]},
+        for query in self._topic_queries():
+            params = {
+                "filter": f"from_publication_date:{since.date().isoformat()}",
+                "search": query,
+                "sort": "publication_date:desc",
+                "per-page": 100,
+                "mailto": self.settings.sources.openalex.mailto,
+            }
+            logger.info("Fetching OpenAlex works for query '%s' since %s", query, since.date())
+            try:
+                resp = request_with_retry(
+                    self.session,
+                    "GET",
+                    url,
+                    params=params,
+                    timeout=30,
+                    logger=logger,
+                    context=f"OpenAlex fetch for {query}",
                 )
-            )
-        return results
+            except requests.RequestException as exc:
+                logger.warning("OpenAlex query '%s' failed; continuing: %s", query, exc)
+                continue
+            data = resp.json()
+            for item in data.get("results", []):
+                title = _clean_title(item.get("display_name"))
+                if not title:
+                    continue
+                work_id = item.get("id") or item.get("ids", {}).get("openalex")
+                primary_location = item.get("primary_location") or {}
+                source_info = primary_location.get("source") or {}
+                landing_page = primary_location.get("landing_page_url")
+                results.append(
+                    CandidateWork(
+                        source="openalex",
+                        identifier=work_id or item.get("doi") or title,
+                        title=title,
+                        abstract=_extract_openalex_abstract(item),
+                        authors=[auth.get("author", {}).get("display_name", "") for auth in item.get("authorships", [])],
+                        doi=item.get("doi"),
+                        url=source_info.get("url") or landing_page,
+                        published=_parse_date(item.get("publication_date")),
+                        venue=source_info.get("display_name"),
+                        metrics={"cited_by": float(item.get("cited_by_count", 0))},
+                        extra={"concepts": [c.get("display_name") for c in item.get("concepts", [])], "query": query},
+                    )
+                )
+        return _dedupe_candidates(results)
 
     def _fetch_crossref(self, since: datetime) -> List[CandidateWork]:
         url = "https://api.crossref.org/works"
-        params = {
-            "filter": f"from-pub-date:{since.date().isoformat()}",
-            "sort": "created",
-            "order": "desc",
-            "rows": 200,
-            "mailto": self.settings.sources.crossref.mailto,
-        }
-        logger.info("Fetching Crossref works since %s", since.date())
-        resp = request_with_retry(
-            self.session,
-            "GET",
-            url,
-            params=params,
-            timeout=30,
-            logger=logger,
-            context="Crossref fetch",
-        )
-        message = resp.json().get("message", {})
         results = []
-        for item in message.get("items", []):
-            title = _clean_title((item.get("title") or [""])[0])
-            if not title:
-                continue
-            doi = item.get("DOI")
-            authors = [
-                " ".join(filter(None, [p.get("given"), p.get("family")])).strip()
-                for p in item.get("author", [])
-            ]
-            results.append(
-                CandidateWork(
-                    source="crossref",
-                    identifier=doi or item.get("URL", "unknown"),
-                    title=title,
-                    abstract=_clean_crossref_abstract(item.get("abstract")),
-                    authors=[a for a in authors if a],
-                    doi=doi,
-                    url=item.get("URL"),
-                    published=_parse_date(item.get("created", {}).get("date-time")),
-                    venue=(item.get("container-title") or [None])[0],
-                    metrics={"is-referenced-by": float(item.get("is-referenced-by-count", 0))},
-                    extra={"type": item.get("type")},
+        for query in self._topic_queries():
+            params = {
+                "filter": f"from-pub-date:{since.date().isoformat()}",
+                "query.bibliographic": query,
+                "sort": "created",
+                "order": "desc",
+                "rows": 100,
+                "mailto": self.settings.sources.crossref.mailto,
+            }
+            logger.info("Fetching Crossref works for query '%s' since %s", query, since.date())
+            try:
+                resp = request_with_retry(
+                    self.session,
+                    "GET",
+                    url,
+                    params=params,
+                    timeout=30,
+                    logger=logger,
+                    context=f"Crossref fetch for {query}",
                 )
-            )
-        return results
+            except requests.RequestException as exc:
+                logger.warning("Crossref query '%s' failed; continuing: %s", query, exc)
+                continue
+            message = resp.json().get("message", {})
+            for item in message.get("items", []):
+                title = _clean_title((item.get("title") or [""])[0])
+                if not title:
+                    continue
+                doi = item.get("DOI")
+                authors = [
+                    " ".join(filter(None, [p.get("given"), p.get("family")])).strip()
+                    for p in item.get("author", [])
+                ]
+                results.append(
+                    CandidateWork(
+                        source="crossref",
+                        identifier=doi or item.get("URL", "unknown"),
+                        title=title,
+                        abstract=_clean_crossref_abstract(item.get("abstract")),
+                        authors=[a for a in authors if a],
+                        doi=doi,
+                        url=item.get("URL"),
+                        published=_parse_date(item.get("created", {}).get("date-time")),
+                        venue=(item.get("container-title") or [None])[0],
+                        metrics={"is-referenced-by": float(item.get("is-referenced-by-count", 0))},
+                        extra={"type": item.get("type"), "query": query},
+                    )
+                )
+        return _dedupe_candidates(results)
+
+    def _topic_queries(self) -> List[str]:
+        queries = [query.strip() for query in self.settings.sources.queries if query.strip()]
+        return queries or ["titanium alloy plasticity fracture"]
+
+    def _filter_by_topic(self, candidates: List[CandidateWork]) -> List[CandidateWork]:
+        include = [term.lower() for term in self.settings.sources.include_keywords if term.strip()]
+        exclude = [term.lower() for term in self.settings.sources.exclude_keywords if term.strip()]
+        if not include and not exclude:
+            return _dedupe_candidates(candidates)
+
+        kept: List[CandidateWork] = []
+        for candidate in candidates:
+            haystack = " ".join(
+                part for part in [candidate.title, candidate.abstract, candidate.venue] if part
+            ).lower()
+            if exclude and any(term in haystack for term in exclude):
+                continue
+            if self.settings.sources.require_topic_match and include:
+                if not any(term in haystack for term in include):
+                    continue
+            kept.append(candidate)
+        removed = len(candidates) - len(kept)
+        if removed:
+            logger.info("Topic filter removed %d candidates", removed)
+        return _dedupe_candidates(kept)
 
     def _fetch_crossref_top_venues(self, since: datetime) -> List[CandidateWork]:
         if not self.top_venues:
@@ -595,6 +634,18 @@ def _is_number(value) -> bool:
     except (TypeError, ValueError):
         return False
     return True
+
+
+def _dedupe_candidates(candidates: List[CandidateWork]) -> List[CandidateWork]:
+    seen: set[str] = set()
+    unique: List[CandidateWork] = []
+    for candidate in candidates:
+        key = (candidate.doi or candidate.identifier or candidate.title).strip().lower()
+        if not key or key in seen:
+            continue
+        seen.add(key)
+        unique.append(candidate)
+    return unique
 
 
 __all__ = ["CandidateFetcher"]

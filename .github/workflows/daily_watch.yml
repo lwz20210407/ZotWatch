@@ -53,7 +53,7 @@ jobs:
         run: |
           mkdir -p public
           cp -r reports/* public/ || true
-          latest_report=$(ls public/report*.html 2>/dev/null | head -n 1 || true)
+          latest_report=$(ls -t public/report*.html 2>/dev/null | head -n 1 || true)
           if [ -n "$latest_report" ]; then
             cp "$latest_report" public/index.html
           fi

@@ -90,7 +90,7 @@ def run_watch(
     ranker = WorkRanker(base_dir, settings)
     ranked = ranker.rank(filtered)
 
-    ranked = _filter_recent(ranked, days=7)
+    ranked = _filter_recent(ranked, days=settings.sources.window_days)
     ranked = _limit_preprints(ranked, max_ratio=0.3)
 
     if top and len(ranked) > top:

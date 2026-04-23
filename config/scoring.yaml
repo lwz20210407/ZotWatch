@@ -1,11 +1,11 @@
 weights:
-  similarity: 0.45
-  recency: 0.15
-  citations: 0.15
-  altmetric: 0.10
-  journal_quality: 0.04
-  author_bonus: 0.02
-  venue_bonus: 0.04
+  similarity: 0.62
+  recency: 0.10
+  citations: 0.10
+  altmetric: 0.03
+  journal_quality: 0.05
+  author_bonus: 0.00
+  venue_bonus: 0.10
 thresholds:
   must_read: 0.75
   consider: 0.5
@@ -14,4 +14,14 @@ decay_days:
   medium: 7
   slow: 30
 whitelist_authors: []
-whitelist_venues: []
+whitelist_venues:
+  - International Journal of Plasticity
+  - International Journal of Impact Engineering
+  - Engineering Fracture Mechanics
+  - Journal of the Mechanics and Physics of Solids
+  - Mechanics of Materials
+  - Materials Science and Engineering A
+  - Additive Manufacturing
+  - International Journal of Mechanical Sciences
+  - Thin-Walled Structures
+  - Computational Materials Science

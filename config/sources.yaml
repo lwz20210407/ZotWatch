@@ -1,22 +1,110 @@
-window_days: 7
+window_days: 30
+queries:
+  - "laser powder bed fusion Ti-6Al-4V plasticity fracture"
+  - "laser powder bed fusion TC4 titanium alloy plastic behavior damage mechanism"
+  - "additively manufactured TC4 titanium alloy constitutive model fracture criterion"
+  - "additive manufactured Ti-6Al-4V extreme environment plasticity damage"
+  - "additive manufacturing Ti-6Al-4V ductile fracture stress triaxiality Lode"
+  - "TC4 titanium alloy Johnson Cook fracture strain rate temperature"
+  - "Ti-6Al-4V dynamic constitutive model strain rate temperature"
+  - "temperature dependent constitutive model Ti-6Al-4V plasticity damage"
+  - "strain rate dependent fracture criterion titanium alloy"
+  - "temperature dependent ductile fracture criterion titanium alloy"
+  - "stress state dependent plasticity Lode parameter titanium alloy"
+  - "ductile fracture criterion stress triaxiality Lode angle Ti-6Al-4V"
+  - "stress triaxiality Lode parameter ductile fracture metal"
+  - "stress state dependent ductile fracture criterion metal"
+  - "non proportional loading path dependent plasticity fracture metal"
+  - "proportional non proportional loading path dependent fracture metal"
+  - "multiaxial plasticity failure titanium alloy"
+  - "damage initiation damage evolution ductile fracture titanium alloy"
+  - "coupled uncoupled ductile fracture criterion metal"
+  - "micromechanism ductile fracture titanium alloy void nucleation growth coalescence"
+  - "advanced characterization ductile fracture titanium alloy digital image correlation"
+  - "GISSMO DIEM LS-DYNA ductile fracture titanium alloy"
+  - "LS-DYNA UMAT titanium alloy constitutive model fracture criterion"
+  - "LS-DYNA user material titanium alloy plasticity fracture"
+  - "ABAQUS VUMAT Ti-6Al-4V plasticity damage fracture"
+  - "ABAQUS user material VUMAT titanium alloy damage fracture"
+  - "impact dynamics projectile target titanium alloy failure"
+  - "ballistic impact penetration ductile fracture titanium alloy"
+  - "projectile target failure mechanism penetration titanium alloy"
+  - "impact penetration damage fracture mechanics metal target plate"
+include_keywords:
+  - "Ti-6Al-4V"
+  - "TC4"
+  - "titanium alloy"
+  - "laser powder bed fusion"
+  - "LPBF"
+  - "additive manufacturing"
+  - "plasticity"
+  - "ductile fracture"
+  - "fracture mechanics"
+  - "fracture criterion"
+  - "stress triaxiality"
+  - "triaxiality"
+  - "Lode"
+  - "strain rate"
+  - "dynamic constitutive"
+  - "temperature dependent"
+  - "damage evolution"
+  - "damage initiation"
+  - "failure mechanism"
+  - "constitutive model"
+  - "user material"
+  - "Johnson-Cook"
+  - "Johnson Cook"
+  - "GISSMO"
+  - "DIEM"
+  - "UMAT"
+  - "VUMAT"
+  - "LS-DYNA"
+  - "LS Dyna"
+  - "ABAQUS"
+  - "multiaxial"
+  - "non-proportional"
+  - "non proportional"
+  - "path dependent"
+  - "path dependence"
+  - "void nucleation"
+  - "void growth"
+  - "void coalescence"
+  - "digital image correlation"
+  - "DIC"
+  - "ballistic impact"
+  - "penetration"
+  - "projectile"
+  - "target plate"
+  - "impact dynamics"
+exclude_keywords:
+  - "gene"
+  - "genome"
+  - "protein"
+  - "cell"
+  - "clinical"
+  - "patient"
+  - "neural network"
+  - "large language model"
+  - "reinforcement learning"
+require_topic_match: true
 public_api:
-  enabled: true
+  enabled: false
   base_url: "https://rbsfoisrcaxacwodbuzg.supabase.co/functions/v1"
   publishable_key: "sb_publishable_-FMvey8-oTinBjTp5Ru4DA_L6QLFa9v"
   api_key_env: "SUPABASE_PUBLISHABLE_KEY"
   page_size: 200
   timeout_seconds: 30
 openalex:
-  enabled: false
+  enabled: true
   mailto: "${OPENALEX_MAILTO}"
 crossref:
   enabled: true
   mailto: "${CROSSREF_MAILTO}"
 arxiv:
-  enabled: true
-  categories: ["q-bio.GN", "cs.LG"]
+  enabled: false
+  categories: ["cond-mat.mtrl-sci", "physics.app-ph"]
 biorxiv:
-  enabled: true
+  enabled: false
   from_days_ago: 7
 medrxiv:
   enabled: false
