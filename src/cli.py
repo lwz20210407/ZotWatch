@@ -12,6 +12,7 @@ from .dedupe import DedupeEngine
 from .fetch_new import CandidateFetcher
 from .ingest_zotero_api import ZoteroIngestor
 from .logging_utils import setup_logging
+from .metadata_enrich import enrich_ranked_works
 from .models import RankedWork
 from .push_to_zotero import ZoteroPusher
 from .rss_writer import write_rss
@@ -95,6 +96,8 @@ def run_watch(
 
     if top and len(ranked) > top:
         ranked = ranked[:top]
+
+    ranked = enrich_ranked_works(ranked, settings)
 
     if not ranked:
         logging.getLogger(__name__).info("No ranked results available")
