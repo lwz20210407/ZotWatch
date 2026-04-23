@@ -24,6 +24,20 @@ tracked_venues:
   - International Journal of Fracture
   - Materials & Design
   - European Journal of Mechanics - A/Solids
+  - Journal of Constructional Steel Research
+  - Journal of Materials Science
+  - Mechanics of Solids
+  - Journal of Applied Mechanics
+  - Journal of Engineering Materials and Technology
+  - Computer Methods in Applied Mechanics and Engineering
+  - Experimental Mechanics
+  - International Journal of Material Forming
+  - Acta Materialia
+  - Journal of Materials Research and Technology
+  - Metals
+  - Materials
+  - International Journal of Protective Structures
+  - Archives of Computational Methods in Engineering
 queries:
   - "laser powder bed fusion Ti-6Al-4V plasticity fracture"
   - "laser powder bed fusion TC4 titanium alloy plastic behavior damage mechanism"
@@ -47,6 +61,55 @@ queries:
   - "machine learning constitutive model ductile fracture metal alloy"
   - "neural network constitutive model plasticity fracture metal"
   - "metal alloy dynamic plasticity damage fracture criterion"
+  - "Modified Mohr-Coulomb MMC ductile fracture criterion stress triaxiality Lode"
+  - "Hosford-Coulomb ductile fracture criterion stress triaxiality Lode"
+  - "Bai-Wierzbicki ductile fracture model stress state dependent"
+  - "Xue-Wierzbicki fracture model Lode stress triaxiality"
+  - "DF2014 DF2016 DF2021 ductile fracture criterion"
+  - "DF2021 fracture criterion ballistic impact stress triaxiality cutoff"
+  - "modified Johnson-Cook MJC constitutive model fracture criterion"
+  - "GISSMO DIEM damage model stress triaxiality Lode LS-DYNA"
+  - "Gurson Tvergaard Needleman GTN modified GTN Thomason ductile fracture"
+  - "Chocron-Erice-Anderson fracture model armor steel"
+  - "Lemaitre continuum damage mechanics modified Mohr-Coulomb Ti-6Al-4V"
+  - "Hershey-Hosford nonquadratic yield criterion ductile fracture"
+  - "CPB06 yield criterion titanium alloy anisotropy tension compression asymmetry"
+  - "third invariant J3 deviatoric stress ductile fracture criterion"
+  - "stress invariant based yield criterion titanium alloy"
+  - "fracture locus fracture envelope equivalent plastic strain Lode triaxiality"
+  - "non-proportional load path damage accumulation ductile fracture"
+  - "Chaboche combined hardening damage accumulation fracture prediction"
+  - "SFL SDA CSSFM crack initiation path change ductile fracture"
+  - "Preston Tonks Wallace PTW Zerilli Armstrong dynamic constitutive model metal"
+  - "Khan Huang Liang Rusinek Klepaczko dynamic constitutive model metal"
+  - "Shin Kim Lin Wagoner flow stress strain rate temperature constitutive"
+  - "adiabatic shear band shear plugging ballistic impact GISSMO"
+  - "split Hopkinson pressure bar SHPB high strain rate ductile fracture metal"
+  - "high speed digital image correlation DIC fracture strain stress state"
+  - "Abaqus VUMAT stress state dependent ductile fracture criterion"
+  - "LS-DYNA MAT_224 GISSMO stress triaxiality Lode damage"
+  - "LS-DYNA MAT 224 damage model fracture criterion metal"
+  - "non-associated flow rule anisotropic plasticity ductile fracture"
+  - "non-associated flow rule yield function lode angle sheet metal"
+  - "non-quadratic yield function ductile fracture Lode angle"
+  - "Lou-Yoon ductile fracture criterion stress triaxiality Lode"
+  - "Lou Huh ductile fracture criterion stress triaxiality Lode"
+  - "Mu fracture criterion ductile metal stress triaxiality Lode"
+  - "Hu fracture criterion ductile metal stress triaxiality Lode"
+  - "Swift Voce hardening plasticity fracture metal"
+  - "Hollomon Voce strain hardening ductile fracture"
+  - "Barlat Yld2000 Yld2004 anisotropic yield ductile fracture"
+  - "Cazacu Barlat CPB06 titanium alloy yield criterion"
+  - "tension compression asymmetry titanium alloy plasticity model"
+  - "orthotropic yield criterion HCP titanium alloy"
+  - "post-necking hardening rule stress-state dependency ductile fracture"
+  - "stress-state-dependent fracture additively manufactured metals"
+  - "strain rate and temperature dependent fracture neural network modeling"
+  - "rate dependence high strength steel impact applications GISSMO"
+  - "dynamic axial crushing crack formation damage accumulation"
+  - "progressive folding square tubes dynamic axial crushing crack formation"
+  - "ballistic impact flat-ended projectile aluminum plate GISSMO"
+  - "perforation mechanics finite thickness plates high strain rate predictive model"
   - "stress state dependent plasticity Lode parameter titanium alloy"
   - "ductile fracture criterion stress triaxiality Lode angle Ti-6Al-4V"
   - "stress triaxiality Lode parameter ductile fracture metal"
@@ -113,20 +176,107 @@ include_keywords:
   - "projectile"
   - "target plate"
   - "impact dynamics"
+  - "Modified Mohr-Coulomb"
+  - "Mohr-Coulomb"
+  - "MMC"
+  - "Hosford-Coulomb"
+  - "Bai-Wierzbicki"
+  - "Xue-Wierzbicki"
+  - "Chocron-Erice-Anderson"
+  - "DF2014"
+  - "DF2016"
+  - "DF2021"
+  - "MJC"
+  - "modified Johnson-Cook"
+  - "modified Johnson Cook"
+  - "GTN"
+  - "Gurson"
+  - "Tvergaard"
+  - "Needleman"
+  - "Thomason"
+  - "Lemaitre"
+  - "CDM"
+  - "continuum damage mechanics"
+  - "CPB06"
+  - "Hershey-Hosford"
+  - "Hershey Hosford"
+  - "non-quadratic yield"
+  - "stress invariant"
+  - "third invariant"
+  - "J3"
+  - "deviatoric stress"
+  - "fracture locus"
+  - "fracture envelope"
+  - "equivalent plastic strain"
+  - "stress triaxiality cutoff"
+  - "damage accumulation"
+  - "Chaboche"
+  - "SHPB"
+  - "split Hopkinson"
+  - "adiabatic shear band"
+  - "shear plugging"
+  - "ballistic limit velocity"
+  - "non-associated flow"
+  - "flow rule"
+  - "associated non-quadratic yield"
+  - "orthotropic yield"
+  - "tension-compression asymmetry"
+  - "tension compression asymmetry"
+  - "post-necking hardening"
+  - "stress-state dependency"
+  - "stress-state-dependent"
+  - "Lou-Yoon"
+  - "Lou Huh"
+  - "Hu criterion"
+  - "Mu criterion"
+  - "DF series"
+  - "DF-series"
+  - "SFL"
+  - "SDA"
+  - "CSSFM"
+  - "MAT_224"
+  - "MAT 224"
+  - "Barlat"
+  - "Yld2000"
+  - "Yld2004"
+  - "Swift"
+  - "Voce"
+  - "Hollomon"
+  - "Cazacu"
+  - "Preston-Tonks-Wallace"
+  - "Zerilli-Armstrong"
+  - "Khan-Huang-Liang"
+  - "Rusinek-Klepaczko"
 required_keyword_groups:
   - ["Ti-6Al-4V", "Ti6Al4V", "TC4", "titanium alloy", "titanium alloys"]
-  - ["plasticity", "plastic behavior", "constitutive", "ductile fracture", "fracture criterion", "damage", "stress triaxiality", "triaxiality", "Lode", "strain rate", "temperature dependent", "Johnson-Cook", "Johnson Cook", "GISSMO", "DIEM", "UMAT", "VUMAT", "LS-DYNA", "ABAQUS", "impact", "penetration", "ballistic"]
+  - ["plasticity", "plastic behavior", "constitutive", "ductile fracture", "fracture criterion", "damage", "stress triaxiality", "triaxiality", "Lode", "strain rate", "temperature dependent", "Johnson-Cook", "Johnson Cook", "modified Johnson-Cook", "MJC", "GISSMO", "DIEM", "MMC", "Modified Mohr-Coulomb", "Hosford-Coulomb", "GTN", "CDM", "UMAT", "VUMAT", "LS-DYNA", "ABAQUS", "impact", "penetration", "ballistic"]
 required_any_group_sets:
   -
     - ["Ti-6Al-4V", "Ti6Al4V", "TC4", "titanium alloy", "titanium alloys"]
-    - ["plasticity", "plastic behavior", "constitutive", "ductile fracture", "fracture criterion", "damage", "stress triaxiality", "triaxiality", "Lode", "strain rate", "temperature dependent", "Johnson-Cook", "Johnson Cook", "GISSMO", "DIEM", "UMAT", "VUMAT", "LS-DYNA", "ABAQUS", "impact", "penetration", "ballistic"]
+    - ["plasticity", "plastic behavior", "constitutive", "ductile fracture", "fracture criterion", "damage", "stress triaxiality", "triaxiality", "Lode", "strain rate", "temperature dependent", "Johnson-Cook", "Johnson Cook", "modified Johnson-Cook", "MJC", "GISSMO", "DIEM", "MMC", "Modified Mohr-Coulomb", "Hosford-Coulomb", "GTN", "CDM", "UMAT", "VUMAT", "LS-DYNA", "ABAQUS", "impact", "penetration", "ballistic"]
   -
     - ["aluminum alloy", "aluminium alloy", "magnesium alloy", "steel", "high strength steel", "stainless steel", "copper", "copper alloy", "high-entropy alloy", "entropy alloy", "Inconel", "nickel", "metal alloy"]
-    - ["dynamic plasticity", "dynamic constitutive", "ductile fracture", "fracture criterion", "stress triaxiality", "triaxiality", "Lode", "strain rate", "temperature dependent", "damage evolution", "damage initiation", "Johnson-Cook", "Johnson Cook", "GISSMO", "DIEM", "constitutive model", "fracture analysis", "damage mechanics"]
+    - ["dynamic plasticity", "dynamic constitutive", "ductile fracture", "fracture criterion", "stress triaxiality", "triaxiality", "Lode", "strain rate", "temperature dependent", "damage evolution", "damage initiation", "Johnson-Cook", "Johnson Cook", "modified Johnson-Cook", "MJC", "GISSMO", "DIEM", "MMC", "Modified Mohr-Coulomb", "Hosford-Coulomb", "GTN", "Chocron-Erice-Anderson", "Xue-Wierzbicki", "DF2021", "constitutive model", "fracture analysis", "damage mechanics"]
   -
     - ["machine learning", "neural network", "deep learning", "surrogate model", "Bayesian optimization"]
     - ["constitutive model", "plasticity", "ductile fracture", "fracture criterion", "damage", "stress triaxiality", "strain rate", "temperature dependent", "metal", "alloy"]
+  -
+    - ["DF2014", "DF2016", "DF2021", "MMC", "Modified Mohr-Coulomb", "Hosford-Coulomb", "Bai-Wierzbicki", "Xue-Wierzbicki", "Chocron-Erice-Anderson", "GTN", "Gurson", "Thomason", "Lemaitre", "CDM", "CPB06", "Hershey-Hosford"]
+    - ["ductile fracture", "fracture criterion", "damage", "stress triaxiality", "Lode", "triaxiality", "plasticity", "metal", "alloy"]
+  -
+    - ["MAT_224", "MAT 224", "GISSMO", "DIEM", "LS-DYNA", "VUMAT", "UMAT", "ABAQUS"]
+    - ["damage", "fracture", "failure", "stress triaxiality", "Lode", "strain rate", "plasticity", "metal", "alloy", "impact", "penetration"]
+  -
+    - ["Barlat", "Yld2000", "Yld2004", "CPB06", "Cazacu", "Hershey-Hosford", "Hosford", "non-associated flow", "non-quadratic yield", "orthotropic yield"]
+    - ["plasticity", "yield", "ductile fracture", "fracture", "stress state", "Lode", "titanium", "sheet metal", "metal"]
 exclude_keywords:
+  - "concrete"
+  - "cement"
+  - "freeze-thaw"
+  - "freeze thaw"
+  - "mesoscopic damage feature"
+  - "electronic structure"
+  - "DFT"
   - "biomedical"
   - "corrosion"
   - "oxidation"
