@@ -398,9 +398,18 @@ class CandidateFetcher:
             [term.lower() for term in group if term.strip()]
             for group in self.settings.sources.required_keyword_groups
         ]
+        required_any_group_sets = [
+            [[term.lower() for term in group if term.strip()] for group in group_set]
+            for group_set in self.settings.sources.required_any_group_sets
+        ]
+        required_any_group_sets = [
+            [group for group in group_set if group]
+            for group_set in required_any_group_sets
+        ]
+        required_any_group_sets = [group_set for group_set in required_any_group_sets if group_set]
         exclude = [term.lower() for term in self.settings.sources.exclude_keywords if term.strip()]
         required_groups = [group for group in required_groups if group]
-        if not include and not required_groups and not exclude:
+        if not include and not required_groups and not required_any_group_sets and not exclude:
             return _dedupe_candidates(candidates)
 
         kept: List[CandidateWork] = []
@@ -410,7 +419,10 @@ class CandidateFetcher:
             ).lower()
             if exclude and any(term in haystack for term in exclude):
                 continue
-            if required_groups:
+            if required_any_group_sets:
+                if not any(_matches_required_groups(haystack, group_set) for group_set in required_any_group_sets):
+                    continue
+            elif required_groups:
                 if not all(any(term in haystack for term in group) for group in required_groups):
                     continue
             if self.settings.sources.require_topic_match and include:
@@ -654,6 +666,10 @@ def _dedupe_candidates(candidates: List[CandidateWork]) -> List[CandidateWork]:
         seen.add(key)
         unique.append(candidate)
     return unique
+
+
+def _matches_required_groups(haystack: str, groups: List[List[str]]) -> bool:
+    return all(any(term in haystack for term in group) for group in groups)
 
 
 __all__ = ["CandidateFetcher"]
