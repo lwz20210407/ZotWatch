@@ -1,4 +1,29 @@
 window_days: 30
+tracked_venues:
+  - International Journal of Plasticity
+  - International Journal of Impact Engineering
+  - Engineering Fracture Mechanics
+  - Engineering Failure Analysis
+  - Journal of the Mechanics and Physics of Solids
+  - Mechanics of Materials
+  - International Journal of Solids and Structures
+  - Theoretical and Applied Mechanics Letters
+  - Theoretical and Applied Fracture Mechanics
+  - "Materials Science and Engineering: A"
+  - Additive Manufacturing
+  - International Journal of Mechanical Sciences
+  - Thin-Walled Structures
+  - Computational Materials Science
+  - Defence Technology
+  - Construction and Building Materials
+  - Engineering Structures
+  - Journal of Alloys and Compounds
+  - Computers & Structures
+  - International Journal of Damage Mechanics
+  - Journal of Materials Processing Technology
+  - International Journal of Fracture
+  - Materials & Design
+  - European Journal of Mechanics - A/Solids
 queries:
   - "laser powder bed fusion Ti-6Al-4V plasticity fracture"
   - "laser powder bed fusion TC4 titanium alloy plastic behavior damage mechanism"
