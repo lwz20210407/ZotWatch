@@ -94,6 +94,7 @@ class SourcesConfig(BaseModel):
     queries: List[str] = Field(default_factory=list)
     include_keywords: List[str] = Field(default_factory=list)
     required_keyword_groups: List[List[str]] = Field(default_factory=list)
+    required_any_group_sets: List[List[List[str]]] = Field(default_factory=list)
     exclude_keywords: List[str] = Field(default_factory=list)
     require_topic_match: bool = False
     public_api: PublicCandidatesApiConfig = Field(default_factory=PublicCandidatesApiConfig)
