@@ -5,6 +5,7 @@ import logging
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Optional
+from zoneinfo import ZoneInfo
 from dotenv import load_dotenv
 
 from .build_profile import ProfileBuilder
@@ -112,9 +113,8 @@ def run_watch(
     if rss:
         write_rss(ranked, base_dir / "reports" / "feed.xml")
     if report:
-        report_name = "report.html"
-        if ranked[0].published:
-            report_name = f"report-{ranked[0].published:%Y%m%d}.html"
+        report_date = datetime.now(ZoneInfo("Asia/Shanghai"))
+        report_name = f"report-{report_date:%Y%m%d}.html"
         render_html(ranked, base_dir / "reports" / report_name)
     if push:
         ZoteroPusher(settings).push(ranked)
