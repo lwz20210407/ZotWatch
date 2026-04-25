@@ -106,25 +106,27 @@ jobs:
           feed_path = Path("reports/feed.xml")
 
           pages_url = "https://lwz20210407.github.io/ZotWatch/"
+          feed_url = "https://lwz20210407.github.io/ZotWatch/feed.xml"
           run_url = (
               f"https://github.com/{os.getenv('GITHUB_REPOSITORY')}/actions/runs/"
               f"{os.getenv('GITHUB_RUN_ID')}"
           )
 
           msg = EmailMessage()
-          msg["Subject"] = f"ZotWatch daily digest - {now:%Y-%m-%d}"
+          msg["Subject"] = f"Zotero文献每日推送 - {now:%Y-%m-%d}"
           msg["From"] = smtp_from
           msg["To"] = email_to
           msg.set_content(
               "\n".join(
                   [
-                      f"ZotWatch finished at {now:%Y-%m-%d %H:%M:%S} Beijing time.",
+                      f"Zotero文献每日推送已更新：{now:%Y-%m-%d %H:%M:%S} 北京时间",
                       "",
-                      f"Pages: {pages_url}",
-                      f"GitHub Actions run: {run_url}",
-                      f"Latest report: {latest_report.name if latest_report else 'not generated'}",
+                      f"查看今日文献页面：{pages_url}",
+                      f"RSS 订阅地址：{feed_url}",
+                      f"本次运行记录：{run_url}",
+                      f"最新报告文件：{latest_report.name if latest_report else '未生成'}",
                       "",
-                      "The latest HTML report and RSS feed are attached when available.",
+                      "邮件附件中也包含最新 HTML report 和 feed.xml。",
                   ]
               )
           )
