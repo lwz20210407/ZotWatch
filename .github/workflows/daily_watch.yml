@@ -22,6 +22,12 @@ jobs:
       ALTMETRIC_KEY: ${{ secrets.ALTMETRIC_KEY }}
       OPENALEX_MAILTO: ${{ secrets.OPENALEX_MAILTO }}
       CROSSREF_MAILTO: ${{ secrets.CROSSREF_MAILTO }}
+      EMAIL_TO: lwz20210407@njust.edu.cn
+      SMTP_HOST: ${{ secrets.SMTP_HOST }}
+      SMTP_PORT: ${{ secrets.SMTP_PORT }}
+      SMTP_USERNAME: ${{ secrets.SMTP_USERNAME }}
+      SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
+      SMTP_FROM: ${{ secrets.SMTP_FROM }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -61,3 +67,90 @@ jobs:
         with:
           path: ./public
       - uses: actions/deploy-pages@v4
+      - name: Email digest
+        run: |
+          python - <<'PY'
+          import os
+          import smtplib
+          import ssl
+          from datetime import datetime
+          from email.message import EmailMessage
+          from pathlib import Path
+          from zoneinfo import ZoneInfo
+
+          required = {
+              "SMTP_HOST": os.getenv("SMTP_HOST"),
+              "SMTP_USERNAME": os.getenv("SMTP_USERNAME"),
+              "SMTP_PASSWORD": os.getenv("SMTP_PASSWORD"),
+              "EMAIL_TO": os.getenv("EMAIL_TO"),
+          }
+          missing = [key for key, value in required.items() if not value]
+          if missing:
+              print(f"Skipping email digest; missing secrets/env: {', '.join(missing)}")
+              raise SystemExit(0)
+
+          smtp_host = required["SMTP_HOST"]
+          smtp_user = required["SMTP_USERNAME"]
+          smtp_password = required["SMTP_PASSWORD"]
+          email_to = required["EMAIL_TO"]
+          smtp_port = int(os.getenv("SMTP_PORT") or "587")
+          smtp_from = os.getenv("SMTP_FROM") or smtp_user
+
+          now = datetime.now(ZoneInfo("Asia/Shanghai"))
+          reports = sorted(
+              Path("reports").glob("report*.html"),
+              key=lambda path: path.stat().st_mtime,
+              reverse=True,
+          )
+          latest_report = reports[0] if reports else None
+          feed_path = Path("reports/feed.xml")
+
+          pages_url = "https://lwz20210407.github.io/ZotWatch/"
+          run_url = (
+              f"https://github.com/{os.getenv('GITHUB_REPOSITORY')}/actions/runs/"
+              f"{os.getenv('GITHUB_RUN_ID')}"
+          )
+
+          msg = EmailMessage()
+          msg["Subject"] = f"ZotWatch daily digest - {now:%Y-%m-%d}"
+          msg["From"] = smtp_from
+          msg["To"] = email_to
+          msg.set_content(
+              "\n".join(
+                  [
+                      f"ZotWatch finished at {now:%Y-%m-%d %H:%M:%S} Beijing time.",
+                      "",
+                      f"Pages: {pages_url}",
+                      f"GitHub Actions run: {run_url}",
+                      f"Latest report: {latest_report.name if latest_report else 'not generated'}",
+                      "",
+                      "The latest HTML report and RSS feed are attached when available.",
+                  ]
+              )
+          )
+
+          if latest_report:
+              msg.add_attachment(
+                  latest_report.read_text(encoding="utf-8"),
+                  subtype="html",
+                  filename=latest_report.name,
+              )
+          if feed_path.exists():
+              msg.add_attachment(
+                  feed_path.read_text(encoding="utf-8"),
+                  subtype="xml",
+                  filename=feed_path.name,
+              )
+
+          if smtp_port == 465:
+              with smtplib.SMTP_SSL(smtp_host, smtp_port, context=ssl.create_default_context()) as server:
+                  server.login(smtp_user, smtp_password)
+                  server.send_message(msg)
+          else:
+              with smtplib.SMTP(smtp_host, smtp_port) as server:
+                  server.starttls(context=ssl.create_default_context())
+                  server.login(smtp_user, smtp_password)
+                  server.send_message(msg)
+
+          print(f"Sent ZotWatch email digest to {email_to}")
+          PY
