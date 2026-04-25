@@ -444,6 +444,22 @@ exclude_keywords:
   - "patient"
   - "large language model"
   - "reinforcement learning"
+  - "molecular dynamics"
+  - "molecular dynamics simulation"
+  - "atomistic simulation"
+  - "bicrystal"
+  - "bicrystals"
+  - "single crystal"
+  - "crystal plasticity"
+  - "backstress"
+  - "stress dip"
+  - "UHMWPE"
+  - "hybrid ballistic panel"
+  - "hybrid ballistic panels"
+  - "ground combat vehicle"
+  - "armor panel"
+  - "armour panel"
+  - "protective panel"
 require_topic_match: true
 public_api:
   enabled: false

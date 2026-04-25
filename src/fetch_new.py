@@ -46,7 +46,7 @@ class CandidateFetcher:
                     fetched_at.isoformat(),
                     age.total_seconds() / 3600,
                 )
-                return candidates
+                return self._filter_by_topic(candidates)
             logger.info(
                 "Candidate cache is stale (age %.1f hours); refreshing",
                 age.total_seconds() / 3600,
