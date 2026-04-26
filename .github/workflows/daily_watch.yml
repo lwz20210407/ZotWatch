@@ -1,8 +1,8 @@
-name: Daily Watch & RSS
+name: Weekly Watch & RSS
 
 on:
   schedule:
-    - cron: "0 2 * * *"  # Beijing time 10:00
+    - cron: "0 23 * * 3"  # Thursday Beijing time 07:00
   push:
     branches:
       - main
@@ -113,15 +113,15 @@ jobs:
           )
 
           msg = EmailMessage()
-          msg["Subject"] = f"Zotero文献每日推送 - {now:%Y-%m-%d}"
+          msg["Subject"] = f"Zotero文献每周推送 - {now:%Y-%m-%d}"
           msg["From"] = smtp_from
           msg["To"] = email_to
           msg.set_content(
               "\n".join(
                   [
-                      f"Zotero文献每日推送已更新：{now:%Y-%m-%d %H:%M:%S} 北京时间",
+                      f"Zotero文献每周推送已更新：{now:%Y-%m-%d %H:%M:%S} 北京时间",
                       "",
-                      f"查看今日文献页面：{pages_url}",
+                      f"查看本周文献页面：{pages_url}",
                       f"RSS 订阅地址：{feed_url}",
                       f"本次运行记录：{run_url}",
                       f"最新报告文件：{latest_report.name if latest_report else '未生成'}",
