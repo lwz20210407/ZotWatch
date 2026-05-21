@@ -388,11 +388,11 @@ include_keywords:
   - "loading path"
 required_keyword_groups:
   - ["Ti-6Al-4V", "Ti6Al4V", "TC4", "titanium alloy", "titanium alloys"]
-  - ["plasticity", "plastic behavior", "constitutive", "ductile fracture", "fracture criterion", "damage", "stress triaxiality", "triaxiality", "Lode", "strain rate", "temperature dependent", "Johnson-Cook", "Johnson Cook", "modified Johnson-Cook", "MJC", "GISSMO", "DIEM", "MMC", "Modified Mohr-Coulomb", "Hosford-Coulomb", "GTN", "CDM", "UMAT", "VUMAT", "LS-DYNA", "ABAQUS", "impact", "penetration", "ballistic"]
+  - ["stress state", "stress-state", "stress triaxiality", "triaxiality", "Lode", "ductile fracture", "fracture criterion", "fracture locus", "damage evolution", "damage initiation", "strain rate", "high strain rate", "temperature dependent", "dynamic constitutive", "constitutive model", "Johnson-Cook", "Johnson Cook", "modified Johnson-Cook", "MJC", "GISSMO", "DIEM", "MMC", "Modified Mohr-Coulomb", "Hosford-Coulomb", "GTN", "CDM", "UMAT", "VUMAT", "LS-DYNA", "ABAQUS", "penetration", "ballistic", "adiabatic shear"]
 required_any_group_sets:
   -
     - ["Ti-6Al-4V", "Ti6Al4V", "TC4", "titanium alloy", "titanium alloys"]
-    - ["plasticity", "plastic behavior", "constitutive", "ductile fracture", "fracture criterion", "damage", "stress triaxiality", "triaxiality", "Lode", "strain rate", "temperature dependent", "Johnson-Cook", "Johnson Cook", "modified Johnson-Cook", "MJC", "GISSMO", "DIEM", "MMC", "Modified Mohr-Coulomb", "Hosford-Coulomb", "GTN", "CDM", "UMAT", "VUMAT", "LS-DYNA", "ABAQUS", "impact", "penetration", "ballistic"]
+    - ["stress state", "stress-state", "stress triaxiality", "triaxiality", "Lode", "ductile fracture", "fracture criterion", "fracture locus", "damage evolution", "damage initiation", "strain rate", "high strain rate", "temperature dependent", "dynamic constitutive", "constitutive model", "Johnson-Cook", "Johnson Cook", "modified Johnson-Cook", "MJC", "GISSMO", "DIEM", "MMC", "Modified Mohr-Coulomb", "Hosford-Coulomb", "GTN", "CDM", "UMAT", "VUMAT", "LS-DYNA", "ABAQUS", "penetration", "ballistic", "adiabatic shear"]
   -
     - ["aluminum alloy", "aluminium alloy", "magnesium alloy", "steel", "high strength steel", "stainless steel", "copper", "copper alloy", "high-entropy alloy", "entropy alloy", "Inconel", "nickel", "metal alloy"]
     - ["dynamic plasticity", "dynamic constitutive", "ductile fracture", "fracture criterion", "stress triaxiality", "triaxiality", "Lode", "strain rate", "temperature dependent", "damage evolution", "damage initiation", "Johnson-Cook", "Johnson Cook", "modified Johnson-Cook", "MJC", "GISSMO", "DIEM", "MMC", "Modified Mohr-Coulomb", "Hosford-Coulomb", "GTN", "Chocron-Erice-Anderson", "Xue-Wierzbicki", "DF2021", "constitutive model", "fracture analysis", "damage mechanics"]
@@ -460,6 +460,47 @@ exclude_keywords:
   - "armor panel"
   - "armour panel"
   - "protective panel"
+  - "process-microstructure"
+  - "process microstructure"
+  - "microstructure engineering"
+  - "processing map"
+  - "hot processing map"
+  - "dynamic precipitation"
+  - "dynamic dissolution"
+  - "creep damage"
+  - "surface integrity"
+  - "shot peening"
+  - "fatigue performance"
+  - "powder particle impact"
+  - "geotechnical"
+  - "sandy dolomite"
+  - "soil"
+  - "biomedical implant"
+  - "corrosion evaluation"
+  - "oxidation kinetics"
+  - "mural"
+  - "stable diffusion"
+  - "deeplab"
+  - "image restoration"
+  - "brittle fracture"
+  - "ductile-brittle transition"
+  - "polycarbonate"
+  - "cold spray"
+  - "microstructure, mechanical properties"
+  - "mechanical properties and additive manufacturing"
+  - "mechanical properties of heat-treated"
+  - "post-fire"
+  - "weldments"
+  - "girth weld"
+  - "thermal behavior, microstructure evolution and mechanical properties"
+  - "hole-flangeability"
+  - "toolpaths"
+  - "amorphous polymers"
+  - "quasi-brittle materials"
+  - "residual stress during machining"
+  - "helmet liner"
+  - "traumatic brain injury"
+  - "lattice structure"
 require_topic_match: true
 public_api:
   enabled: false

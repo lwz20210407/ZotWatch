@@ -1,11 +1,11 @@
 weights:
-  similarity: 0.62
-  recency: 0.10
-  citations: 0.10
-  altmetric: 0.03
-  journal_quality: 0.05
+  similarity: 0.68
+  recency: 0.12
+  citations: 0.08
+  altmetric: 0.02
+  journal_quality: 0.06
   author_bonus: 0.00
-  venue_bonus: 0.10
+  venue_bonus: 0.04
 thresholds:
   must_read: 0.75
   consider: 0.5
@@ -38,7 +38,6 @@ whitelist_venues:
   - Experimental Mechanics
   - International Journal of Material Forming
   - Acta Materialia
-  - Journal of Materials Research and Technology
   - Materials & Design
   - European Journal of Mechanics - A/Solids
   - International Journal of Damage Mechanics
@@ -51,5 +50,4 @@ whitelist_venues:
   - Journal of Engineering Mechanics
   - Journal of Mechanical Science and Technology
   - Materials Characterization
-  - Materials Today Communications
   - Intermetallics
