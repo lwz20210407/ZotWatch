@@ -51,6 +51,13 @@ queries:
   - "additively manufactured TC4 titanium alloy constitutive model fracture criterion"
   - "additive manufactured Ti-6Al-4V extreme environment plasticity damage"
   - "additive manufacturing Ti-6Al-4V ductile fracture stress triaxiality Lode"
+  - "LPBF Ti-6Al-4V thermoviscoplastic constitutive model thermal softening"
+  - "LPBF Ti-6Al-4V anisotropic ductile fracture stress state"
+  - "LPBF Ti-6Al-4V load path dependent damage evolution non-proportional loading"
+  - "Ti-6Al-4V adiabatic heating shear localization high strain rate"
+  - "Ti-6Al-4V inverse parameter identification LS-OPT constitutive fracture model"
+  - "LS-OPT inverse parameter identification constitutive fracture damage metal alloy"
+  - "thermal softening thermoviscoplastic constitutive model aluminum steel titanium alloy"
   - "TC4 titanium alloy Johnson Cook fracture strain rate temperature"
   - "Ti-6Al-4V dynamic constitutive model strain rate temperature"
   - "temperature dependent constitutive model Ti-6Al-4V plasticity damage"
@@ -180,6 +187,21 @@ include_keywords:
   - "laser powder bed fusion"
   - "LPBF"
   - "additive manufacturing"
+  - "thermo-viscoplastic"
+  - "thermoviscoplastic"
+  - "thermal softening"
+  - "adiabatic heating"
+  - "shear localization"
+  - "anisotropic ductile fracture"
+  - "load-path-dependent damage"
+  - "load path dependent damage"
+  - "inverse parameter identification"
+  - "inverse identification"
+  - "parameter calibration"
+  - "parameter identification"
+  - "parameter inversion"
+  - "inverse calibration"
+  - "LS-OPT"
   - "plasticity"
   - "ductile fracture"
   - "fracture mechanics"
@@ -388,17 +410,22 @@ include_keywords:
   - "loading path"
 required_keyword_groups:
   - ["Ti-6Al-4V", "Ti6Al4V", "TC4", "titanium alloy", "titanium alloys"]
-  - ["stress state", "stress-state", "stress triaxiality", "triaxiality", "Lode", "ductile fracture", "fracture criterion", "fracture locus", "damage evolution", "damage initiation", "strain rate", "high strain rate", "temperature dependent", "dynamic constitutive", "constitutive model", "Johnson-Cook", "Johnson Cook", "modified Johnson-Cook", "MJC", "GISSMO", "DIEM", "MMC", "Modified Mohr-Coulomb", "Hosford-Coulomb", "GTN", "CDM", "UMAT", "VUMAT", "LS-DYNA", "ABAQUS", "penetration", "ballistic", "adiabatic shear"]
+  - ["stress state", "stress-state", "stress triaxiality", "triaxiality", "Lode", "ductile fracture", "fracture criterion", "fracture locus", "damage evolution", "damage initiation", "strain rate", "high strain rate", "temperature dependent", "dynamic constitutive", "constitutive model", "Johnson-Cook", "Johnson Cook", "modified Johnson-Cook", "MJC", "GISSMO", "DIEM", "MMC", "Modified Mohr-Coulomb", "Hosford-Coulomb", "GTN", "CDM", "UMAT", "VUMAT", "LS-DYNA", "ABAQUS", "penetration", "ballistic", "adiabatic shear", "thermo-viscoplastic", "thermoviscoplastic", "thermal softening", "adiabatic heating", "shear localization", "anisotropic ductile fracture", "load-path-dependent damage", "load path dependent damage"]
 required_any_group_sets:
   -
     - ["Ti-6Al-4V", "Ti6Al4V", "TC4", "titanium alloy", "titanium alloys"]
-    - ["stress state", "stress-state", "stress triaxiality", "triaxiality", "Lode", "ductile fracture", "fracture criterion", "fracture locus", "damage evolution", "damage initiation", "strain rate", "high strain rate", "temperature dependent", "dynamic constitutive", "constitutive model", "Johnson-Cook", "Johnson Cook", "modified Johnson-Cook", "MJC", "GISSMO", "DIEM", "MMC", "Modified Mohr-Coulomb", "Hosford-Coulomb", "GTN", "CDM", "UMAT", "VUMAT", "LS-DYNA", "ABAQUS", "penetration", "ballistic", "adiabatic shear"]
+    - ["stress state", "stress-state", "stress triaxiality", "triaxiality", "Lode", "ductile fracture", "fracture criterion", "fracture locus", "damage evolution", "damage initiation", "strain rate", "high strain rate", "temperature dependent", "dynamic constitutive", "constitutive model", "Johnson-Cook", "Johnson Cook", "modified Johnson-Cook", "MJC", "GISSMO", "DIEM", "MMC", "Modified Mohr-Coulomb", "Hosford-Coulomb", "GTN", "CDM", "UMAT", "VUMAT", "LS-DYNA", "ABAQUS", "penetration", "ballistic", "adiabatic shear", "thermo-viscoplastic", "thermoviscoplastic", "thermal softening", "adiabatic heating", "shear localization", "anisotropic ductile fracture", "load-path-dependent damage", "load path dependent damage"]
   -
     - ["aluminum alloy", "aluminium alloy", "magnesium alloy", "steel", "high strength steel", "stainless steel", "copper", "copper alloy", "high-entropy alloy", "entropy alloy", "Inconel", "nickel", "metal alloy"]
-    - ["dynamic plasticity", "dynamic constitutive", "ductile fracture", "fracture criterion", "stress triaxiality", "triaxiality", "Lode", "strain rate", "temperature dependent", "damage evolution", "damage initiation", "Johnson-Cook", "Johnson Cook", "modified Johnson-Cook", "MJC", "GISSMO", "DIEM", "MMC", "Modified Mohr-Coulomb", "Hosford-Coulomb", "GTN", "Chocron-Erice-Anderson", "Xue-Wierzbicki", "DF2021", "constitutive model", "fracture analysis", "damage mechanics"]
+    - ["dynamic plasticity", "dynamic constitutive", "ductile fracture", "fracture criterion", "stress triaxiality", "triaxiality", "Lode", "strain rate", "damage evolution", "damage initiation", "Johnson-Cook", "Johnson Cook", "modified Johnson-Cook", "MJC", "GISSMO", "DIEM", "MMC", "Modified Mohr-Coulomb", "Hosford-Coulomb", "GTN", "Chocron-Erice-Anderson", "Xue-Wierzbicki", "DF2021", "constitutive model", "fracture analysis", "damage mechanics", "thermo-viscoplastic", "thermoviscoplastic", "thermal softening", "adiabatic heating", "shear localization", "anisotropic ductile fracture", "load-path-dependent damage", "load path dependent damage"]
   -
     - ["machine learning", "neural network", "deep learning", "surrogate model", "Bayesian optimization"]
-    - ["constitutive model", "plasticity", "ductile fracture", "fracture criterion", "damage", "stress triaxiality", "strain rate", "temperature dependent", "metal", "alloy"]
+    - ["constitutive model", "material model", "plasticity", "flow stress", "ductile fracture", "fracture model", "fracture criterion", "damage model", "damage evolution", "stress triaxiality", "strain rate", "Johnson-Cook", "Johnson Cook", "GISSMO"]
+    - ["Ti-6Al-4V", "Ti6Al4V", "TC4", "titanium alloy", "titanium alloys", "aluminum alloy", "aluminium alloy", "magnesium alloy", "steel", "high strength steel", "stainless steel", "copper", "copper alloy", "high-entropy alloy", "entropy alloy", "Inconel", "nickel", "metal", "metal alloy", "alloy"]
+  -
+    - ["Ti-6Al-4V", "Ti6Al4V", "TC4", "titanium alloy", "titanium alloys", "aluminum alloy", "aluminium alloy", "magnesium alloy", "steel", "high strength steel", "stainless steel", "copper", "copper alloy", "high-entropy alloy", "entropy alloy", "Inconel", "nickel", "metal", "metal alloy", "alloy"]
+    - ["LS-OPT", "inverse parameter identification", "inverse identification", "parameter calibration", "parameter identification", "parameter inversion", "inverse calibration"]
+    - ["constitutive model", "material model", "plasticity", "flow stress", "fracture", "fracture model", "fracture criterion", "damage", "damage model", "Johnson-Cook", "Johnson Cook", "GISSMO", "DIEM", "MAT_224", "MAT 224", "thermal softening", "strain rate", "high strain rate"]
   -
     - ["DF2014", "DF2016", "DF2021", "MMC", "Modified Mohr-Coulomb", "Hosford-Coulomb", "Bai-Wierzbicki", "Bao-Wierzbicki", "Xue-Wierzbicki", "Chocron-Erice-Anderson", "GTN", "Gurson", "Thomason", "Lemaitre", "CDM", "CPB06", "Hershey-Hosford", "Cockcroft-Latham", "Oyane", "Rice-Tracey", "McClintock", "Brozzo", "Clift", "Wilkins", "Rousselier", "Bonora", "Kachanov", "GLD"]
     - ["ductile fracture", "fracture criterion", "damage", "stress triaxiality", "Lode", "triaxiality", "plasticity", "metal", "alloy"]
