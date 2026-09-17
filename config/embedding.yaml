@@ -1,0 +1,29 @@
+# Embedding model used for the library profile and for candidate similarity.
+#
+# Changing `model_name` changes the vector dimension, so the FAISS index and the
+# stored embeddings must be rebuilt. This happens automatically: `watch` rebuilds
+# the profile on every run, and the CI profile cache key includes the model name.
+#
+# Alternatives:
+#   sentence-transformers/allenai-specter    768d, 512 tokens, trained on the
+#                                            citation graph for scientific paper
+#                                            similarity. Default.
+#   sentence-transformers/all-MiniLM-L6-v2   384d, 256 tokens, general web text.
+#                                            Faster and smaller, but truncates
+#                                            most abstracts and has no domain
+#                                            grounding. Previous default.
+#   BAAI/bge-m3                              1024d, 8192 tokens, strong on mixed
+#                                            Chinese/English. ~2.2 GB download.
+model_name: sentence-transformers/allenai-specter
+
+# How title and abstract are joined before encoding. SPECTER was trained with the
+# tokenizer SEP token between the two fields; general-purpose models expect plain
+# text, so use "\n" for those.
+text_separator: "[SEP]"
+
+# Similarity is the mean cosine over this many nearest library items instead of
+# the single nearest one. A single lucky match against one library paper is not
+# evidence of relevance; averaging a few neighbours is much more stable.
+neighbors: 5
+
+batch_size: 32

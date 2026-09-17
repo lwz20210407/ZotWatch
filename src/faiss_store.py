@@ -30,6 +30,10 @@ class FaissIndex:
         instance.index.add(vectors)
         return instance, np.arange(vectors.shape[0])
 
+    @property
+    def ntotal(self) -> int:
+        return int(self.index.ntotal)
+
     def save(self, path: Path | str) -> None:
         logger.info("Saving FAISS index to %s", path)
         faiss.write_index(self.index, str(path))

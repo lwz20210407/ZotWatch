@@ -20,15 +20,12 @@ class ZoteroItem(BaseModel):
     url: Optional[str] = None
     raw: Dict[str, object] = Field(default_factory=dict)
 
-    def content_for_embedding(self) -> str:
-        parts = [self.title]
-        if self.abstract:
-            parts.append(self.abstract)
-        if self.creators:
-            parts.append("; ".join(self.creators))
-        if self.tags:
-            parts.append("; ".join(self.tags))
-        return "\n".join(filter(None, parts))
+    def content_for_embedding(self, separator: str = "[SEP]") -> str:
+        # Only title and abstract carry topical signal. Author names and tags used
+        # to be appended here, which spent part of the model's limited input
+        # budget on non-topical tokens and truncated the tail of the abstract.
+        # Author matching is handled separately by the author whitelist/watch.
+        return separator.join(filter(None, [self.title, self.abstract]))
 
     @classmethod
     def from_zotero_api(cls, item: Dict[str, object]) -> "ZoteroItem":
@@ -74,13 +71,10 @@ class CandidateWork(BaseModel):
     metrics: Dict[str, float] = Field(default_factory=dict)
     extra: Dict[str, object] = Field(default_factory=dict)
 
-    def content_for_embedding(self) -> str:
-        parts = [self.title]
-        if self.abstract:
-            parts.append(self.abstract)
-        if self.authors:
-            parts.append("; ".join(self.authors))
-        return "\n".join(filter(None, parts))
+    def content_for_embedding(self, separator: str = "[SEP]") -> str:
+        # Mirrors ZoteroItem.content_for_embedding: title and abstract only, so
+        # library items and candidates are embedded in exactly the same shape.
+        return separator.join(filter(None, [self.title, self.abstract]))
 
 
 class RankedWork(CandidateWork):

@@ -29,7 +29,7 @@ class ProfileBuilder:
         self.base_dir = Path(base_dir)
         self.storage = storage
         self.settings = settings
-        self.vectorizer = vectorizer or TextVectorizer()
+        self.vectorizer = vectorizer or TextVectorizer.from_settings(settings)
         self.artifacts = ProfileArtifacts(
             sqlite_path=str(self.base_dir / "data" / "profile.sqlite"),
             faiss_path=str(self.base_dir / "data" / "faiss.index"),
@@ -43,7 +43,8 @@ class ProfileBuilder:
             raise RuntimeError("No items found in storage; run ingest before building profile.")
 
         logger.info("Vectorizing %d library items", len(items))
-        texts = [item.content_for_embedding() for item in items]
+        separator = self.vectorizer.text_separator
+        texts = [item.content_for_embedding(separator) for item in items]
         vectors = self.vectorizer.encode(texts)
 
         for item, vector in zip(items, vectors):

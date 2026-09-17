@@ -113,6 +113,17 @@ class SourcesConfig(BaseModel):
     altmetric: AltmetricConfig = Field(default_factory=AltmetricConfig)
 
 
+class EmbeddingConfig(BaseModel):
+    # "model_name" is a natural field name here but collides with pydantic's
+    # protected "model_" namespace.
+    model_config = {"protected_namespaces": ()}
+
+    model_name: str = "sentence-transformers/allenai-specter"
+    text_separator: str = "[SEP]"
+    neighbors: int = Field(5, ge=1, le=50)
+    batch_size: int = Field(32, ge=1, le=256)
+
+
 class ScoreWeights(BaseModel):
     similarity: float = 0.45
     recency: float = 0.15
@@ -130,9 +141,32 @@ class ScoreWeights(BaseModel):
         return ScoreWeights(**normalized)
 
 
+class ScoreScales(BaseModel):
+    """Saturation points that map unbounded raw signals onto [0, 1].
+
+    Every scoring component must be bounded, otherwise a term with no upper limit
+    (citations, in particular) silently dominates the weighted sum and the
+    absolute label thresholds stop meaning anything.
+    """
+
+    recency_half_life_days: float = Field(21.0, gt=0.0)
+    citation_saturation: float = Field(50.0, gt=0.0)
+    altmetric_saturation: float = Field(100.0, gt=0.0)
+    sjr_floor: float = Field(0.3, ge=0.0)
+    sjr_ceiling: float = Field(4.0, gt=0.0)
+    journal_unknown: float = Field(0.25, ge=0.0, le=1.0)
+
+    @validator("sjr_ceiling")
+    def ceiling_above_floor(cls, value: float, values: Dict[str, Any]) -> float:
+        floor = values.get("sjr_floor", 0.0)
+        if value <= floor:
+            raise ValueError("sjr_ceiling must be greater than sjr_floor")
+        return value
+
+
 class Thresholds(BaseModel):
-    must_read: float = 0.75
-    consider: float = 0.5
+    must_read: float = 0.70
+    consider: float = 0.45
 
 
 class ResearchPriority(BaseModel):
@@ -151,6 +185,9 @@ class ResearchPriority(BaseModel):
 class ScoringConfig(BaseModel):
     weights: ScoreWeights = Field(default_factory=ScoreWeights)
     thresholds: Thresholds = Field(default_factory=Thresholds)
+    scales: ScoreScales = Field(default_factory=ScoreScales)
+    # Retained for backward compatibility with older config files; the recency
+    # component is now a continuous decay driven by scales.recency_half_life_days.
     decay_days: Dict[str, int] = Field(
         default_factory=lambda: {"fast": 30, "medium": 60, "slow": 180}
     )
@@ -199,6 +236,7 @@ class Settings(BaseModel):
     zotero: ZoteroConfig
     sources: SourcesConfig
     scoring: ScoringConfig
+    embedding: EmbeddingConfig = Field(default_factory=EmbeddingConfig)
     author_watch: AuthorWatchConfig = Field(default_factory=AuthorWatchConfig)
     citation_watch: "CitationWatchConfig" = Field(default_factory=lambda: CitationWatchConfig())
     research: "ResearchConfig" = Field(default_factory=lambda: ResearchConfig())
@@ -305,10 +343,13 @@ def load_settings(base_dir: Path | str) -> Settings:
     research_cfg = _load_yaml(research_path) if research_path.exists() else {}
     network_path = base / "config" / "network.yaml"
     network_cfg = _load_yaml(network_path) if network_path.exists() else {}
+    embedding_path = base / "config" / "embedding.yaml"
+    embedding_cfg = _load_yaml(embedding_path) if embedding_path.exists() else {}
     return Settings(
         zotero=ZoteroConfig(**zotero_cfg),
         sources=SourcesConfig(**sources_cfg),
         scoring=ScoringConfig(**scoring_cfg),
+        embedding=EmbeddingConfig(**embedding_cfg),
         author_watch=AuthorWatchConfig(**author_cfg),
         citation_watch=CitationWatchConfig(**citation_cfg),
         research=ResearchConfig(**research_cfg),
@@ -322,4 +363,6 @@ __all__ = [
     "ZoteroConfig",
     "SourcesConfig",
     "ScoringConfig",
+    "ScoreScales",
+    "EmbeddingConfig",
 ]

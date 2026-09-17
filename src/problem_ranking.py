@@ -41,7 +41,8 @@ def diverse_select(works, top, config, vectorizer):
     if not top or len(works) <= top:
         return works
     pool = works[:max(top, config.diversity_pool)]
-    vectors = vectorizer.encode([w.content_for_embedding() for w in pool])
+    separator = getattr(vectorizer, "text_separator", "[SEP]")
+    vectors = vectorizer.encode([w.content_for_embedding(separator) for w in pool])
     scores = np.array([w.score for w in pool], dtype=float)
     scores = (scores - scores.min()) / max(float(np.ptp(scores)), 1e-9)
     selected, remaining, counts = [], set(range(len(pool))), Counter()

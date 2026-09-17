@@ -13,7 +13,7 @@ import numpy as np
 from .faiss_store import FaissIndex
 from .citation_watch import citation_strength
 from .models import CandidateWork, RankedWork
-from .settings import Settings
+from .settings import ScoreScales, Settings
 from .topic_matching import normalize_text, research_priority
 from .vectorizer import TextVectorizer
 
@@ -30,7 +30,7 @@ class WorkRanker:
     def __init__(self, base_dir: Path | str, settings: Settings, vectorizer: TextVectorizer | None = None):
         self.base_dir = Path(base_dir)
         self.settings = settings
-        self.vectorizer = vectorizer or TextVectorizer()
+        self.vectorizer = vectorizer or TextVectorizer.from_settings(settings)
         self.artifacts = RankerArtifacts(
             index_path=self.base_dir / "data" / "faiss.index",
             profile_path=self.base_dir / "data" / "profile.json",
@@ -73,31 +73,46 @@ class WorkRanker:
         if not candidates:
             return []
 
-        texts = [c.content_for_embedding() for c in candidates]
+        separator = getattr(self.vectorizer, "text_separator", "[SEP]")
+        texts = [c.content_for_embedding(separator) for c in candidates]
         vectors = self.vectorizer.encode(texts)
         logger.info("Scoring %d candidate works", len(candidates))
 
-        distances, indices = self.index.search(vectors, top_k=1)
+        # Similarity is the mean over the nearest `neighbors` library items. Using
+        # only the single nearest item let one accidental match against one paper
+        # in the library spike a candidate's score.
+        neighbors = max(1, int(getattr(self.settings.embedding, "neighbors", 5)))
+        neighbors = min(neighbors, max(1, int(getattr(self.index, "ntotal", neighbors))))
+        distances, indices = self.index.search(vectors, top_k=neighbors)
         weights = self.settings.scoring.weights
         thresholds = self.settings.scoring.thresholds
+        scales = self.settings.scoring.scales
 
         ranked: List[RankedWork] = []
         for row, (candidate, vector, distance) in enumerate(zip(candidates, vectors, distances)):
-            similarity = float(distance[0]) if distance.size else 0.0
+            similarity = float(np.mean(distance)) if distance.size else 0.0
+            nearest_similarity = float(distance[0]) if distance.size else 0.0
             profiles = getattr(self, "profile", {}).get("problem_profiles", {})
             problem_scores = {key: float(vector @ np.asarray(profile["centroid"])) for key, profile in profiles.items()}
             primary_problem = max(problem_scores, key=problem_scores.get) if problem_scores else ""
             affinity = problem_scores.get(primary_problem, similarity)
-            semantic_score = 0.4 * similarity + 0.6 * affinity if problem_scores else similarity
-            recency_score = _compute_recency(candidate.published, self.settings)
-            citation_score, altmetric_score = _compute_metric(candidate)
-            journal_quality, journal_sjr = _journal_quality_score(candidate.venue, self.journal_metrics)
+            semantic_score = _clamp01(
+                0.4 * similarity + 0.6 * affinity if problem_scores else similarity
+            )
+            recency_score = _compute_recency(candidate.published, scales)
+            citation_score, altmetric_score = _compute_metric(candidate, scales)
+            journal_quality, journal_sjr = _journal_quality_score(
+                candidate.venue, self.journal_metrics, scales
+            )
             author_bonus = _bonus(candidate.authors, self.settings.scoring.whitelist_authors)
             venue_bonus = _bonus(
                 [candidate.venue] if candidate.venue else [],
                 self.settings.scoring.whitelist_venues,
             )
 
+            # Every term above is in [0, 1], so with weights summing to 1.0 the
+            # score is in [0, 1] and the label thresholds are directly comparable
+            # across runs.
             score = (
                 semantic_score * weights.similarity
                 + recency_score * weights.recency
@@ -130,6 +145,16 @@ class WorkRanker:
                 "semantic_score": semantic_score,
                 "problem_scores": problem_scores,
                 "primary_problem": primary_problem,
+                "nearest_similarity": nearest_similarity,
+                "score_components": {
+                    "semantic": semantic_score,
+                    "recency": recency_score,
+                    "citations": citation_score,
+                    "altmetric": altmetric_score,
+                    "journal_quality": journal_quality,
+                    "author_bonus": author_bonus,
+                    "venue_bonus": venue_bonus,
+                },
             }
             index_items = getattr(self, "profile", {}).get("index_items", [])
             nearest = int(indices[row][0]) if indices is not None else -1
@@ -163,6 +188,12 @@ class WorkRanker:
         return ranked
 
 
+def _clamp01(value: float) -> float:
+    if value != value:  # NaN
+        return 0.0
+    return max(0.0, min(1.0, float(value)))
+
+
 def _bonus(values: List[str], whitelist: List[str]) -> float:
     whitelist_lower = {normalize_text(v) for v in whitelist}
     for value in values:
@@ -171,41 +202,56 @@ def _bonus(values: List[str], whitelist: List[str]) -> float:
     return 0.0
 
 
-def _journal_quality_score(venue: Optional[str], metrics: Dict[str, float]) -> Tuple[float, Optional[float]]:
+def _journal_quality_score(
+    venue: Optional[str], metrics: Dict[str, float], scales: ScoreScales
+) -> Tuple[float, Optional[float]]:
+    """Map SJR onto [0, 1] between a floor and a ceiling.
+
+    The previous version returned max(log1p(sjr), 1.0) and also returned 1.0 for
+    unknown venues, so nearly every candidate received the identical value and the
+    term discriminated nothing while still consuming its full weight.
+    """
     if not venue:
-        return 1.0, None
+        return scales.journal_unknown, None
     key = normalize_text(venue)
     value = metrics.get(key)
     if value is None:
-        return 1.0, None
-    score = float(np.log1p(value))
-    if score < 1.0:
-        score = 1.0
-    return score, float(value)
+        return scales.journal_unknown, None
+    low = float(np.log1p(scales.sjr_floor))
+    high = float(np.log1p(scales.sjr_ceiling))
+    score = (float(np.log1p(value)) - low) / (high - low)
+    return _clamp01(score), float(value)
 
 
-def _compute_recency(published: datetime | None, settings: Settings) -> float:
+def _compute_recency(published: datetime | None, scales: ScoreScales) -> float:
+    """Continuous exponential decay.
+
+    The previous step function dropped from 0.4 to 0.1 between day 30 and day 31,
+    a 4x penalty for one day of age.
+    """
     if not published:
         return 0.0
     if published.tzinfo is None:
         published = published.replace(tzinfo=timezone.utc)
     now = datetime.now(timezone.utc)
-    delta_days = max((now - published).days, 0)
-    decay = settings.scoring.decay_days
-    if delta_days <= decay.get("fast", 30):
-        return 1.0
-    if delta_days <= decay.get("medium", 60):
-        return 0.7
-    if delta_days <= decay.get("slow", 180):
-        return 0.4
-    return 0.1
+    delta_days = max((now - published).total_seconds() / 86400.0, 0.0)
+    half_life = scales.recency_half_life_days
+    return _clamp01(float(np.exp(-np.log(2.0) * delta_days / half_life)))
 
 
-def _compute_metric(candidate: CandidateWork) -> Tuple[float, float]:
+def _compute_metric(candidate: CandidateWork, scales: ScoreScales) -> Tuple[float, float]:
+    """Saturating citation and altmetric scores.
+
+    log1p(citations) is unbounded: at the previous weight of 0.08 a paper with 200
+    citations gained +0.42 while the entire semantic term could contribute at most
+    0.68, so citation count could outrank topical relevance. In a feed whose whole
+    purpose is new work -- which has zero citations by construction -- that is
+    backwards. Saturating at `citation_saturation` keeps the term a tie-breaker.
+    """
     citations = float(candidate.metrics.get("cited_by", candidate.metrics.get("is-referenced-by", 0.0)))
     altmetric = float(candidate.metrics.get("altmetric", 0.0))
-    citation_score = float(np.log1p(citations)) if citations else 0.0
-    altmetric_score = float(np.log1p(altmetric)) if altmetric else 0.0
+    citation_score = _clamp01(np.log1p(max(citations, 0.0)) / np.log1p(scales.citation_saturation))
+    altmetric_score = _clamp01(np.log1p(max(altmetric, 0.0)) / np.log1p(scales.altmetric_saturation))
     return citation_score, altmetric_score
 
 

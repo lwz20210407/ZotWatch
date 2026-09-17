@@ -6,44 +6,76 @@ weights:
   journal_quality: 0.06
   author_bonus: 0.00
   venue_bonus: 0.04
+
+# Every scoring component is clamped to [0, 1] (see src/score_rank.py), so with the
+# weights above summing to 1.0 the final score is also in [0, 1] and these
+# thresholds are comparable across runs. They were lowered from 0.75/0.50 because
+# the citation term is now saturated instead of unbounded: it used to add up to
+# +0.55 on its own and inflate the raw score.
 thresholds:
-  must_read: 0.75
-  consider: 0.5
+  must_read: 0.70
+  consider: 0.45
+
+scales:
+  # Recency is exp(-ln2 * days / half_life) instead of a step function.
+  # 21 days means a paper published 3 weeks ago still scores 0.5.
+  recency_half_life_days: 21
+  # Citation count saturates here. New papers have zero citations by definition,
+  # so this term must stay a tie-breaker and never a ranking driver.
+  citation_saturation: 50
+  altmetric_saturation: 100
+  # SJR is mapped from sjr_floor -> 0 to sjr_ceiling -> 1 in log space.
+  sjr_floor: 0.3
+  sjr_ceiling: 4.0
+  # Venues absent from data/journal_metrics.csv score slightly below average
+  # rather than receiving the same value as a top journal.
+  journal_unknown: 0.25
+
+# Retained so older configs keep loading; no longer used by the recency term.
 decay_days:
   fast: 3
   medium: 7
   slow: 30
 whitelist_authors: []
 # First match wins. Coefficients are adjustable heuristics, not probabilities.
+#
+# ORDER MATTERS: rules are evaluated top to bottom and the first match decides the
+# multiplier, so the most specific and highest-value rule must come first.
+# "外围方法参考" is last precisely because it used to sit at the top and demote core
+# work by 30% whenever the title happened to mention a peripheral keyword, e.g.
+# "Ductile fracture of coated Ti-6Al-4V under dynamic loading" matched "coating"
+# before it could ever reach the TC4 rule.
 default_priority_multiplier: 0.90
 research_priorities:
-  - name: "外围方法参考"
-    multiplier: 0.70
-    match_fields: title
-    required_groups:
-      - ["fatigue performance", "creep damage", "lattice structure", "molecular dynamics", "atomistic simulation", "corrosion", "coating", "machining", "welding", "concrete", "cement", "polymer", "ceramic", "biomedical", "implant", "混凝土", "水泥", "聚合物", "陶瓷", "生物医学"]
   - name: "TC4核心研究"
     multiplier: 1.0
     required_groups:
       - ["Ti-6Al-4V", "TC4", "titanium alloy", "钛合金"]
       - ["constitutive", "ductile fracture", "fracture criterion", "damage evolution", "damage initiation", "flow stress", "strain hardening", "stress triaxiality", "Lode", "strain rate", "dynamic tension", "dynamic compression", "thermoviscoplastic", "thermo-viscoplastic", "thermal softening", "ballistic", "penetration", "perforation", "Johnson-Cook", "GISSMO", "本构", "延性断裂", "损伤演化", "应力状态", "应变率", "屈服", "侵彻"]
       - &mechanics ["constitutive", "plasticity", "plastic", "hardening", "flow stress", "yield", "yielding", "fracture", "damage", "ductility", "ductile", "stress strain", "Johnson-Cook", "GISSMO", "failure", "ballistic limit", "塑性", "本构", "断裂", "损伤", "硬化", "屈服", "侵彻"]
+  # One category, two alternative matching routes: identification/numerics method
+  # papers, and constitutive/fracture work on other metals.
   - name: "跨金属方法参考"
     multiplier: 0.95
     required_groups:
       - ["LS-OPT", "inverse identification", "inverse parameter identification", "parameter identification", "parameter calibration", "parameter inversion", "inverse calibration", "inverse modeling", "inverse modelling", "finite element model updating", "parameter identifiability", "parameter sensitivity", "uncertainty quantification", "Bayesian calibration", "multi-objective calibration", "post-necking", "hardening extrapolation", "inverse finite element identification", "full-field identification", "virtual fields method", "integrated digital image correlation", "Bridgman correction", "FEMU", "VFM", "mesh dependency", "mesh dependence", "mesh objectivity", "damage regularization", "damage regularisation", "characteristic length", "fracture energy", "nonlocal damage", "element size sensitivity", "element deletion", "model validation", "cross-validation", "return mapping", "stress integration", "consistent tangent", "user-defined material", "VUMAT", "UMAT", "UMAT41", "MAT_224", "反演", "参数标定", "数字图像相关", "颈缩后", "有限元更新", "网格客观性", "损伤正则化"]
       - *mechanics
+  - name: "跨金属方法参考"
+    multiplier: 0.95
+    required_groups:
+      - ["aluminum", "aluminium", "magnesium", "steel", "copper", "nickel", "Inconel", "metal", "alloy"]
+      - ["constitutive", "ductile fracture", "fracture criterion", "damage evolution", "stress triaxiality", "Lode", "flow stress", "hardening", "Gurson", "GTN", "MMC", "GISSMO", "Johnson-Cook"]
   - name: "机制参考"
     multiplier: 0.85
     required_groups:
       - ["Ti-6Al-4V", "TC4", "titanium", "aluminum", "aluminium", "magnesium", "steel", "copper", "nickel", "Inconel", "metal", "alloy"]
       - ["crystal plasticity", "single crystal", "bicrystal", "process-microstructure", "microstructure engineering", "martensite decomposition", "texture-induced anisotropy", "hot isostatic pressing", "defect morphology", "lack of fusion", "porosity", "build orientation", "build direction", "crystallographic texture", "columnar grains", "prior beta grains", "deformation twinning", "slip system", "EBSD", "fractography", "heat treatment", "heat treated"]
       - ["mechanical properties", "mechanical behavior", "deformation", "anisotropy", "ductility", "fracture", "damage", "plasticity", "strength", "hardening"]
-  - name: "跨金属方法参考"
-    multiplier: 0.95
+  - name: "外围方法参考"
+    multiplier: 0.70
+    match_fields: title
     required_groups:
-      - ["aluminum", "aluminium", "magnesium", "steel", "copper", "nickel", "Inconel", "metal", "alloy"]
-      - ["constitutive", "ductile fracture", "fracture criterion", "damage evolution", "stress triaxiality", "Lode", "flow stress", "hardening", "Gurson", "GTN", "MMC", "GISSMO", "Johnson-Cook"]
+      - ["fatigue performance", "creep damage", "lattice structure", "molecular dynamics", "atomistic simulation", "corrosion", "coating", "machining", "welding", "concrete", "cement", "polymer", "ceramic", "biomedical", "implant", "混凝土", "水泥", "聚合物", "陶瓷", "生物医学"]
 whitelist_venues:
   - Journal of Dynamic Behavior of Materials
   - Metallurgical and Materials Transactions A
