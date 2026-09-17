@@ -40,6 +40,8 @@ ZotWatcher 是一个基于 Zotero 数据构建个人兴趣画像，并持续监�
    - `ZOTERO_USER_ID`，该 ID 可从上述 **Settings - Security - Applications** 处 **Create new private key** 按钮下方一行 `User ID: Your user ID for use in API calls is ******` 获取。
    - `CROSSREF_MAILTO`，邮箱地址，用于个人热门期刊补抓时的礼貌标注。
    - `OPENALEX_MAILTO`，仅在关闭统一公共候选池、回退到直连 OpenAlex 时需要。
+   - 邮件推送还需要 `SMTP_HOST`、`SMTP_PORT`、`SMTP_USERNAME`、`SMTP_PASSWORD`、`SMTP_FROM`，
+     以及收件人 `EMAIL_TO`（建议放在同一页的 **Variables** 标签，而不是写死在 workflow 里）。
      ![image3](images/image3.png)
 
 6. 回到自己仓库首页，点击顶部**Settings**，在左侧找到**Pages**，在页面中为其**Source**选择**GitHub Actions**，使得生成的RSS页面直接发布到GitHub Pages。
@@ -49,10 +51,10 @@ ZotWatcher 是一个基于 Zotero 数据构建个人兴趣画像，并持续监�
 7. 接下来点击顶部的**Actions**栏目，并确认开启GitHub Actins
    ![image5](images/image5.png)
 
-8. 点击左侧**Daily Watch & RSS**，默认情况下fork来仓库的Workflow是关闭状态，点击右侧Enable workflow激活。
+8. 点击左侧**Weekly Watch & RSS**，默认情况下fork来仓库的Workflow是关闭状态，点击右侧Enable workflow激活。
    ![image6](images/image6.png)
 
-9. 此时仓库理论上会在每天早上六点自动运行，要立刻运行请点击**Run workflow**。首次运行需要全量生成向量数据库，会比较慢，可以点击**All workflows**查看运行状态。
+9. 此时仓库会在每周四早上七点（北京时间）自动运行，要立刻运行请点击**Run workflow**（可勾选 `dry_run` 先演练）。首次运行需要全量生成向量数据库，会比较慢，可以点击**All workflows**查看运行状态。
 
    ![image7](images/image7.png)
 
@@ -86,31 +88,70 @@ ZotWatcher 是一个基于 Zotero 数据构建个人兴趣画像，并持续监�
 
 3. **本地运行**
    ```bash
+   # 配置自检（不联网，校验权重求和与优先级规则顺序）
+   python -m src.check_config
+
    # 首次全量画像构建
    python -m src.cli profile --full
-   
+
    # 日常监测（生成 RSS + HTML）
    python -m src.cli watch --rss --report --top 20
+
+   # 只生成邮件、不发送，落盘到 reports/email-preview.eml
+   python -m src.cli notify --dry-run
    ```
+
+## 邮件推送
+收件人来自仓库变量 `EMAIL_TO`（**Settings - Secrets and variables - Actions - Variables**），
+多个地址用逗号或分号分隔；若不想公开地址，也可改存为同名 Secret。
+SMTP 参数放在 Secrets：`SMTP_HOST`、`SMTP_PORT`、`SMTP_USERNAME`、`SMTP_PASSWORD`、`SMTP_FROM`。
+
+邮件正文即当期完整报告（`multipart/alternative`），纯文本部分列出前 8 篇标题与链接，
+附件只保留 `feed.xml`。历史推送保存在 `reports/` 并由 Pages 发布，入口 `archive.html`。
+
+## 运行触发
+- 定时：每周四北京时间 07:00（`.github/workflows/daily_watch.yml`）。
+- 手动：Actions - **Weekly Watch & RSS** - Run workflow，可勾选 `dry_run` 只演练不推送。
+- 代码改动由 `.github/workflows/ci.yml` 单独校验。**推送流程没有 `push` 触发器**：
+  否则每次提交都会跑完整流程、发一封邮件，并把这批论文记为"已推送"，正式周推就不会再出现。
 
 ## 目录结构
 ```
 ├─ src/                   # 主流程模块
 ├─ config/                # YAML 配置，含 API 及评分权重
-├─ data/                  # 画像/缓存/指标文件（不纳入版本控制）
-├─ reports/               # 生成的 RSS/HTML 输出
+├─ data/                  # 画像/缓存/指标文件
+│   └─ watch-state/       # 推送历史（纳入版本控制，防止重复推送）
+├─ reports/               # 生成的 RSS/HTML 输出（历史报告纳入版本控制）
 └─ .github/workflows/     # GitHub Actions 配置
 ```
 
 ## 自定义配置
 - `config/zotero.yaml`：Zotero API 参数（`user_id` 可写 `$ {ZOTERO_USER_ID}`，将由 `.env`/Secrets 注入）。
-- `config/sources.yaml`：统一公共候选池 API、各数据源开关、分类、窗口大小（默认 7 天）。
-- `config/scoring.yaml`：相似度、期刊质量等权重；并提供手动白名单支持。
+- `config/sources.yaml`：统一公共候选池 API、各数据源开关、分类、窗口大小（默认 30 天）。
+- `config/embedding.yaml`：语义模型。默认 `allenai-specter`（768 维、512 token、按引文图训练，
+  面向"给定标题摘要找相似论文"）。换模型会改变向量维度，索引在下次运行时自动重建。
+- `config/scoring.yaml`：权重、阈值与饱和参数。**每个打分分量都被压到 [0, 1]**，权重和为 1，
+  因此总分也在 [0, 1]，`must_read` / `consider` 阈值跨轮次可比。
+  `research_priorities` 首个命中的规则生效，因此系数必须自上而下递减——
+  `python -m src.check_config` 会检查这一点。
+
+## 阈值标定
+换模型后相似度分布会变，跑一轮后在运行日志里查看：
+
+```text
+Score distribution over N ranked works: p50=... p75=... p90=... p99=... max=...
+Label counts: {'must_read': .., 'consider': .., 'ignore': ..}
+```
+
+若 `must_read` 长期为 0 或过多，按 p90/p99 调整 `config/scoring.yaml` 的 `thresholds`。
 
 ## 常见问题
 - **缓存过旧**：候选列表默认缓存 12 小时，可删除 `data/cache/candidate_cache.json` 强制刷新。
 - **未找到热门期刊补抓**：确保已运行过 `profile --full` 生成 `data/profile.json`。
-- **推荐为空**：检查是否所有候选都超出 7 天窗口或预印本比例被限制；可调节 CLI 的 `--top`、`_filter_recent` 的天数或 `max_ratio`。
+- **推荐为空**：先看报告顶部的漏斗（抓取 → 主题通过 → 去重后 → 推送）定位是哪一步卡住；
+  再检查窗口天数、预印本比例限制，或调节 `--top` 与 `thresholds`。
+- **本地报错找不到时区**：Windows 需要 `tzdata`（已列入 `requirements.txt`）；
+  缺失时会退回固定 +08:00，不影响出图。
 
 ## 许可证
 本项目采用 [MIT License](LICENSE)。
