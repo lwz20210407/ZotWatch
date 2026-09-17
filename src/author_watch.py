@@ -25,6 +25,7 @@ def work_key(work: CandidateWork) -> str:
 def authorship_identifiers(item: Dict[str, Any]) -> List[Dict[str, Any]]:
     return [
         {"author_id": (a.get("author", {}).get("id") or "").rsplit("/", 1)[-1],
+         "name": a.get("author", {}).get("display_name") or "",
          "institution_ids": [i["id"].rsplit("/", 1)[-1] for i in a.get("institutions", []) if i.get("id")]}
         for a in item.get("authorships", [])
     ]

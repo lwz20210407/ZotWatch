@@ -380,6 +380,10 @@ class CandidateFetcher:
         return queries or ["titanium alloy plasticity fracture"]
 
     def _filter_by_topic(self, candidates: List[CandidateWork]) -> List[CandidateWork]:
+        # Preserve distinct raw candidates for facet coverage diagnostics, including rejected ones.
+        if not hasattr(self, "coverage_raw"):
+            self.coverage_raw = {}
+        self.coverage_raw.update({work_key(work): work for work in candidates})
         include = [term for term in self.settings.sources.include_keywords if term.strip()]
         required_groups = [
             [term for term in group if term.strip()]

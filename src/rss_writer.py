@@ -42,6 +42,16 @@ def write_rss(
             ET.SubElement(item, "category").text = work.extra["report_channel"]
             description_lines.append(work.extra["report_channel"])
         description_lines.extend(recommendation_reasons(work))
+        if work.extra.get("original_doi"):
+            description_lines.extend([f"原论文: {work.extra['original_doi']}",
+                                      work.extra.get("update_source", ""), work.extra.get("date_note", "")])
+        for card in work.extra.get("transfer_cards", []):
+            description_lines.extend([card["topic"] + ": " + card["use"], "迁移前检查: " + card["verify"],
+                                      card["level"] + "片段: " + card["evidence"], card["status"]])
+        for signal in work.extra.get("abstract_method_signals", []):
+            description_lines.append("摘要方法线索: " + ", ".join(signal["methods"]) + " " + signal["role"] + "；" + signal["caveat"])
+        for feedback in work.extra.get("feedback_links", []):
+            description_lines.append("公开阅读反馈 " + feedback["name"] + ": " + feedback["url"])
         if work.abstract:
             description_lines.append(work.abstract)
         published_text = work.published.isoformat() if work.published else "Unknown"

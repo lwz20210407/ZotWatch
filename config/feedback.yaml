@@ -1,0 +1,3 @@
+# Explicit user feedback only. CLI: python -m src.cli feedback --doi 10.x/y --rating transferable --facets inverse
+# Ratings: direct, transferable, mechanism, irrelevant, read.
+entries: []

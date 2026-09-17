@@ -162,6 +162,7 @@ class CitationTests(unittest.TestCase):
              patch.object(cli, "ZoteroIngestor"), patch.object(cli, "ProfileBuilder"), \
              patch.object(cli, "CandidateFetcher") as fetch, patch.object(cli, "WorkRanker") as ranker, \
              patch.object(cli, "DedupeEngine") as dedupe, patch.object(cli, "CitationDiscovery") as graph, \
+             patch.object(cli, "VersionMonitor") as monitor, \
              patch.object(cli, "enrich_ranked_works", side_effect=lambda works, settings: works):
             fetch.return_value.fetch_all.return_value = [new, future]
             fetch.return_value._filter_by_topic.side_effect = lambda works: works
@@ -170,11 +171,14 @@ class CitationTests(unittest.TestCase):
             graph.return_value.fetch.return_value = [old, weak]
             graph.return_value.annotate.side_effect = lambda works: works
             graph.return_value.warnings = []
+            monitor.return_value.check.return_value = []
+            monitor.return_value.warnings = []
             args = dict(rss=True, report=True, top=20, push=False, defer_history=True)
             run_watch(Path(tmp), self.settings, Mock(), **args)
             report = next(Path(tmp, "reports").glob("*.html"))
             html = report.read_text(encoding="utf-8")
             self.assertIn(old.title, html); self.assertIn(new.title, html)
+            self.assertIn("研究问题覆盖诊断", html)
             self.assertNotIn(weak.title, html); self.assertNotIn(future.title, html)
             history = WatchHistory(Path(tmp, "data", "watch-state"))
             self.assertEqual(len(history.filter([old, new])), 2)

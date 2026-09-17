@@ -1,5 +1,6 @@
 """Delivery history: stage on generation, commit only after successful publication/email."""
 import hashlib
+import copy
 import json
 from datetime import datetime, timezone
 from pathlib import Path
@@ -25,7 +26,7 @@ class WatchHistory:
         return [w for w in works if not history_keys(w).intersection(self.state["sent"])]
 
     def stage(self, works):
-        state = {"version": 1, "sent": dict(self.state["sent"])}
+        state = copy.deepcopy(self.state)
         stamp = datetime.now(timezone.utc).isoformat()
         for work in works:
             for key in history_keys(work):

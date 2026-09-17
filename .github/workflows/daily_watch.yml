@@ -19,6 +19,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       actions: read
+      issues: read
       contents: write
       pages: write
       id-token: write
@@ -78,6 +79,17 @@ jobs:
           fi
       - name: Test topic matching and ranking
         run: python -B -m unittest discover -s tests -v
+      - name: Read owner feedback
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh api "repos/$GITHUB_REPOSITORY/issues?state=all&sort=updated&direction=desc&per_page=100" > data/feedback-issues.json
+          count=$(jq 'length' data/feedback-issues.json)
+          if [ "$count" -eq 100 ]; then
+            echo "::warning::Feedback input limited to latest 100 issues; previously accepted feedback is retained in delivery state."
+          fi
       - name: Build Zotero profile
         if: steps.cache-profile.outputs.cache-hit != 'true'
         run: python -m src.cli profile --full

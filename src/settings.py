@@ -201,6 +201,7 @@ class Settings(BaseModel):
     scoring: ScoringConfig
     author_watch: AuthorWatchConfig = Field(default_factory=AuthorWatchConfig)
     citation_watch: "CitationWatchConfig" = Field(default_factory=lambda: CitationWatchConfig())
+    research: "ResearchConfig" = Field(default_factory=lambda: ResearchConfig())
 
 
 class CitationSeed(BaseModel):
@@ -226,6 +227,25 @@ class CitationWatchConfig(BaseModel):
     max_classic_items: int = Field(5, ge=0, le=30)
     min_similarity: float = Field(0.40, ge=0, le=1)
     score_bonus: float = Field(0.06, ge=0, le=0.1)
+
+
+class ResearchFacet(BaseModel):
+    id: str
+    name: str
+    terms: List[str]
+    use: str
+    verify: str
+
+
+class ResearchConfig(BaseModel):
+    enabled: bool = False
+    feedback_max_adjustment: float = Field(0.08, ge=0, le=0.15)
+    feedback_owner: str = ""
+    feedback_repository: str = ""
+    version_batch_size: int = Field(10, ge=0, le=30)
+    proposal_min_papers: int = Field(2, ge=2, le=10)
+    proposal_limit: int = Field(10, ge=0, le=30)
+    facets: List[ResearchFacet] = Field(default_factory=list)
 
 
 Settings.model_rebuild()
@@ -262,12 +282,15 @@ def load_settings(base_dir: Path | str) -> Settings:
     author_cfg = _load_yaml(author_path) if author_path.exists() else {}
     citation_path = base / "config" / "citations.yaml"
     citation_cfg = _load_yaml(citation_path) if citation_path.exists() else {}
+    research_path = base / "config" / "research.yaml"
+    research_cfg = _load_yaml(research_path) if research_path.exists() else {}
     return Settings(
         zotero=ZoteroConfig(**zotero_cfg),
         sources=SourcesConfig(**sources_cfg),
         scoring=ScoringConfig(**scoring_cfg),
         author_watch=AuthorWatchConfig(**author_cfg),
         citation_watch=CitationWatchConfig(**citation_cfg),
+        research=ResearchConfig(**research_cfg),
     )
 
 
