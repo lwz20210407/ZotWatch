@@ -97,6 +97,11 @@ class AuthorWatchTests(unittest.TestCase):
         out={w.identifier:w for w in ranker.rank([known,unknown])}
         self.assertAlmostEqual(out['w'].score-out['unknown'].score,self.config.score_bonus)
 
+    def test_semantic_failure_cannot_bypass_gate_via_author_section(self) -> None:
+        work = self.ranked(mark_watched_authors(self.work(), self.config))
+        work.extra['semantic_gate_failed'] = True
+        self.assertEqual(author_news([work], self.config), [])
+
     def test_existing_library_doi_url_deduplication(self) -> None:
         from src.dedupe import DedupeEngine
         storage=Mock()

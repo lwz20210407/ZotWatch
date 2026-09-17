@@ -108,7 +108,7 @@ def fetch_author_works(session: requests.Session, settings: Settings, since: dat
 def author_news(works: List[RankedWork], config: AuthorWatchConfig) -> List[RankedWork]:
     if not config.enabled or config.max_report_items == 0:
         return []
-    candidates = [w for w in works if w.extra.get("watched_authors")]
+    candidates = [w for w in works if w.extra.get("watched_authors") and not w.extra.get("semantic_gate_failed")]
     candidates.sort(key=lambda w: (w.published.timestamp() if w.published else 0, w.score), reverse=True)
     seen, result = set(), []
     for work in candidates:
