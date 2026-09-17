@@ -74,7 +74,8 @@ def candidate_from_openalex(item: Dict[str, Any]) -> CandidateWork | None:
         doi=item.get("doi"), url=location.get("landing_page_url") or item.get("doi") or item.get("id"),
         published=published, venue=source.get("display_name"),
         metrics={"cited_by": float(item.get("cited_by_count") or 0)},
-        extra={"openalex_authorships": authorship_identifiers(item), "discovery_route": "author_watch", "work_type": item.get("type")},
+        extra={"openalex_authorships": authorship_identifiers(item), "discovery_route": "author_watch",
+               "referenced_works": item.get("referenced_works") or [], "work_type": item.get("type")},
     )
 
 

@@ -1,5 +1,10 @@
 name: Weekly Watch & RSS
 
+# Serialize delivery history and publication; never cancel an in-flight email.
+concurrency:
+  group: zotwatch-delivery
+  cancel-in-progress: false
+
 on:
   schedule:
     - cron: "0 23 * * 3"  # Thursday Beijing time 07:00
@@ -13,6 +18,7 @@ jobs:
   watch:
     runs-on: ubuntu-latest
     permissions:
+      actions: read
       contents: write
       pages: write
       id-token: write
@@ -51,12 +57,31 @@ jobs:
             data/profile.json
           key: profile-${{ env.CACHE_KEY }}
       - run: pip install -r requirements.txt
+      - name: Restore successful delivery history
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p data/watch-state
+          runs=$(gh run list --repo "$GITHUB_REPOSITORY" --workflow daily_watch.yml --branch main --status success --limit 50 --json databaseId --jq '.[].databaseId')
+          for run in $runs; do
+            found=$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$run/artifacts" --jq '.artifacts[] | select(.name == "watch-state-v1" and .expired == false) | .id')
+            if [ -n "$found" ]; then
+              gh run download "$run" --repo "$GITHUB_REPOSITORY" --name watch-state-v1 --dir data/watch-state
+              echo "Restored delivery history from run $run"
+              break
+            fi
+          done
+          if [ ! -f data/watch-state/state.json ]; then
+            echo "::warning::No retained delivery history found: first deployment or artifacts expired; historical repeats are possible."
+          fi
       - name: Test topic matching and ranking
         run: python -B -m unittest discover -s tests -v
       - name: Build Zotero profile
         if: steps.cache-profile.outputs.cache-hit != 'true'
         run: python -m src.cli profile --full
-      - run: python -m src.cli watch --rss --report --top 20
+      - run: python -m src.cli watch --rss --report --top 20 --defer-history
       - name: Prepare Pages
         run: |
           mkdir -p public
@@ -88,8 +113,7 @@ jobs:
           }
           missing = [key for key, value in required.items() if not value]
           if missing:
-              print(f"Skipping email digest; missing secrets/env: {', '.join(missing)}")
-              raise SystemExit(0)
+              raise RuntimeError(f"Email not delivered; missing secrets/env: {', '.join(missing)}")
 
           smtp_host = required["SMTP_HOST"]
           smtp_user = required["SMTP_USERNAME"]
@@ -158,3 +182,11 @@ jobs:
 
           print(f"Sent ZotWatch email digest to {email_to}")
           PY
+      - name: Commit successful delivery history
+        run: python -m src.cli commit-history
+      - uses: actions/upload-artifact@v4
+        with:
+          name: watch-state-v1
+          path: data/watch-state/state.json
+          if-no-files-found: error
+          retention-days: 90

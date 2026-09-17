@@ -10,6 +10,7 @@ __pycache__/
 /data/*.sqlite
 /data/*.index
 /data/profile.json
+/data/watch-state/
 /data/cache/
 /data/cache/*
 

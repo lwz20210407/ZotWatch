@@ -325,7 +325,8 @@ class CandidateFetcher:
                         venue=source_info.get("display_name"),
                         metrics={"cited_by": float(item.get("cited_by_count", 0))},
                         extra={"concepts": [c.get("display_name") for c in item.get("concepts", [])], "query": query,
-                               "openalex_authorships": authorship_identifiers(item), "is_retracted": bool(item.get("is_retracted")), "work_type": item.get("type")},
+                               "openalex_authorships": authorship_identifiers(item), "is_retracted": bool(item.get("is_retracted")),
+                               "referenced_works": item.get("referenced_works") or [], "work_type": item.get("type")},
                     )
                 )
         return _dedupe_candidates(results)
@@ -407,7 +408,8 @@ class CandidateFetcher:
             )
             if exclude and matches_any(haystack, exclude):
                 continue
-            author_topic_match = bool(candidate.extra.get("watched_authors")) and matches_any(
+            author_topic_match = bool(candidate.extra.get("watched_authors") or
+                                      candidate.extra.get("cites_seeds") or candidate.extra.get("referenced_by")) and matches_any(
                 haystack, self.settings.author_watch.topic_keywords
             )
             if required_any_group_sets:

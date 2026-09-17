@@ -10,6 +10,8 @@ from dotenv import load_dotenv
 
 from .build_profile import ProfileBuilder
 from .author_watch import author_news, merge_report_works, work_key
+from .citation_watch import CitationDiscovery, merge_candidates
+from .watch_history import WatchHistory
 from .dedupe import DedupeEngine
 from .fetch_new import CandidateFetcher
 from .ingest_zotero_api import ZoteroIngestor
@@ -31,7 +33,7 @@ RSS_PATH = BASE_DIR / "reports" / "feed.xml"
 
 def main(argv: Optional[list[str]] = None) -> None:
     parser = argparse.ArgumentParser(description="ZotWatcher CLI")
-    parser.add_argument("command", choices=["profile", "watch"], help="Command to run")
+    parser.add_argument("command", choices=["profile", "watch", "commit-history"], help="Command to run")
     parser.add_argument("--base-dir", default=str(BASE_DIR), help="Repository base directory")
     parser.add_argument("--verbose", action="store_true", help="Enable debug logging")
     parser.add_argument("--full", action="store_true", help="Full rebuild (profile command)")
@@ -40,11 +42,15 @@ def main(argv: Optional[list[str]] = None) -> None:
     parser.add_argument("--report", action="store_true", help="Generate HTML report (watch command)")
     parser.add_argument("--top", type=int, default=50, help="Number of top results to keep")
     parser.add_argument("--push", action="store_true", help="Push top items back to Zotero")
+    parser.add_argument("--defer-history", action="store_true", help="Commit delivery history separately after publication/email")
 
     args = parser.parse_args(argv)
 
     setup_logging(verbose=args.verbose)
     base_dir = Path(args.base_dir)
+    if args.command == "commit-history":
+        WatchHistory(base_dir / "data" / "watch-state").commit()
+        return
     load_dotenv(base_dir / ".env")
     settings = load_settings(base_dir)
     storage = ProfileStorage(base_dir / "data" / "profile.sqlite")
@@ -52,7 +58,8 @@ def main(argv: Optional[list[str]] = None) -> None:
     if args.command == "profile":
         run_profile(base_dir, settings, storage, full=args.full or args.weekly)
     elif args.command == "watch":
-        run_watch(base_dir, settings, storage, rss=args.rss, report=args.report, top=args.top, push=args.push)
+        run_watch(base_dir, settings, storage, rss=args.rss, report=args.report, top=args.top, push=args.push,
+                  defer_history=args.defer_history)
 
 
 def run_profile(base_dir: Path, settings: Settings, storage: ProfileStorage, *, full: bool) -> None:
@@ -80,20 +87,40 @@ def run_watch(
     report: bool,
     top: int,
     push: bool,
+    defer_history: bool = False,
 ) -> None:
     ingest = ZoteroIngestor(storage, settings)
     ingest.run(full=False)
+    # Always match the index and its ordered evidence mapping to the current library.
+    builder = ProfileBuilder(base_dir, storage, settings)
+    builder.run()
 
     fetcher = CandidateFetcher(settings, base_dir)
     candidates = fetcher.fetch_all()
 
     dedupe = DedupeEngine(storage)
     filtered = dedupe.filter(candidates)
-
-    ranker = WorkRanker(base_dir, settings)
-    ranked = ranker.rank(filtered)
-
-    ranked = _filter_recent(ranked, days=settings.sources.window_days)
+    ranker = WorkRanker(base_dir, settings, vectorizer=builder.vectorizer)
+    preliminary = ranker.rank(filtered)
+    dynamic = [w for w in _filter_recent(preliminary, days=settings.sources.window_days)
+               if w.label != "ignore" and w.similarity >= settings.citation_watch.min_similarity]
+    discovery = CitationDiscovery(settings, fetcher.session)
+    discovered = discovery.fetch(dynamic[:settings.citation_watch.dynamic_seed_count])
+    discovered = fetcher._filter_by_topic(discovered)
+    merged = discovery.annotate(merge_candidates([*discovered, *filtered]))
+    ranked = ranker.rank(dedupe.filter(merged))
+    history = WatchHistory(base_dir / "data" / "watch-state")
+    ranked = history.filter(ranked)
+    recent = _filter_recent(ranked, days=settings.sources.window_days)
+    recent_keys = {work_key(w) for w in recent}
+    now = datetime.now(timezone.utc)
+    classics = [w for w in ranked if work_key(w) not in recent_keys and w.extra.get("referenced_by")
+                and w.published and w.published <= now and w.label != "ignore"
+                and w.similarity >= settings.citation_watch.min_similarity]
+    classics = classics[:settings.citation_watch.max_classic_items] if settings.citation_watch.enabled else []
+    for work in classics:
+        work.extra["report_channel"] = "经典文献补漏"
+    ranked = recent
     watched = author_news(ranked, settings.author_watch)
     ranked = [work for work in ranked if work.label != "ignore"]
     ranked = _limit_preprints(ranked, max_ratio=0.3)
@@ -101,18 +128,14 @@ def run_watch(
     if top and len(ranked) > top:
         ranked = ranked[:top]
 
-    combined = enrich_ranked_works(merge_report_works(ranked, watched), settings)
+    combined = enrich_ranked_works(merge_report_works(merge_report_works(ranked, watched), classics), settings)
     enriched_by_key = {work_key(work): work for work in combined}
     ranked = [enriched_by_key[work_key(work)] for work in ranked]
     watched = [enriched_by_key[work_key(work)] for work in watched]
+    classics = [enriched_by_key[work_key(work)] for work in classics]
 
     if not combined:
         logging.getLogger(__name__).info("No ranked results available")
-        if rss:
-            write_rss([], base_dir / "reports" / "feed.xml")
-        if report:
-            render_html([], base_dir / "reports" / "report-empty.html")
-        return
 
     _log_top_results(ranked)
 
@@ -121,9 +144,14 @@ def run_watch(
     if report:
         report_date = datetime.now(ZoneInfo("Asia/Shanghai"))
         report_name = f"report-{report_date:%Y%m%d}.html"
-        render_html(ranked, base_dir / "reports" / report_name, watched_works=watched)
+        render_html(ranked, base_dir / "reports" / report_name, watched_works=watched,
+                    classic_works=classics, coverage_warnings=discovery.warnings)
     if push:
         ZoteroPusher(settings).push(ranked)
+    if rss or report:
+        history.stage(combined)
+        if not defer_history:
+            history.commit()
 
 
 def _log_top_results(ranked: list[RankedWork]) -> None:

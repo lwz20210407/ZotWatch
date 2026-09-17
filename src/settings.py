@@ -200,6 +200,35 @@ class Settings(BaseModel):
     sources: SourcesConfig
     scoring: ScoringConfig
     author_watch: AuthorWatchConfig = Field(default_factory=AuthorWatchConfig)
+    citation_watch: "CitationWatchConfig" = Field(default_factory=lambda: CitationWatchConfig())
+
+
+class CitationSeed(BaseModel):
+    openalex_id: str
+    title: str
+    doi: str = ""
+    reason: str = ""
+
+    @validator("openalex_id")
+    def valid_id(cls, value: str) -> str:
+        if not re.fullmatch(r"W\d+", value):
+            raise ValueError("Citation seeds require an OpenAlex W identifier")
+        return value
+
+
+class CitationWatchConfig(BaseModel):
+    enabled: bool = False
+    seeds: List[CitationSeed] = Field(default_factory=list)
+    max_pages: int = Field(2, ge=1, le=5)
+    max_requests: int = Field(40, ge=1, le=100)
+    max_reference_candidates: int = Field(400, ge=1, le=2000)
+    dynamic_seed_count: int = Field(5, ge=0, le=20)
+    max_classic_items: int = Field(5, ge=0, le=30)
+    min_similarity: float = Field(0.40, ge=0, le=1)
+    score_bonus: float = Field(0.06, ge=0, le=0.1)
+
+
+Settings.model_rebuild()
 
 
 
@@ -231,11 +260,14 @@ def load_settings(base_dir: Path | str) -> Settings:
     scoring_cfg = _load_yaml(base / "config" / "scoring.yaml")
     author_path = base / "config" / "authors.yaml"
     author_cfg = _load_yaml(author_path) if author_path.exists() else {}
+    citation_path = base / "config" / "citations.yaml"
+    citation_cfg = _load_yaml(citation_path) if citation_path.exists() else {}
     return Settings(
         zotero=ZoteroConfig(**zotero_cfg),
         sources=SourcesConfig(**sources_cfg),
         scoring=ScoringConfig(**scoring_cfg),
         author_watch=AuthorWatchConfig(**author_cfg),
+        citation_watch=CitationWatchConfig(**citation_cfg),
     )
 
 

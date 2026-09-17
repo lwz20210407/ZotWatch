@@ -1,0 +1,28 @@
+enabled: true
+max_pages: 2
+max_requests: 40
+max_reference_candidates: 400
+dynamic_seed_count: 5
+max_classic_items: 5
+min_similarity: 0.40
+score_bonus: 0.06
+# Verified against the 2026-09-17 local-library/OpenAlex audit; not an author whitelist.
+seeds:
+  - {openalex_id: W2048598423, doi: 10.1016/j.ijplas.2007.09.004, title: "A new model of metal plasticity and fracture with pressure and Lode dependence", reason: "压力和Lode相关塑性/断裂"}
+  - {openalex_id: W1983415199, doi: 10.1016/j.ijplas.2010.05.004, title: "On stress-state dependent plasticity modeling", reason: "应力状态与非关联流动"}
+  - {openalex_id: W2032768430, doi: 10.1007/s10704-009-9422-8, title: "Application of extended Mohr-Coulomb criterion to ductile fracture", reason: "MMC断裂准则"}
+  - {openalex_id: W2035518577, doi: 10.1016/j.ijsolstr.2015.02.024, title: "Micromechanically-motivated phenomenological Hosford-Coulomb model", reason: "低三轴度断裂"}
+  - {openalex_id: W4386508232, doi: 10.1016/j.jcsr.2023.108202, title: "A lode-dependent plasticity model for high-strength structural steel", reason: "跨金属Lode塑性"}
+  - {openalex_id: W4313547691, doi: 10.1016/j.ijimpeng.2023.104493, title: "Plasticity, ductile fracture and ballistic impact behavior of Ti-6Al-4V Alloy", reason: "TC4材料至冲击验证"}
+  - {openalex_id: W2948189770, doi: 10.1016/j.msea.2019.05.097, title: "Fracture of laser powder bed fusion additively manufactured Ti-6Al-4V under multiaxial loading", reason: "LPBF TC4多轴断裂标定"}
+  - {openalex_id: W2790889497, doi: 10.1016/j.actamat.2018.02.025, title: "Heterogeneous random medium plasticity and fracture model of additively-manufactured Ti-6Al-4V", reason: "增材非均匀塑性断裂"}
+  - {openalex_id: W4408001895, doi: 10.1016/j.addma.2025.104722, title: "Ductile fracture model describing the impact of internal pores", reason: "增材TC4孔隙与模型验证"}
+  - {openalex_id: W1890854876, doi: 10.1016/j.ijplas.2015.09.007, title: "Probabilistic fracture of Ti-6Al-4V made through additive layer manufacturing", reason: "增材断裂离散性"}
+  - {openalex_id: W3138623441, doi: 10.1016/j.eml.2021.101271, title: "Orientation and stress state dependent plasticity and damage initiation of LPBF stainless steel 304L", reason: "跨金属增材方向与应力状态"}
+  - {openalex_id: W2908338187, doi: 10.1016/j.mechmat.2018.12.014, title: "Inverse identification of the post-necking work hardening behaviour of thick HSS", reason: "颈缩后硬化反演和全场测量"}
+  - {openalex_id: W7163347994, doi: 10.1016/j.ijsolstr.2026.114124, title: "Numerical calibration of stress-state-dependent regularization for ductile failure in shell elements", reason: "损伤正则化与网格客观性"}
+  - {openalex_id: W2313959284, doi: 10.1007/s10704-016-0081-2, title: "An incremental stress state dependent damage model for ductile failure prediction", reason: "增量损伤演化"}
+  - {openalex_id: W2305531081, doi: 10.1007/s10704-016-0080-3, title: "Biaxial experiments and phenomenological modeling of stress-state-dependent ductile damage and fracture", reason: "双轴试验与损伤标定"}
+  - {openalex_id: W3092941542, doi: 10.1007/s00466-020-01932-z, title: "Numerical analysis of stress-state-dependent damage and failure behavior of ductile steel based on biaxial experiments", reason: "跨金属数值验证"}
+  - {openalex_id: W2761900377, doi: 10.1016/j.matdes.2017.09.064, title: "Lode dependent plasticity coupled with nonlinear damage accumulation for ductile fracture of aluminium alloy", reason: "铝合金可迁移塑性损伤耦合"}
+  - {openalex_id: W7131210881, doi: 10.1016/j.ijimpeng.2026.105707, title: "Taylor-Quinney Coefficient Derived from Dynamic In-Plane Torsion", reason: "动态热力耦合及应力状态"}

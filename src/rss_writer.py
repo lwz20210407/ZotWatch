@@ -7,6 +7,7 @@ from typing import Iterable
 from xml.etree import ElementTree as ET
 
 from .models import RankedWork
+from .citation_watch import recommendation_reasons
 
 logger = logging.getLogger(__name__)
 
@@ -37,6 +38,10 @@ def write_rss(
         if work.venue:
             ET.SubElement(item, "category").text = work.venue
         description_lines = []
+        if work.extra.get("report_channel"):
+            ET.SubElement(item, "category").text = work.extra["report_channel"]
+            description_lines.append(work.extra["report_channel"])
+        description_lines.extend(recommendation_reasons(work))
         if work.abstract:
             description_lines.append(work.abstract)
         published_text = work.published.isoformat() if work.published else "Unknown"

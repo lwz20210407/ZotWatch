@@ -11,6 +11,7 @@ from typing import Dict, List, Optional, Tuple
 import numpy as np
 
 from .faiss_store import FaissIndex
+from .citation_watch import citation_strength
 from .models import CandidateWork, RankedWork
 from .settings import Settings
 from .topic_matching import normalize_text, research_priority
@@ -76,12 +77,12 @@ class WorkRanker:
         vectors = self.vectorizer.encode(texts)
         logger.info("Scoring %d candidate works", len(candidates))
 
-        distances, _ = self.index.search(vectors, top_k=1)
+        distances, indices = self.index.search(vectors, top_k=1)
         weights = self.settings.scoring.weights
         thresholds = self.settings.scoring.thresholds
 
         ranked: List[RankedWork] = []
-        for candidate, vector, distance in zip(candidates, vectors, distances):
+        for row, (candidate, vector, distance) in enumerate(zip(candidates, vectors, distances)):
             similarity = float(distance[0]) if distance.size else 0.0
             recency_score = _compute_recency(candidate.published, self.settings)
             citation_score, altmetric_score = _compute_metric(candidate)
@@ -108,6 +109,9 @@ class WorkRanker:
             watched_bonus = (self.settings.author_watch.score_bonus
                              if self.settings.author_watch.enabled and candidate.extra.get("watched_authors") else 0.0)
             score += watched_bonus
+            citation_bonus = (citation_strength(candidate.extra) * self.settings.citation_watch.score_bonus
+                              if self.settings.citation_watch.enabled else 0.0)
+            score += citation_bonus
             payload = candidate.model_dump()
             payload["extra"] = {
                 **candidate.extra,
@@ -115,7 +119,12 @@ class WorkRanker:
                 "priority_multiplier": multiplier,
                 "base_score": base_score,
                 "watched_author_bonus": watched_bonus,
+                "citation_bonus": citation_bonus,
             }
+            index_items = getattr(self, "profile", {}).get("index_items", [])
+            nearest = int(indices[row][0]) if indices is not None else -1
+            if 0 <= nearest < len(index_items):
+                payload["extra"]["nearest_library_work"] = index_items[nearest]
 
             label = "ignore"
             if score >= thresholds.must_read:

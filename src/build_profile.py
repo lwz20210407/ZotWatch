@@ -36,7 +36,8 @@ class ProfileBuilder:
         )
 
     def run(self) -> ProfileArtifacts:
-        items = list(self.storage.iter_items())
+        items = [item for item in self.storage.iter_items() if item.title.strip()
+                 and item.raw.get("data", {}).get("itemType") not in {"note", "attachment", "annotation"}]
         if not items:
             raise RuntimeError("No items found in storage; run ingest before building profile.")
 
@@ -80,6 +81,7 @@ class ProfileBuilder:
             "centroid": centroid.tolist(),
             "top_authors": top_authors,
             "top_venues": top_venues,
+            "index_items": [{"title": item.title, "doi": item.doi} for item in items],
         }
 
 
