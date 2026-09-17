@@ -3,10 +3,10 @@ from __future__ import annotations
 import argparse
 import logging
 import json
+from collections import Counter
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Optional
-from zoneinfo import ZoneInfo
 from dotenv import load_dotenv
 
 from .build_profile import ProfileBuilder
@@ -19,12 +19,14 @@ from .ingest_zotero_api import ZoteroIngestor
 from .logging_utils import setup_logging
 from .metadata_enrich import enrich_ranked_works
 from .models import RankedWork
+from .notify_email import notify
 from .push_to_zotero import ZoteroPusher
 from .rss_writer import write_rss
 from .score_rank import WorkRanker
 from .settings import Settings, load_settings
 from .storage import ProfileStorage
 from .report_html import render_html
+from .utils import beijing_now
 from .research_features import FeedbackModel, RetrievalWarnings, coverage_report, load_feedback, propose_tracking, save_feedback, collaboration_groups
 from .problem_ranking import diverse_select
 from .network_budget import BudgetSession
@@ -39,7 +41,11 @@ RSS_PATH = BASE_DIR / "reports" / "feed.xml"
 
 def main(argv: Optional[list[str]] = None) -> None:
     parser = argparse.ArgumentParser(description="ZotWatcher CLI")
-    parser.add_argument("command", choices=["profile", "watch", "commit-history", "feedback"], help="Command to run")
+    parser.add_argument(
+        "command",
+        choices=["profile", "watch", "commit-history", "feedback", "notify"],
+        help="Command to run",
+    )
     parser.add_argument("--base-dir", default=str(BASE_DIR), help="Repository base directory")
     parser.add_argument("--verbose", action="store_true", help="Enable debug logging")
     parser.add_argument("--full", action="store_true", help="Full rebuild (profile command)")
@@ -49,6 +55,7 @@ def main(argv: Optional[list[str]] = None) -> None:
     parser.add_argument("--top", type=int, default=50, help="Number of top results to keep")
     parser.add_argument("--push", action="store_true", help="Push top items back to Zotero")
     parser.add_argument("--defer-history", action="store_true", help="Commit delivery history separately after publication/email")
+    parser.add_argument("--dry-run", action="store_true", help="Build the email without sending it (notify command)")
     parser.add_argument("--doi", help="Paper DOI for explicit feedback")
     parser.add_argument("--rating", choices=["direct", "transferable", "mechanism", "irrelevant", "read", "later", "reading", "reset"])
     parser.add_argument("--scope", default="", help="Apply relevance feedback to one research problem")
@@ -62,6 +69,9 @@ def main(argv: Optional[list[str]] = None) -> None:
         WatchHistory(base_dir / "data" / "watch-state").commit()
         return
     load_dotenv(base_dir / ".env")
+    if args.command == "notify":
+        notify(base_dir, dry_run=args.dry_run)
+        return
     settings = load_settings(base_dir)
     if args.command == "feedback":
         if not args.doi or not args.rating:
@@ -145,6 +155,7 @@ def _run_watch(
     ranked = ranker.rank(deduped)
     if config.enabled:
         ranked = feedback.apply(ranked, settings.scoring.thresholds)
+    _log_score_distribution(ranked, settings.scoring.thresholds)
     proposals = propose_tracking(ranked, config, settings, history.state, feedback) if config.enabled else []
     groups = collaboration_groups(history.state, settings) if config.enabled else []
     ranked = history.filter(ranked)
@@ -205,7 +216,7 @@ def _run_watch(
     if rss:
         write_rss([*alerts, *combined], base_dir / "reports" / "feed.xml")
     if report:
-        report_date = datetime.now(ZoneInfo("Asia/Shanghai"))
+        report_date = beijing_now()
         report_name = f"report-{report_date:%Y%m%d}.html"
         render_html(ranked, base_dir / "reports" / report_name, watched_works=watched,
                     classic_works=classics, coverage_warnings=retrieval_warnings + monitor.warnings,
@@ -230,6 +241,28 @@ def _log_top_results(ranked: list[RankedWork]) -> None:
     logger = logging.getLogger(__name__)
     for idx, work in enumerate(ranked[:10], start=1):
         logger.info("%02d | %.3f | %s | %s", idx, work.score, work.label, work.title)
+
+
+def _log_score_distribution(works: list[RankedWork], thresholds) -> None:
+    """Log score percentiles so the label thresholds can be set from real data.
+
+    Scores are now bounded in [0, 1]; if almost nothing reaches must_read, or
+    everything does, these percentiles say by how much to move the thresholds.
+    """
+    if not works:
+        return
+    scores = sorted(work.score for work in works)
+    def pct(p: float) -> float:
+        return scores[min(len(scores) - 1, int(p * (len(scores) - 1)))]
+    logger = logging.getLogger(__name__)
+    logger.info(
+        "Score distribution over %d ranked works: p50=%.3f p75=%.3f p90=%.3f p99=%.3f max=%.3f "
+        "(must_read=%.2f consider=%.2f)",
+        len(scores), pct(0.50), pct(0.75), pct(0.90), pct(0.99), scores[-1],
+        thresholds.must_read, thresholds.consider,
+    )
+    labels = Counter(work.label for work in works)
+    logger.info("Label counts: %s", dict(labels))
 
 
 def _filter_recent(ranked: list[RankedWork], *, days: int) -> list[RankedWork]:

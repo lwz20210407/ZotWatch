@@ -7,5 +7,6 @@ feedparser>=6.0
 sentence-transformers>=2.2
 faiss-cpu>=1.7
 numpy>=1.24
-python-dotenv
 python-dotenv>=1.0
+# zoneinfo has no tz database on Windows or in slim containers.
+tzdata>=2024.1; platform_system == "Windows"

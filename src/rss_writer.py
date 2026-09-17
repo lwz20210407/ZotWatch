@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+import os
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Iterable
@@ -12,29 +13,52 @@ from .citation_watch import recommendation_reasons
 logger = logging.getLogger(__name__)
 
 
+def site_url() -> str:
+    """Public Pages URL, derived from the repository instead of hardcoded."""
+    repository = os.getenv("GITHUB_REPOSITORY", "")
+    if "/" in repository:
+        owner, name = repository.split("/", 1)
+        return f"https://{owner.lower()}.github.io/{name}/"
+    return os.getenv("ZOTWATCH_SITE_URL", "") or "https://github.com/"
+
+
 def write_rss(
     works: Iterable[RankedWork],
     output_path: Path | str,
     *,
-    title: str = "ZotWatcher Feed",
-    link: str = "https://example.com",
-    description: str = "AI assisted literature watch",
+    title: str = "ZotWatch Feed",
+    link: str | None = None,
+    description: str = "Zotero 兴趣画像驱动的文献追踪",
 ) -> Path:
     works_list = list(works)
     rss = ET.Element("rss", version="2.0")
     channel = ET.SubElement(rss, "channel")
     ET.SubElement(channel, "title").text = title
-    ET.SubElement(channel, "link").text = link
+    # Previously this defaulted to "https://example.com" and was never overridden
+    # by the caller, so every reader showed example.com as the feed home page.
+    ET.SubElement(channel, "link").text = link or site_url()
     ET.SubElement(channel, "description").text = description
-    ET.SubElement(channel, "lastBuildDate").text = _format_rfc822(datetime.now(timezone.utc))
+    discovered_at = datetime.now(timezone.utc)
+    ET.SubElement(channel, "lastBuildDate").text = _format_rfc822(discovered_at)
 
     for work in works_list:
         item = ET.SubElement(channel, "item")
         ET.SubElement(item, "title").text = work.title
         if work.url:
             ET.SubElement(item, "link").text = work.url
-        ET.SubElement(item, "guid").text = work.identifier
-        ET.SubElement(item, "pubDate").text = _format_rfc822(work.published)
+        # The identifier is an OpenAlex ID or a DOI, not a URL. RSS 2.0 treats a
+        # guid as a permalink unless told otherwise.
+        guid = ET.SubElement(item, "guid")
+        guid.set("isPermaLink", "false")
+        guid.text = work.identifier
+        # pubDate is the date this feed learned about the paper, not the paper's
+        # own publication date. Readers sort and mark-as-read by pubDate, so using
+        # the publication date buried every "经典文献补漏" item -- a 2014 paper
+        # entered the feed dated 2014 and was sorted below everything else or
+        # treated as already seen.
+        ET.SubElement(item, "pubDate").text = _format_rfc822(discovered_at)
+        if work.published:
+            ET.SubElement(item, "{http://purl.org/dc/elements/1.1/}date").text = work.published.date().isoformat()
         if work.venue:
             ET.SubElement(item, "category").text = work.venue
         description_lines = []
@@ -65,6 +89,7 @@ def write_rss(
             ET.SubElement(item, "category").text = "重点作者新作"
         ET.SubElement(item, "description").text = "\n".join(description_lines)
 
+    ET.register_namespace("dc", "http://purl.org/dc/elements/1.1/")
     tree = ET.ElementTree(rss)
     path = Path(output_path)
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -81,4 +106,4 @@ def _format_rfc822(dt: datetime | None) -> str:
     return dt.astimezone(timezone.utc).strftime("%a, %d %b %Y %H:%M:%S %z")
 
 
-__all__ = ["write_rss"]
+__all__ = ["write_rss", "site_url"]

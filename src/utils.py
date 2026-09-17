@@ -2,8 +2,9 @@ from __future__ import annotations
 
 import hashlib
 import json
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from typing import Any, Dict
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 
 def json_dumps(data: Any, *, indent: int | None = None) -> str:
@@ -20,6 +21,23 @@ def hash_content(*parts: str) -> str:
 
 def utc_now() -> datetime:
     return datetime.now(timezone.utc)
+
+
+def beijing_tz() -> timezone | ZoneInfo:
+    """Asia/Shanghai, falling back to a fixed +08:00 offset.
+
+    Windows and slim containers have no system tz database, and the `tzdata`
+    wheel is not always present. Beijing time has had no DST since 1991, so the
+    fixed offset is exact -- a report or an email must not fail over a timestamp.
+    """
+    try:
+        return ZoneInfo("Asia/Shanghai")
+    except (ZoneInfoNotFoundError, KeyError):  # pragma: no cover - platform dependent
+        return timezone(timedelta(hours=8))
+
+
+def beijing_now() -> datetime:
+    return datetime.now(beijing_tz())
 
 
 def ensure_isoformat(dt: datetime | None) -> str | None:
@@ -47,4 +65,12 @@ def chunk_dict(d: Dict[str, Any], *, max_len: int = 80) -> Dict[str, Any]:
     return result
 
 
-__all__ = ["hash_content", "json_dumps", "utc_now", "ensure_isoformat", "iso_to_datetime"]
+__all__ = [
+    "hash_content",
+    "json_dumps",
+    "utc_now",
+    "beijing_tz",
+    "beijing_now",
+    "ensure_isoformat",
+    "iso_to_datetime",
+]

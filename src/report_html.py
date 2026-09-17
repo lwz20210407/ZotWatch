@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import logging
-from datetime import datetime
 from pathlib import Path
 from typing import List
 
@@ -9,6 +8,7 @@ from jinja2 import Environment, Template
 
 from .models import RankedWork
 from .citation_watch import recommendation_reasons
+from .utils import beijing_now
 
 logger = logging.getLogger(__name__)
 
@@ -17,20 +17,34 @@ _TEMPLATE = """
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <title>ZotWatcher Report {{ generated_at }}</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ZotWatch Report {{ generated_at }}</title>
   <style>
-    body { font-family: Arial, sans-serif; margin: 2rem; }
+    body { font-family: -apple-system, "Segoe UI", Arial, sans-serif; margin: 2rem;
+           max-width: 52rem; line-height: 1.55; }
     h1 { border-bottom: 2px solid #444; padding-bottom: 0.5rem; }
     article { margin-bottom: 1.5rem; }
     .meta { color: #555; font-size: 0.9rem; }
+    .meta span { display: inline-block; margin-right: .4rem; }
+    a { overflow-wrap: anywhere; }
+    /* Wide diagnostic tables scroll instead of forcing the page wider than the
+       screen; this report is read in a 07:00 email, usually on a phone. */
+    .scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
     table { border-collapse: collapse; width: 100%; font-size: 0.9rem; }
     th, td { border: 1px solid #ddd; padding: .5rem; text-align: left; }
     details { background: #f5f7fa; padding: .7rem; margin-top: .6rem; }
+    @media (max-width: 640px) {
+      body { margin: 1rem; font-size: 15px; }
+      h1 { font-size: 1.35rem; }
+      h2 { font-size: 1.1rem; }
+      table { font-size: 0.82rem; }
+    }
   </style>
 </head>
 <body>
-  <h1>ZotWatcher Recommendations</h1>
-  <p>Generated at {{ generated_at }}</p>
+  <h1>ZotWatch Recommendations</h1>
+  <p>Generated at {{ generated_at }}（北京时间）</p>
+  {% if funnel %}<p class="meta">本轮漏斗：抓取 {{ funnel.raw }} → 主题通过 {{ funnel.topic }} → 库内去重后 {{ funnel.dedup }} → 推送 {{ funnel.delivered }}。</p>{% endif %}
   <p>近期新作与经典补漏分开呈现；引用关系和相似度是阅读线索，不代表结论正确或方法可直接迁移。</p>
   {% for warning in coverage_warnings %}<p class="meta">覆盖提示：{{ warning }}</p>{% endfor %}
   {% if not works and not watched_works and not classic_works and not update_works and not exploration_works %}<p>本轮无通过筛选且尚未推送的文献。</p>{% endif %}
@@ -43,9 +57,9 @@ _TEMPLATE = """
   {% if diagnostics.get('coverage') %}
   <h2>研究问题覆盖诊断</h2>
   <p>同一论文可命中多个方向；数量是本轮候选集统计，不是全网召回率。反馈样本：{{ diagnostics.get('feedback_count', 0) }}。</p>
-  <table><thead><tr><th>方向</th><th>抓取</th><th>主题通过</th><th>库内去重后</th><th>推送</th><th>诊断</th></tr></thead><tbody>
+  <div class="scroll"><table><thead><tr><th>方向</th><th>抓取</th><th>主题通过</th><th>库内去重后</th><th>推送</th><th>诊断</th></tr></thead><tbody>
   {% for row in diagnostics.coverage %}<tr><td>{{ row.facet }}</td><td>{{ row.raw }}</td><td>{{ row.topic }}</td><td>{{ row.dedup }}</td><td>{{ row.delivered }}</td><td>{{ row.status }}；连续无推送 {{ row.zero_runs }} 个运行日</td></tr>{% endfor %}
-  </tbody></table>
+  </tbody></table></div>
   {% endif %}
   {% if diagnostics.get('network') %}<p>请求与缓存检查点：{{ diagnostics.network.requests }}；缓存命中 {{ diagnostics.network.cache_hits }}。
   本地估算OpenAlex剩余预算：{{ diagnostics.network.local_openalex_remaining_usd }}（不是账户实时余额）。</p>{% endif %}
@@ -142,17 +156,32 @@ _TEMPLATE = """
 """
 
 
+def funnel_totals(diagnostics: dict | None) -> dict:
+    """Aggregate the per-facet coverage table into one retrieval funnel line.
+
+    Makes a quiet week legible: seeing "抓取 812 → 主题通过 96 → 去重后 31 → 推送 12"
+    tells you whether a short digest means a quiet field or a broken query.
+    """
+    rows = (diagnostics or {}).get("coverage") or []
+    if not rows:
+        return {}
+    keys = ("raw", "topic", "dedup", "delivered")
+    return {key: sum(int(row.get(key) or 0) for row in rows) for key in keys}
+
+
 def render_html(works: List[RankedWork], output_path: Path | str, *, watched_works: List[RankedWork] | None = None,
                 classic_works: List[RankedWork] | None = None, coverage_warnings: List[str] | None = None,
                 diagnostics: dict | None = None, update_works: List[RankedWork] | None = None,
                 exploration_works: List[RankedWork] | None = None) -> Path:
     env = Environment(autoescape=True)
     template: Template = env.from_string(_TEMPLATE)
+    generated_at = beijing_now().strftime("%Y-%m-%d %H:%M:%S")
     rendered = template.render(works=works, watched_works=watched_works or [], classic_works=classic_works or [],
                                coverage_warnings=coverage_warnings or [], recommendation_reasons=recommendation_reasons,
                                diagnostics=diagnostics or {}, update_works=update_works or [],
                                exploration_works=exploration_works or [],
-                               generated_at=datetime.utcnow().isoformat())
+                               funnel=funnel_totals(diagnostics),
+                               generated_at=generated_at)
     path = Path(output_path)
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(rendered, encoding="utf-8")
@@ -160,4 +189,4 @@ def render_html(works: List[RankedWork], output_path: Path | str, *, watched_wor
     return path
 
 
-__all__ = ["render_html"]
+__all__ = ["render_html", "funnel_totals"]
