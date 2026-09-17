@@ -5,6 +5,7 @@ import json
 import logging
 import re
 from collections import defaultdict
+from itertools import combinations
 from datetime import datetime, timezone
 from pathlib import Path
 from urllib.parse import urlencode
@@ -17,8 +18,9 @@ from .author_watch import work_key
 from .topic_matching import matches_any
 
 logger = logging.getLogger(__name__)
-RATINGS = {"direct": 1.0, "transferable": 0.8, "mechanism": 0.6, "irrelevant": -1.0, "read": 0.0}
-RATING_NAMES = {"direct": "直接有用", "transferable": "方法可迁移", "mechanism": "机制参考", "irrelevant": "不相关", "read": "已读"}
+RATINGS = {"direct": 1.0, "transferable": 0.8, "mechanism": 0.6, "irrelevant": -1.0}
+RATING_NAMES = {"direct": "直接有用", "transferable": "方法可迁移", "mechanism": "机制参考", "irrelevant": "不相关",
+                "later": "稍后看", "reading": "阅读中", "read": "已读", "reset": "撤销反馈"}
 
 
 def normalize_doi(value):
@@ -28,8 +30,9 @@ def normalize_doi(value):
 class FeedbackEntry(BaseModel):
     model_config = ConfigDict(extra="forbid")
     doi: str
-    rating: Literal["direct", "transferable", "mechanism", "irrelevant", "read"]
+    rating: Literal["direct", "transferable", "mechanism", "irrelevant", "read", "later", "reading", "reset"]
     facets: list[str] = Field(default_factory=list, max_length=20)
+    scope: str = ""
 
     @field_validator("doi")
     @classmethod
@@ -45,9 +48,13 @@ def facet_ids(work, config):
     return [f.id for f in config.facets if matches_any(text, f.terms)]
 
 
+def feedback_key(entry):
+    return entry.doi + ("#" + entry.scope if entry.scope else "")
+
+
 def load_feedback(base_dir, config, saved=()):
     """Only repository owner's explicit JSON feedback is accepted, never issue instructions."""
-    entries = {entry.doi: entry for entry in (FeedbackEntry.model_validate(row) for row in saved)}
+    entries = {feedback_key(entry): entry for entry in (FeedbackEntry.model_validate(row) for row in saved)}
     issues_path = Path(base_dir) / "data" / "feedback-issues.json"
     allowed = {f.id for f in config.facets}
     if issues_path.exists():
@@ -61,57 +68,69 @@ def load_feedback(base_dir, config, saved=()):
                 continue
             try:
                 entry = FeedbackEntry.model_validate_json(match.group(1))
-                if not set(entry.facets) <= allowed:
+                if not set(entry.facets) <= allowed or (entry.scope and entry.scope not in allowed):
                     raise ValueError("Unknown feedback facet")
-                entries[entry.doi] = entry
+                entries[feedback_key(entry)] = entry
             except ValueError:
                 logger.warning("Ignored malformed feedback in issue #%s", issue.get("number"))
     path = Path(base_dir) / "config" / "feedback.yaml"
     if path.exists():
         for row in (yaml.safe_load(path.read_text(encoding="utf-8")) or {}).get("entries", []):
             entry = FeedbackEntry.model_validate(row)
-            if not set(entry.facets) <= allowed:
+            if not set(entry.facets) <= allowed or (entry.scope and entry.scope not in allowed):
                 raise ValueError("Unknown facet in local feedback configuration")
-            entries[entry.doi] = entry  # Explicit local configuration takes precedence.
+            entries[feedback_key(entry)] = entry  # Explicit local configuration takes precedence.
     return list(entries.values())
 
 
 def save_feedback(base_dir, entry, config):
     entry = FeedbackEntry.model_validate(entry)
-    if not set(entry.facets) <= {f.id for f in config.facets}:
+    if not set(entry.facets) <= {f.id for f in config.facets} or (entry.scope and entry.scope not in {f.id for f in config.facets}):
         raise ValueError("Unknown feedback facet")
     path = Path(base_dir) / "config" / "feedback.yaml"
     data = yaml.safe_load(path.read_text(encoding="utf-8")) if path.exists() else {"entries": []}
-    entries = [r for r in data.get("entries", []) if normalize_doi(r["doi"]) != entry.doi]
+    entries = [r for r in data.get("entries", []) if (normalize_doi(r["doi"]), r.get("scope", "")) != (entry.doi, entry.scope)]
     path.write_text(yaml.safe_dump({"entries": [*entries, entry.model_dump()]}, allow_unicode=True, sort_keys=False), encoding="utf-8")
 
 
 class FeedbackModel:
     def __init__(self, entries, config):
-        self.entries = {e.doi: e for e in entries}
+        self.entries = {feedback_key(e): e for e in entries}
         self.config = config
         votes = defaultdict(list)
-        for entry in entries:
-            if entry.rating == "read":
+        for entry in self.entries.values():
+            if entry.rating not in RATINGS:
                 continue
-            for facet in set(entry.facets):
+            for facet in ({entry.scope} if entry.scope else set(entry.facets)):
                 votes[facet].append(RATINGS[entry.rating])
         # Two neutral pseudo-observations: a single click cannot dominate the profile.
         self.preferences = {f: sum(v) / (len(v) + 2) for f, v in votes.items()}
 
+    def entry_for(self, doi, scope=""):
+        doi = normalize_doi(doi)
+        return self.entries.get(doi + "#" + scope) or self.entries.get(doi)
+
+    def is_positive(self, doi):
+        return any(e.doi == normalize_doi(doi) and e.rating in {"direct", "transferable", "mechanism"} for e in self.entries.values())
+
     def apply(self, works, thresholds):
         result = []
         for work in works:
-            entry = self.entries.get(normalize_doi(work.doi))
             facets = facet_ids(work, self.config)
-            pref = sum(self.preferences.get(f, 0) for f in facets) / max(1, len(facets))
-            if entry and entry.rating != "read":
+            primary = work.extra.get("primary_problem") or next(iter(facets), "")
+            entry = self.entry_for(work.doi, primary)
+            global_entry = self.entries.get(normalize_doi(work.doi))
+            pref = self.preferences.get(primary, 0)
+            if entry and entry.rating in RATINGS and (not entry.facets or primary in entry.facets or entry.scope == primary):
                 pref = (pref + RATINGS[entry.rating]) / 2
             delta = max(-1, min(1, pref)) * self.config.feedback_max_adjustment
             score = work.score + delta
             label = "must_read" if score >= thresholds.must_read else "consider" if score >= thresholds.consider else "ignore"
+            if work.extra.get("semantic_gate_failed"):
+                label = "ignore"
             extra = {**work.extra, "research_facets": facets, "feedback_adjustment": delta,
-                     "feedback_read": bool(entry and entry.rating == "read")}
+                     "feedback_read": bool(global_entry and global_entry.rating == "read"),
+                     "reading_state": global_entry.rating if global_entry and global_entry.rating in {"later", "reading", "read"} else ""}
             result.append(work.model_copy(update={"score": score, "label": label, "extra": extra}))
         return sorted(result, key=lambda w: w.score, reverse=True)
 
@@ -125,6 +144,12 @@ def feedback_links(work, config):
         body = "<!-- zotwatch-feedback-v1 -->\n```json\n" + json.dumps(payload, ensure_ascii=False) + "\n```\n公开反馈，请勿填写私人笔记。"
         query = urlencode({"title": "[ZotWatch feedback] " + name + " " + work.title[:90], "body": body})
         links.append({"name": name, "url": f"https://github.com/{config.feedback_repository}/issues/new?{query}"})
+    for facet in [f for f in config.facets if f.id in facet_ids(work, config)][:2]:
+        for rating in ("direct", "irrelevant", "reset"):
+            payload = {"doi": normalize_doi(work.doi), "rating": rating, "scope": facet.id, "facets": [facet.id]}
+            body = "<!-- zotwatch-feedback-v1 -->\n```json\n" + json.dumps(payload, ensure_ascii=False) + "\n```"
+            query = urlencode({"title": "[ZotWatch feedback] " + facet.name + " " + RATING_NAMES[rating], "body": body})
+            links.append({"name": facet.name + "：" + RATING_NAMES[rating], "url": f"https://github.com/{config.feedback_repository}/issues/new?{query}"})
     return links
 
 
@@ -180,7 +205,7 @@ def propose_tracking(works, config, settings, state, feedback):
     for work in works:
         if work.label == "ignore" or work.similarity < settings.citation_watch.min_similarity:
             continue
-        entry = feedback.entries.get(normalize_doi(work.doi))
+        entry = feedback.entry_for(work.doi, work.extra.get("primary_problem", ""))
         if entry and entry.rating == "irrelevant":
             continue
         rows = work.extra.get("openalex_authorships", [])
@@ -216,7 +241,7 @@ def propose_tracking(works, config, settings, state, feedback):
     existing = {s.openalex_id for s in settings.citation_watch.seeds}
     for key, row in observations.items():
         entry = feedback.entries.get(normalize_doi(row.get("doi")))
-        approved = entry and entry.rating in {"direct", "transferable", "mechanism"}
+        approved = feedback.is_positive(row.get("doi"))
         ident = row["openalex_id"].rsplit("/", 1)[-1]
         if approved and ident and ident not in existing:
             proposals.append({"kind": "种子候选", "id": ident, "name": row["title"], "count": 1,
@@ -224,3 +249,21 @@ def propose_tracking(works, config, settings, state, feedback):
                               "reason": "你已明确标记有用；确认后才加入固定引文追踪"})
     proposals.sort(key=lambda p: (p["kind"] == "种子候选", p["count"]), reverse=True)
     return proposals[:config.proposal_limit]
+
+
+def collaboration_groups(state, settings):
+    groups = defaultdict(dict)
+    names = {}
+    watched = {aid for author in settings.author_watch.authors if author.enabled for aid in author.openalex_ids}
+    for key, row in state.get("research_observations", {}).items():
+        authors = {a.get("author_id"): a for a in row.get("authors", []) if re.fullmatch(r"A\d+", a.get("author_id", ""))}
+        if len(authors) > 12:
+            continue
+        names.update({aid: a.get("name") or aid for aid, a in authors.items()})
+        for pair in combinations(sorted(authors), 2):
+            if set(pair) & watched:
+                groups[pair][key] = {"title": row["title"], "url": row.get("url")}
+    result = [{"ids": list(pair), "names": [names[a] for a in pair], "count": len(papers),
+               "papers": list(papers.values())[:3], "new_collaborator": bool(set(pair) - watched)}
+              for pair, papers in groups.items() if len(papers) >= 2]
+    return sorted(result, key=lambda r: (-r["count"], r["ids"]))[:5]

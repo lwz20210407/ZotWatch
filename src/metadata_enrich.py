@@ -15,8 +15,8 @@ logger = logging.getLogger(__name__)
 DOI_URL_RE = re.compile(r"^https?://(dx\.)?doi\.org/", re.IGNORECASE)
 
 
-def enrich_ranked_works(works: Iterable[RankedWork], settings: Settings) -> list[RankedWork]:
-    session = requests.Session()
+def enrich_ranked_works(works: Iterable[RankedWork], settings: Settings, session=None) -> list[RankedWork]:
+    session = session or requests.Session()
     session.headers.update({"User-Agent": "ZotWatcher/0.1 metadata enrichment"})
     enriched = []
     for work in works:

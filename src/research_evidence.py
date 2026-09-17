@@ -3,6 +3,7 @@ import re
 
 from .research_features import feedback_links
 from .topic_matching import matches_any
+from .problem_ranking import local_evidence_graph
 
 
 METHOD_NAMES = ["Johnson-Cook", "Hosford-Coulomb", "Mohr-Coulomb", "Gurson", "GISSMO",
@@ -56,6 +57,7 @@ def attach_evidence(work, config):
         budget -= len(snippet.split())
         signal["evidence"] = snippet + (" …" if snippet else "")
     return work.model_copy(update={"extra": {**work.extra, "transfer_cards": cards,
+        "evidence_graph": local_evidence_graph(work),
         "abstract_method_signals": signals, "evidence_level": level,
         "feedback_links": feedback_links(work, config),
         "citation_context_status": "不读取正文；仅凭引文元数据不能判断对被引论文的采用、改进或反驳"}})

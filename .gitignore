@@ -11,6 +11,8 @@ __pycache__/
 /data/*.index
 /data/profile.json
 /data/watch-state/
+/data/network-state/
+/reports/ranking-*.json
 /data/feedback-issues.json
 /reports/research-diagnostics.json
 /data/cache/

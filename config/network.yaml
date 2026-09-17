@@ -1,0 +1,6 @@
+openalex_anonymous_budget: 0.08
+openalex_key_budget: 0.8
+openalex_max_requests: 160
+crossref_max_requests: 180
+topic_queries_per_run: 40
+cache_hours: 48

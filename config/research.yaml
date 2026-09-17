@@ -1,4 +1,9 @@
 enabled: true
+semantic_enabled: true
+semantic_min_similarity: 0.40
+diversity_pool: 100
+diversity_penalty: 0.20
+exploration_slots: 2
 feedback_max_adjustment: 0.08
 feedback_owner: lwz20210407
 feedback_repository: lwz20210407/ZotWatch
@@ -7,36 +12,43 @@ proposal_min_papers: 2
 proposal_limit: 10
 facets:
   - id: stress_state
+    semantic_query: "Stress-state dependent metal plasticity, pressure and Lode angle dependent yield surfaces, non-associated flow and anisotropic hardening."
     name: 应力状态依赖塑性
     terms: [stress triaxiality, Lode, yield surface, yield criterion, non-associated flow, 应力状态, 屈服面]
     use: 可作为屈服面、压力/Lode依赖和塑性流动法则的比较线索
     verify: 核对适用应力状态、各向异性假设、流动法则和TC4标定范围
   - id: thermorate
+    semantic_query: "Temperature and strain-rate dependent plastic deformation of metals, thermal softening, adiabatic heating and thermoviscoplastic constitutive models."
     name: 温度—应变率耦合
     terms: [strain rate, thermal softening, thermoviscoplastic, temperature dependent, Taylor-Quinney, adiabatic shear, 应变率, 热软化]
     use: 可作为速率、温度和热力耦合项的候选建模思路
     verify: 核对温度和应变率范围、绝热升温修正、参数耦合与外推误差
   - id: fracture
+    semantic_query: "Ductile fracture initiation and damage evolution in metals under multiaxial nonproportional loading, stress triaxiality and Lode parameter."
     name: 延性断裂与损伤演化
     terms: [ductile fracture, damage evolution, fracture locus, fracture criterion, Gurson, GISSMO, 延性断裂, 损伤演化]
     use: 可作为断裂起始、损伤累积和失效模式的比较线索
     verify: 核对负三轴度、非比例路径、加载历史和独立验证试样
   - id: inverse
+    semantic_query: "Inverse identification of metal constitutive and fracture parameters using finite element simulations, full-field strain measurements and post-necking hardening extrapolation."
     name: 参数反演与硬化外推
     terms: [LS-OPT, inverse identification, inverse calibration, parameter identification, post-necking, hardening extrapolation, virtual fields, FEMU, 反演, 颈缩后]
     use: 可作为全场反演、目标函数和颈缩后硬化外推的流程参考
     verify: 核对参数可辨识性、测量误差、边界条件、训练与验证数据分离
   - id: regularization
+    semantic_query: "Mesh objective ductile damage regularization, characteristic length, fracture energy and constitutive integration in explicit finite element metal failure simulations."
     name: 数值实现与损伤正则化
     terms: [regularization, regularisation, mesh objectivity, mesh dependence, nonlocal damage, characteristic length, VUMAT, UMAT, return mapping, 正则化, 网格客观性]
     use: 可作为LS-DYNA/Abaqus实现、网格客观性和积分算法的参考
     verify: 核对单元类型、特征长度、耗散能、稳定性及网格收敛性
   - id: impact
+    semantic_query: "Validation of metal plasticity and failure models using high strain rate tests, Taylor impact and ballistic perforation experiments."
     name: 冲击与结构验证
     terms: [ballistic, penetration, perforation, Taylor impact, split Hopkinson, SHPB, 冲击, 侵彻]
     use: 可作为从材料试样走向动态或结构尺度验证的线索
     verify: 核对弹靶几何、边界条件、速度范围、残余速度和失效形貌
   - id: microstructure
+    semantic_query: "Laser powder bed fusion Ti-6Al-4V titanium alloys, microstructure texture porosity and build orientation effects on plasticity and ductile fracture."
     name: 增材组织—缺陷—失效
     terms: [LPBF, SLM, lack of fusion, porosity, crystal plasticity, build orientation, heat treatment, crystallographic texture, 增材, 织构, 晶体塑性]
     use: 可作为组织、缺陷及制造方向影响力学响应的机制线索

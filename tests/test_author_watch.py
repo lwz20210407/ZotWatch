@@ -20,6 +20,7 @@ class AuthorWatchTests(unittest.TestCase):
         self.config = AuthorWatchConfig(enabled=True, authors=[TrackedAuthor(name="Researcher", openalex_ids=["A123"], institution_ids=["I456"])])
         self.settings = load_settings(Path(__file__).resolve().parents[1])
         self.settings.author_watch = self.config
+        self.settings.research.semantic_enabled = False
 
     def work(self, aid="A123", institution="I456", title="TC4 ductile fracture") -> CandidateWork:
         return CandidateWork(source="test", identifier="w", title=title, authors=["Researcher"],

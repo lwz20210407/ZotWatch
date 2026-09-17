@@ -25,7 +25,9 @@ from .score_rank import WorkRanker
 from .settings import Settings, load_settings
 from .storage import ProfileStorage
 from .report_html import render_html
-from .research_features import FeedbackModel, RetrievalWarnings, coverage_report, load_feedback, propose_tracking, save_feedback
+from .research_features import FeedbackModel, RetrievalWarnings, coverage_report, load_feedback, propose_tracking, save_feedback, collaboration_groups
+from .problem_ranking import diverse_select
+from .network_budget import BudgetSession
 from .research_evidence import attach_evidence
 from .version_watch import VersionMonitor
 
@@ -48,7 +50,8 @@ def main(argv: Optional[list[str]] = None) -> None:
     parser.add_argument("--push", action="store_true", help="Push top items back to Zotero")
     parser.add_argument("--defer-history", action="store_true", help="Commit delivery history separately after publication/email")
     parser.add_argument("--doi", help="Paper DOI for explicit feedback")
-    parser.add_argument("--rating", choices=["direct", "transferable", "mechanism", "irrelevant", "read"])
+    parser.add_argument("--rating", choices=["direct", "transferable", "mechanism", "irrelevant", "read", "later", "reading", "reset"])
+    parser.add_argument("--scope", default="", help="Apply relevance feedback to one research problem")
     parser.add_argument("--facets", nargs="*", default=[], help="Explicit method facets to learn from")
 
     args = parser.parse_args(argv)
@@ -63,7 +66,7 @@ def main(argv: Optional[list[str]] = None) -> None:
     if args.command == "feedback":
         if not args.doi or not args.rating:
             parser.error("feedback requires --doi and --rating")
-        save_feedback(base_dir, {"doi": args.doi, "rating": args.rating, "facets": args.facets}, settings.research)
+        save_feedback(base_dir, {"doi": args.doi, "rating": args.rating, "facets": args.facets, "scope": args.scope}, settings.research)
         return
     storage = ProfileStorage(base_dir / "data" / "profile.sqlite")
 
@@ -120,6 +123,7 @@ def _run_watch(
     ingest.run(full=False)
     # Always match the index and its ordered evidence mapping to the current library.
     builder = ProfileBuilder(base_dir, storage, settings)
+    builder.feedback_entries = list(feedback.entries.values())
     builder.run()
 
     fetcher = CandidateFetcher(settings, base_dir)
@@ -142,6 +146,7 @@ def _run_watch(
     if config.enabled:
         ranked = feedback.apply(ranked, settings.scoring.thresholds)
     proposals = propose_tracking(ranked, config, settings, history.state, feedback) if config.enabled else []
+    groups = collaboration_groups(history.state, settings) if config.enabled else []
     ranked = history.filter(ranked)
     if config.enabled:
         ranked = [w for w in ranked if not w.extra.get("feedback_read")]
@@ -154,21 +159,31 @@ def _run_watch(
     classics = classics[:settings.citation_watch.max_classic_items] if settings.citation_watch.enabled else []
     for work in classics:
         work.extra["report_channel"] = "经典文献补漏"
+    classic_keys = {work_key(w) for w in classics}
+    exploration = [w for w in ranked if w.extra.get("semantic_facets") and work_key(w) not in recent_keys | classic_keys
+                   and w.label != "ignore" and w.published and w.published <= now][:config.semantic_backfill_items] if config.enabled else []
+    for work in exploration:
+        work.extra["report_channel"] = "跨圈方法发现（非近期新作）"
     ranked = recent
     watched = author_news(ranked, settings.author_watch)
     ranked = [work for work in ranked if work.label != "ignore"]
     ranked = _limit_preprints(ranked, max_ratio=0.3)
 
-    if top and len(ranked) > top:
+    baseline = sorted(ranked, key=lambda w: w.extra.get("legacy_score", w.score), reverse=True)[:top or len(ranked)]
+    if config.enabled:
+        ranked = diverse_select(ranked, top, config, builder.vectorizer)
+    elif top:
         ranked = ranked[:top]
 
-    combined = enrich_ranked_works(merge_report_works(merge_report_works(ranked, watched), classics), settings)
+    combined = enrich_ranked_works(merge_report_works(merge_report_works(merge_report_works(ranked, watched), classics), exploration), settings,
+                                   session=fetcher.session)
     if config.enabled:
         combined = [attach_evidence(work, config) for work in combined]
     enriched_by_key = {work_key(work): work for work in combined}
     ranked = [enriched_by_key[work_key(work)] for work in ranked]
     watched = [enriched_by_key[work_key(work)] for work in watched]
     classics = [enriched_by_key[work_key(work)] for work in classics]
+    exploration = [enriched_by_key[work_key(work)] for work in exploration]
     monitor = VersionMonitor(settings, fetcher.session)
     alerts = monitor.check(combined, history.state) if config.enabled else []
     retrieval_warnings = list(getattr(warning_recorder, "messages", [])) + discovery.warnings
@@ -177,6 +192,8 @@ def _run_watch(
                                "topic": merged, "dedup": deduped, "delivered": combined},
                                retrieval_warnings, history.state) if config.enabled else []
     diagnostics = {"coverage": coverage, "proposals": proposals,
+                   "collaboration_groups": groups,
+                   "network": fetcher.session.summary() if isinstance(fetcher.session, BudgetSession) else {},
                    "retrieval_warnings": retrieval_warnings, "version_warnings": monitor.warnings,
                    "feedback_count": len(feedback.entries), "evidence_mode": "title_abstract_only"}
 
@@ -192,9 +209,15 @@ def _run_watch(
         report_name = f"report-{report_date:%Y%m%d}.html"
         render_html(ranked, base_dir / "reports" / report_name, watched_works=watched,
                     classic_works=classics, coverage_warnings=retrieval_warnings + monitor.warnings,
-                    diagnostics=diagnostics, update_works=alerts)
+                    diagnostics=diagnostics, update_works=alerts, exploration_works=exploration)
         (base_dir / "reports" / "research-diagnostics.json").write_text(
             json.dumps(diagnostics, ensure_ascii=False, indent=2), encoding="utf-8")
+        for name, works in (("baseline", baseline), ("candidate", ranked)):
+            snapshot = {"ranking": [{"doi": w.doi, "title": w.title, "score": w.score,
+                         "facets": w.extra.get("research_facets", [])} for w in works],
+                        "description": "同一候选集上的旧语义权重对照，不是完整历史版本回放" if name == "baseline" else "分问题画像与多样性排序",
+                        "generated_at": datetime.now(timezone.utc).isoformat()}
+            (base_dir / "reports" / f"ranking-{name}.json").write_text(json.dumps(snapshot, ensure_ascii=False, indent=2), encoding="utf-8")
     if push:
         ZoteroPusher(settings).push(ranked)
     if rss or report:

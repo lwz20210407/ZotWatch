@@ -45,6 +45,7 @@ def merge_candidates(works):
             extra[field] = list({str(sorted(row.items())): row for row in rows}.values())
         extra["referenced_works"] = sorted(set(old.extra.get("referenced_works", [])) |
                                            set(work.extra.get("referenced_works", [])))
+        extra["semantic_facets"] = sorted(set(old.extra.get("semantic_facets", [])) | set(work.extra.get("semantic_facets", [])))
         merged[key] = old.model_copy(update={"extra": extra, "abstract": old.abstract or work.abstract})
     return list(merged.values())
 

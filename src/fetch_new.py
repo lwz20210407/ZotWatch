@@ -13,7 +13,9 @@ import feedparser
 import requests
 
 from .http_utils import request_with_retry
-from .author_watch import authorship_identifiers, fetch_author_works, mark_watched_authors, work_key
+from .author_watch import authorship_identifiers, candidate_from_openalex, fetch_author_works, mark_watched_authors, work_key
+from .network_budget import BudgetSession
+from .citation_watch import merge_candidates
 from .models import CandidateWork
 from .source_paging import crossref_publication_date, iter_works
 from .settings import Settings
@@ -28,7 +30,7 @@ ARXIV_MAX_RESULTS = 50
 class CandidateFetcher:
     def __init__(self, settings: Settings, base_dir: Path):
         self.settings = settings
-        self.session = requests.Session()
+        self.session = BudgetSession(Path(base_dir) / "data" / "network-state", settings.network)
         self.session.headers.update({"User-Agent": "ZotWatcher/0.1 (https://github.com/Yorks0n/ZotWatch)"})
         self.base_dir = Path(base_dir)
         self.cache_path = self.base_dir / "data" / "cache" / "candidate_cache.json"
@@ -39,6 +41,7 @@ class CandidateFetcher:
     def fetch_all(self) -> List[CandidateWork]:
         now = datetime.now(timezone.utc)
         since = now - timedelta(days=self.settings.sources.window_days)
+        semantic = self._fetch_semantic(since) if self.settings.research.enabled and self.settings.research.semantic_enabled else []
         watched = fetch_author_works(self.session, self.settings, since)
         stale_candidates: List[CandidateWork] | None = None
         cached = self._load_cache()
@@ -52,12 +55,12 @@ class CandidateFetcher:
                     fetched_at.isoformat(),
                     age.total_seconds() / 3600,
                 )
-                return self._filter_by_topic([*watched, *candidates])
+                return self._filter_by_topic(merge_candidates([*semantic, *watched, *candidates]))
             logger.info(
                 "Candidate cache is stale (age %.1f hours); refreshing",
                 age.total_seconds() / 3600,
             )
-        results: List[CandidateWork] = list(watched)
+        results: List[CandidateWork] = [*semantic, *watched]
         enabled_sources = 0
         failed_sources = 0
 
@@ -117,9 +120,9 @@ class CandidateFetcher:
                 enabled_sources,
                 len(stale_candidates),
             )
-            return self._filter_by_topic([*watched, *stale_candidates])
+            return self._filter_by_topic(merge_candidates([*semantic, *watched, *stale_candidates]))
 
-        results = self._filter_by_topic(results)
+        results = self._filter_by_topic(merge_candidates(results))
         logger.info("Fetched %d candidate works", len(results))
         self._save_cache(results)
         return results
@@ -290,7 +293,10 @@ class CandidateFetcher:
     def _fetch_openalex(self, since: datetime) -> List[CandidateWork]:
         url = "https://api.openalex.org/works"
         results = []
-        for query in self._topic_queries():
+        for query in self._scheduled_queries("openalex"):
+            if isinstance(self.session, BudgetSession) and self.session.remaining() < 0.02:
+                logger.warning("OpenAlex topic budget cap reached; reserve retained for citation/version metadata")
+                break
             params = {
                 "filter": f"from_publication_date:{since.date().isoformat()}",
                 "search": query,
@@ -334,7 +340,7 @@ class CandidateFetcher:
     def _fetch_crossref(self, since: datetime) -> List[CandidateWork]:
         url = "https://api.crossref.org/works"
         results = []
-        for query in self._topic_queries():
+        for query in self._scheduled_queries("crossref"):
             params = {
                 "filter": f"from-pub-date:{since.date().isoformat()}",
                 "query.bibliographic": query,
@@ -379,6 +385,42 @@ class CandidateFetcher:
         queries = [query.strip() for query in self.settings.sources.queries if query.strip()]
         return queries or ["titanium alloy plasticity fracture"]
 
+    def _scheduled_queries(self, provider):
+        queries = self._topic_queries()
+        if isinstance(self.session, BudgetSession):
+            selected = self.session.rotate("topics_" + provider, queries, self.settings.network.topic_queries_per_run)
+            if len(selected) < len(queries):
+                logger.warning("%s topic rotation coverage cap: %d/%d queries this run", provider, len(selected), len(queries))
+            return selected
+        return queries
+
+    def _fetch_semantic(self, since):
+        results = []
+        if not self.settings.sources.openalex.enabled:
+            return results
+        for facet in self.settings.research.facets:
+            if not facet.semantic_query:
+                continue
+            params = {"search.semantic": facet.semantic_query[:2000], "per-page": 50,
+                      # Live API rejects from_publication_date for semantic search despite broad docs.
+                      # Retrieve by supported publication_year; the final pipeline applies exact dates.
+                      "filter": f"publication_year:{since.year}-{datetime.now(timezone.utc).year}",
+                      "mailto": self.settings.sources.openalex.mailto}
+            try:
+                response = request_with_retry(self.session, "GET", "https://api.openalex.org/works",
+                    params=params, timeout=30, logger=logger, context="Semantic discovery " + facet.id)
+                rows = response.json().get("results", [])
+                if len(rows) == 50:
+                    logger.warning("Semantic coverage cap: top 50 annual matches for %s, not exhaustive recent coverage", facet.id)
+                for raw in rows:
+                    work = candidate_from_openalex(raw)
+                    if work:
+                        work.extra.update(discovery_route="semantic", semantic_facets=[facet.id])
+                        results.append(work)
+            except (requests.RequestException, ValueError):
+                logger.warning("Semantic discovery incomplete for %s; other routes continue", facet.id)
+        return merge_candidates(results)
+
     def _filter_by_topic(self, candidates: List[CandidateWork]) -> List[CandidateWork]:
         # Preserve distinct raw candidates for facet coverage diagnostics, including rejected ones.
         if not hasattr(self, "coverage_raw"):
@@ -412,7 +454,7 @@ class CandidateFetcher:
             )
             if exclude and matches_any(haystack, exclude):
                 continue
-            author_topic_match = bool(candidate.extra.get("watched_authors") or
+            author_topic_match = bool(candidate.extra.get("semantic_facets")) or bool(candidate.extra.get("watched_authors") or
                                       candidate.extra.get("cites_seeds") or candidate.extra.get("referenced_by")) and matches_any(
                 haystack, self.settings.author_watch.topic_keywords
             )
@@ -437,6 +479,9 @@ class CandidateFetcher:
             return []
         results: List[CandidateWork] = []
         for venue in venues:
+            if isinstance(self.session, BudgetSession) and self.session.calls.get("api.crossref.org", 0) >= self.settings.network.crossref_max_requests - 25:
+                logger.warning("Crossref venue coverage budget cap; reserve retained for version checks")
+                break
             issn = self.settings.sources.tracked_venue_issns.get(venue)
             venue_filter = f"issn:{issn}" if issn else f"container-title:{venue}"
             params = {

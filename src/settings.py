@@ -202,6 +202,7 @@ class Settings(BaseModel):
     author_watch: AuthorWatchConfig = Field(default_factory=AuthorWatchConfig)
     citation_watch: "CitationWatchConfig" = Field(default_factory=lambda: CitationWatchConfig())
     research: "ResearchConfig" = Field(default_factory=lambda: ResearchConfig())
+    network: "NetworkConfig" = Field(default_factory=lambda: NetworkConfig())
 
 
 class CitationSeed(BaseModel):
@@ -235,6 +236,9 @@ class ResearchFacet(BaseModel):
     terms: List[str]
     use: str
     verify: str
+    semantic_query: str = ""
+    collection_keys: List[str] = Field(default_factory=list)
+    seed_dois: List[str] = Field(default_factory=list)
 
 
 class ResearchConfig(BaseModel):
@@ -246,6 +250,21 @@ class ResearchConfig(BaseModel):
     proposal_min_papers: int = Field(2, ge=2, le=10)
     proposal_limit: int = Field(10, ge=0, le=30)
     facets: List[ResearchFacet] = Field(default_factory=list)
+    semantic_enabled: bool = True
+    semantic_min_similarity: float = Field(0.40, ge=0, le=1)
+    diversity_pool: int = Field(100, ge=20, le=300)
+    diversity_penalty: float = Field(0.20, ge=0, le=0.5)
+    exploration_slots: int = Field(2, ge=0, le=5)
+    semantic_backfill_items: int = Field(2, ge=0, le=5)
+
+
+class NetworkConfig(BaseModel):
+    openalex_anonymous_budget: float = Field(0.08, ge=0, le=0.1)
+    openalex_key_budget: float = Field(0.8, ge=0, le=1)
+    openalex_max_requests: int = Field(160, ge=1, le=1000)
+    crossref_max_requests: int = Field(180, ge=1, le=1000)
+    topic_queries_per_run: int = Field(40, ge=1, le=200)
+    cache_hours: int = Field(48, ge=1, le=168)
 
 
 Settings.model_rebuild()
@@ -284,6 +303,8 @@ def load_settings(base_dir: Path | str) -> Settings:
     citation_cfg = _load_yaml(citation_path) if citation_path.exists() else {}
     research_path = base / "config" / "research.yaml"
     research_cfg = _load_yaml(research_path) if research_path.exists() else {}
+    network_path = base / "config" / "network.yaml"
+    network_cfg = _load_yaml(network_path) if network_path.exists() else {}
     return Settings(
         zotero=ZoteroConfig(**zotero_cfg),
         sources=SourcesConfig(**sources_cfg),
@@ -291,6 +312,7 @@ def load_settings(base_dir: Path | str) -> Settings:
         author_watch=AuthorWatchConfig(**author_cfg),
         citation_watch=CitationWatchConfig(**citation_cfg),
         research=ResearchConfig(**research_cfg),
+        network=NetworkConfig(**network_cfg),
     )
 
 

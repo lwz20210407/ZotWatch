@@ -13,6 +13,7 @@ from .settings import Settings
 from .storage import ProfileStorage
 from .utils import json_dumps, utc_now
 from .vectorizer import TextVectorizer
+from .problem_ranking import build_problem_profiles
 
 logger = logging.getLogger(__name__)
 
@@ -82,6 +83,8 @@ class ProfileBuilder:
             "top_authors": top_authors,
             "top_venues": top_venues,
             "index_items": [{"title": item.title, "doi": item.doi} for item in items],
+            "problem_profiles": build_problem_profiles(items, vectors, self.settings.research,
+                                                       getattr(self, "feedback_entries", ())),
         }
 
 

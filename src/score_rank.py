@@ -84,6 +84,11 @@ class WorkRanker:
         ranked: List[RankedWork] = []
         for row, (candidate, vector, distance) in enumerate(zip(candidates, vectors, distances)):
             similarity = float(distance[0]) if distance.size else 0.0
+            profiles = getattr(self, "profile", {}).get("problem_profiles", {})
+            problem_scores = {key: float(vector @ np.asarray(profile["centroid"])) for key, profile in profiles.items()}
+            primary_problem = max(problem_scores, key=problem_scores.get) if problem_scores else ""
+            affinity = problem_scores.get(primary_problem, similarity)
+            semantic_score = 0.4 * similarity + 0.6 * affinity if problem_scores else similarity
             recency_score = _compute_recency(candidate.published, self.settings)
             citation_score, altmetric_score = _compute_metric(candidate)
             journal_quality, journal_sjr = _journal_quality_score(candidate.venue, self.journal_metrics)
@@ -94,7 +99,7 @@ class WorkRanker:
             )
 
             score = (
-                similarity * weights.similarity
+                semantic_score * weights.similarity
                 + recency_score * weights.recency
                 + citation_score * weights.citations
                 + altmetric_score * weights.altmetric
@@ -112,6 +117,7 @@ class WorkRanker:
             citation_bonus = (citation_strength(candidate.extra) * self.settings.citation_watch.score_bonus
                               if self.settings.citation_watch.enabled else 0.0)
             score += citation_bonus
+            legacy_score = score + (similarity - semantic_score) * weights.similarity * multiplier
             payload = candidate.model_dump()
             payload["extra"] = {
                 **candidate.extra,
@@ -120,6 +126,10 @@ class WorkRanker:
                 "base_score": base_score,
                 "watched_author_bonus": watched_bonus,
                 "citation_bonus": citation_bonus,
+                "legacy_score": legacy_score,
+                "semantic_score": semantic_score,
+                "problem_scores": problem_scores,
+                "primary_problem": primary_problem,
             }
             index_items = getattr(self, "profile", {}).get("index_items", [])
             nearest = int(indices[row][0]) if indices is not None else -1
@@ -131,6 +141,9 @@ class WorkRanker:
                 label = "must_read"
             elif score >= thresholds.consider:
                 label = "consider"
+            if candidate.extra.get("semantic_facets") and affinity < self.settings.research.semantic_min_similarity:
+                label = "ignore"
+                payload["extra"]["semantic_gate_failed"] = True
 
             ranked.append(
                 RankedWork(

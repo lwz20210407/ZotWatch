@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+import math
 import time
 from datetime import datetime, timezone
 from email.utils import parsedate_to_datetime
@@ -9,6 +10,10 @@ from typing import Iterable
 import requests
 
 RETRYABLE_STATUS_CODES = frozenset({408, 425, 429, 500, 502, 503, 504})
+
+
+class DeferredRequest(requests.RequestException):
+    """Provider must be resumed later, never bypass its Retry-After."""
 
 
 def _retry_delay(header: str | None, fallback: float) -> float:
@@ -35,6 +40,7 @@ def request_with_retry(
     context: str,
     attempts: int = 3,
     backoff_seconds: float = 1.5,
+    max_retry_wait: float = 20.0,
     retryable_status_codes: Iterable[int] = RETRYABLE_STATUS_CODES,
     **kwargs,
 ) -> requests.Response:
@@ -60,9 +66,16 @@ def request_with_retry(
             continue
 
         if response.status_code in retryable_codes:
-            if attempt == attempts:
-                response.raise_for_status()
             delay = _retry_delay(response.headers.get("Retry-After"), backoff_seconds * attempt)
+            if not math.isfinite(delay) or delay > max_retry_wait:
+                if hasattr(session, "defer_host"):
+                    session.defer_host(url, delay if math.isfinite(delay) else 86400)
+                logger.warning("%s deferred: provider Retry-After exceeds %.0fs; continuing other sources", context, max_retry_wait)
+                raise DeferredRequest("Provider requested long backoff; checkpoint retained")
+            if attempt == attempts:
+                if response.headers.get("Retry-After") and hasattr(session, "defer_host"):
+                    session.defer_host(url, delay)
+                response.raise_for_status()
             logger.warning(
                 "%s returned HTTP %s on attempt %d/%d; retrying in %.1fs",
                 context,

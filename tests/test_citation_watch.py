@@ -163,7 +163,7 @@ class CitationTests(unittest.TestCase):
              patch.object(cli, "CandidateFetcher") as fetch, patch.object(cli, "WorkRanker") as ranker, \
              patch.object(cli, "DedupeEngine") as dedupe, patch.object(cli, "CitationDiscovery") as graph, \
              patch.object(cli, "VersionMonitor") as monitor, \
-             patch.object(cli, "enrich_ranked_works", side_effect=lambda works, settings: works):
+             patch.object(cli, "enrich_ranked_works", side_effect=lambda works, settings, **kwargs: works):
             fetch.return_value.fetch_all.return_value = [new, future]
             fetch.return_value._filter_by_topic.side_effect = lambda works: works
             dedupe.return_value.filter.side_effect = lambda works: list(works)
