@@ -23,6 +23,8 @@ CREATE TABLE IF NOT EXISTS items (
     raw_json TEXT NOT NULL,
     content_hash TEXT,
     embedding BLOB,
+    embedding_signature TEXT,
+    embedding_version INTEGER,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -50,6 +52,14 @@ class ProfileStorage:
     def initialize(self) -> None:
         conn = self.connect()
         conn.executescript(SCHEMA)
+        # Databases created before embedding caching existed lack these columns.
+        existing = {row["name"] for row in conn.execute("PRAGMA table_info(items)")}
+        for column, ddl in (
+            ("embedding_signature", "ALTER TABLE items ADD COLUMN embedding_signature TEXT"),
+            ("embedding_version", "ALTER TABLE items ADD COLUMN embedding_version INTEGER"),
+        ):
+            if column not in existing:
+                conn.execute(ddl)
         conn.commit()
 
     def close(self) -> None:
@@ -124,12 +134,38 @@ class ProfileStorage:
         self.connect().execute(f"DELETE FROM items WHERE key IN ({placeholders})", keys)
         self.connect().commit()
 
-    def set_embedding(self, key: str, vector: bytes) -> None:
+    def set_embedding(self, key: str, vector: bytes, signature: str = "", version: int = 0) -> None:
         self.connect().execute(
-            "UPDATE items SET embedding = ?, updated_at=CURRENT_TIMESTAMP WHERE key = ?",
-            (vector, key),
+            "UPDATE items SET embedding = ?, embedding_signature = ?, embedding_version = ?,"
+            " updated_at=CURRENT_TIMESTAMP WHERE key = ?",
+            (vector, signature, version, key),
         )
         self.connect().commit()
+
+    def set_embeddings(self, rows: Iterable[Tuple[str, bytes, str, int]]) -> None:
+        """Bulk variant; one commit instead of one per item."""
+        conn = self.connect()
+        conn.executemany(
+            "UPDATE items SET embedding = ?, embedding_signature = ?, embedding_version = ?,"
+            " updated_at=CURRENT_TIMESTAMP WHERE key = ?",
+            [(vector, signature, version, key) for key, vector, signature, version in rows],
+        )
+        conn.commit()
+
+    def cached_embeddings(self, signature: str) -> dict:
+        """Return {key: embedding bytes} still valid for `signature`.
+
+        An embedding is reusable only when it was produced by the same model at
+        the same dimension AND the Zotero item has not been edited since
+        (items.version is bumped by Zotero on every change).
+        """
+        cur = self.connect().execute(
+            "SELECT key, embedding FROM items"
+            " WHERE embedding IS NOT NULL AND embedding_signature = ?"
+            "   AND embedding_version IS NOT NULL AND embedding_version = version",
+            (signature,),
+        )
+        return {row["key"]: row["embedding"] for row in cur}
 
     def iter_items(self) -> Iterable[ZoteroItem]:
         cur = self.connect().execute("SELECT * FROM items")

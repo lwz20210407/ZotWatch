@@ -59,8 +59,9 @@ SJR 落在 1.0–3.0，`log1p` 后 0.69–1.39，被 floor 抹平后几乎全部
 
 ## 换模型后要重新标定
 
-`config/embedding.yaml` 默认 `allenai-specter`。不同模型的余弦分布不同（SPECTER 相关
-论文的余弦普遍高于 MiniLM），所以阈值需要按实测分布调整。每轮运行日志会打印：
+`config/embedding.yaml` 默认走远程 API（SiliconFlow `Qwen/Qwen3-Embedding-8B`，1024 维），
+与本机 ZotPilot 同一个编码器。不同模型的余弦分布不同，所以阈值需要按实测分布调整。
+每轮运行日志会打印：
 
 ```text
 Score distribution over N ranked works: p50=... p75=... p90=... p99=... max=...

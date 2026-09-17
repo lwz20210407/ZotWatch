@@ -9,6 +9,7 @@ Run with: python -m src.check_config
 """
 from __future__ import annotations
 
+import os
 import sys
 from pathlib import Path
 from typing import List
@@ -53,6 +54,18 @@ def check(base_dir: Path) -> List[str]:
 
     if settings.embedding.neighbors < 1:
         problems.append("embedding.neighbors must be at least 1")
+
+    embedding = settings.embedding
+    if embedding.provider != "local":
+        if not embedding.base_url.startswith("http"):
+            problems.append(f"embedding.base_url must be an http(s) URL, got {embedding.base_url!r}")
+        if not embedding.api_key_env:
+            problems.append("embedding.api_key_env must name the environment variable holding the key")
+        if not os.getenv(embedding.api_key_env) and not embedding.local_fallback_model:
+            problems.append(
+                f"{embedding.api_key_env} is unset and no local_fallback_model is configured, "
+                f"so embedding would fail at run time."
+            )
 
     return problems
 

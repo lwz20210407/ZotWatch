@@ -42,13 +42,7 @@ class ProfileBuilder:
         if not items:
             raise RuntimeError("No items found in storage; run ingest before building profile.")
 
-        logger.info("Vectorizing %d library items", len(items))
-        separator = self.vectorizer.text_separator
-        texts = [item.content_for_embedding(separator) for item in items]
-        vectors = self.vectorizer.encode(texts)
-
-        for item, vector in zip(items, vectors):
-            self.storage.set_embedding(item.key, vector.tobytes())
+        vectors = self._vectors_for(items)
 
         logger.info("Building FAISS index")
         index, order = FaissIndex.from_vectors(vectors)
@@ -60,6 +54,43 @@ class ProfileBuilder:
         json_path.write_text(json_dumps(profile_summary, indent=2), encoding="utf-8")
         logger.info("Wrote profile summary to %s", json_path)
         return self.artifacts
+
+    def _vectors_for(self, items: List[ZoteroItem]) -> np.ndarray:
+        """Embed the library, reusing cached vectors for unchanged items.
+
+        The whole library used to be re-encoded on every run even though the
+        vectors were already being written to SQLite and never read back. With a
+        remote encoder that is also a per-run bill, so the cache is keyed on the
+        model signature and the Zotero item version: change the model and
+        everything is recomputed, edit one paper and only that paper is.
+        """
+        signature = self.settings.embedding.cache_signature()
+        cached = self.storage.cached_embeddings(signature)
+        separator = self.vectorizer.text_separator
+
+        pending = [item for item in items if item.key not in cached]
+        if pending:
+            logger.info(
+                "Embedding %d of %d library items (%d reused from cache)",
+                len(pending), len(items), len(items) - len(pending),
+            )
+            fresh = self.vectorizer.encode(
+                [item.content_for_embedding(separator) for item in pending]
+            )
+            self.storage.set_embeddings(
+                [(item.key, vector.tobytes(), signature, item.version)
+                 for item, vector in zip(pending, fresh)]
+            )
+            for item, vector in zip(pending, fresh):
+                cached[item.key] = vector.tobytes()
+        else:
+            logger.info("Embedding cache hit for all %d library items", len(items))
+
+        dimension = len(next(iter(cached.values()))) // 4 if cached else 0
+        vectors = np.vstack(
+            [np.frombuffer(cached[item.key], dtype=np.float32) for item in items]
+        ) if items else np.zeros((0, dimension), dtype=np.float32)
+        return vectors
 
     def _summarize(self, items: List[ZoteroItem], vectors: np.ndarray) -> dict:
         authors = Counter()
@@ -80,6 +111,7 @@ class ProfileBuilder:
             "generated_at": utc_now().isoformat(),
             "item_count": len(items),
             "model": self.vectorizer.model_name,
+            "embedding_signature": self.settings.embedding.cache_signature(),
             "centroid": centroid.tolist(),
             "top_authors": top_authors,
             "top_venues": top_venues,

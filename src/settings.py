@@ -118,10 +118,24 @@ class EmbeddingConfig(BaseModel):
     # protected "model_" namespace.
     model_config = {"protected_namespaces": ()}
 
-    model_name: str = "sentence-transformers/allenai-specter"
-    text_separator: str = "[SEP]"
+    provider: Literal["openai-compatible", "openai", "remote", "local"] = "openai-compatible"
+    model_name: str = "Qwen/Qwen3-Embedding-8B"
+    base_url: str = "https://api.siliconflow.cn/v1"
+    dimensions: Optional[int] = Field(1024, ge=8, le=8192)
+    api_key_env: str = "EMBEDDING_API_KEY"
+    timeout_seconds: float = Field(120.0, gt=0)
+    local_fallback_model: str = "sentence-transformers/all-MiniLM-L6-v2"
+    text_separator: str = "\n"
     neighbors: int = Field(5, ge=1, le=50)
     batch_size: int = Field(32, ge=1, le=256)
+
+    def cache_signature(self) -> str:
+        """Identity of the vector space, for invalidating stored embeddings.
+
+        Vectors produced by different models or dimensions are not comparable, so
+        a cached embedding is only reusable when this signature is unchanged.
+        """
+        return f"{self.provider}:{self.model_name}:{self.dimensions or 'native'}"
 
 
 class ScoreWeights(BaseModel):

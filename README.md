@@ -102,8 +102,9 @@ ZotWatcher 是一个基于 Zotero 数据构建个人兴趣画像，并持续监�
    ```
 
 ## 邮件推送
-收件人来自仓库变量 `EMAIL_TO`（**Settings - Secrets and variables - Actions - Variables**），
-多个地址用逗号或分号分隔；若不想公开地址，也可改存为同名 Secret。
+收件人默认写在 workflow 里，**无需任何配置即可工作**。想改成不公开、或发给多个地址时，
+再去 **Settings - Secrets and variables - Actions** 加变量或 Secret `EMAIL_TO`
+（逗号或分号分隔），它会覆盖默认值。
 SMTP 参数放在 Secrets：`SMTP_HOST`、`SMTP_PORT`、`SMTP_USERNAME`、`SMTP_PASSWORD`、`SMTP_FROM`。
 
 邮件正文即当期完整报告（`multipart/alternative`），纯文本部分列出前 8 篇标题与链接，
@@ -128,8 +129,24 @@ SMTP 参数放在 Secrets：`SMTP_HOST`、`SMTP_PORT`、`SMTP_USERNAME`、`SMTP_
 ## 自定义配置
 - `config/zotero.yaml`：Zotero API 参数（`user_id` 可写 `$ {ZOTERO_USER_ID}`，将由 `.env`/Secrets 注入）。
 - `config/sources.yaml`：统一公共候选池 API、各数据源开关、分类、窗口大小（默认 30 天）。
-- `config/embedding.yaml`：语义模型。默认 `allenai-specter`（768 维、512 token、按引文图训练，
-  面向"给定标题摘要找相似论文"）。换模型会改变向量维度，索引在下次运行时自动重建。
+- `config/embedding.yaml`：语义编码器。默认走 **OpenAI 兼容的远程 API**
+  （SiliconFlow `Qwen/Qwen3-Embedding-8B`，取 1024 维），与本机 ZotPilot 同一个编码器，
+  因此两边的"相似度"是同一把尺子。CI 因此**不需要下载任何模型**，
+  `sentence-transformers` 和它背后约 2GB 的 torch 也从依赖里去掉了。
+  需要一个 secret：`EMBEDDING_API_KEY`。
+  想离线跑就把 `provider` 改成 `local` 并自行 `pip install sentence-transformers`；
+  远程 key 缺失时会自动降级到 `local_fallback_model`，不会整轮失败。
+
+  **为什么不直接复用 ZotPilot / OneFind / zotero-mcp 已有的向量索引**：
+  1. 每周要打分的一千多篇新论文**不在任何本地索引里**，无论如何都需要一个编码器；
+  2. 那些索引是 chunk 级全文索引（ZotPilot 平均 89 chunk/篇），为"定位正文证据段落"设计，
+     而这里需要的是"一篇一个向量"的兴趣画像；用全文 chunk 向量去比候选的标题摘要向量会失真；
+  3. 三个工具三个模型，384/1024/… 维向量之间没有可比性；
+  4. 本流程跑在 GitHub runner 上，访问不到本机路径。
+  能复用、也确实复用了的是**编码器本身**。
+
+- 库内向量按 `(模型签名, Zotero item version)` 缓存在 `data/profile.sqlite`：
+  换模型全量重算，改一篇只重算一篇，稳态每周只编码新增的几篇 + 当周候选。
 - `config/scoring.yaml`：权重、阈值与饱和参数。**每个打分分量都被压到 [0, 1]**，权重和为 1，
   因此总分也在 [0, 1]，`must_read` / `consider` 阈值跨轮次可比。
   `research_priorities` 首个命中的规则生效，因此系数必须自上而下递减——

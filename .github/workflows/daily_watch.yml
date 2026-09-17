@@ -38,10 +38,12 @@ jobs:
       OPENALEX_MAILTO: ${{ secrets.OPENALEX_MAILTO }}
       OPENALEX_API_KEY: ${{ secrets.OPENALEX_API_KEY }}
       CROSSREF_MAILTO: ${{ secrets.CROSSREF_MAILTO }}
-      # Recipient is configuration, not a literal: a hardcoded address is
-      # harvestable from a public repo and makes every fork email its upstream.
-      # Set repository variable EMAIL_TO, or secret EMAIL_TO to keep it private.
-      EMAIL_TO: ${{ vars.EMAIL_TO || secrets.EMAIL_TO }}
+      # Works with no setup. Override by defining repository variable or secret
+      # EMAIL_TO (also accepts a comma-separated list) -- worth doing eventually,
+      # since an address literal in a public repo is scrapeable and makes any
+      # fork email this address instead of its own owner.
+      EMAIL_TO: ${{ vars.EMAIL_TO || secrets.EMAIL_TO || 'lwz20210407@njust.edu.cn' }}
+      EMBEDDING_API_KEY: ${{ secrets.EMBEDDING_API_KEY }}
       SMTP_HOST: ${{ secrets.SMTP_HOST }}
       SMTP_PORT: ${{ secrets.SMTP_PORT }}
       SMTP_USERNAME: ${{ secrets.SMTP_USERNAME }}
@@ -58,24 +60,28 @@ jobs:
         run: mkdir -p data reports data/watch-state
       - run: pip install -r requirements.txt
 
-      - name: Resolve embedding model
+      - name: Resolve embedding signature
         id: model
         run: |
           python - <<'PY' >> "$GITHUB_OUTPUT"
           import hashlib, pathlib, yaml
           cfg = yaml.safe_load(pathlib.Path("config/embedding.yaml").read_text(encoding="utf-8")) or {}
-          name = cfg.get("model_name", "sentence-transformers/allenai-specter")
-          print(f"name={name}")
-          print(f"slug={hashlib.sha256(name.encode()).hexdigest()[:12]}")
+          sig = "{}:{}:{}".format(
+              cfg.get("provider", "openai-compatible"),
+              cfg.get("model_name", ""),
+              cfg.get("dimensions") or "native",
+          )
+          print(f"signature={sig}")
+          print(f"slug={hashlib.sha256(sig.encode()).hexdigest()[:12]}")
           PY
 
-      # Keyed on the model, so changing config/embedding.yaml forces a clean
-      # rebuild instead of loading an index whose dimension no longer matches.
-      - name: Cache embedding model weights
-        uses: actions/cache@v4
-        with:
-          path: ~/.cache/huggingface
-          key: hf-${{ steps.model.outputs.slug }}
+      - name: Check embedding provider
+        run: |
+          if [ -z "${EMBEDDING_API_KEY}" ]; then
+            echo "::error::EMBEDDING_API_KEY is not set. config/embedding.yaml uses a remote provider; add the secret, or set provider to 'local' (which also needs sentence-transformers in requirements.txt)."
+            exit 1
+          fi
+          echo "Embedding signature: ${{ steps.model.outputs.signature }}"
 
       # restore + save with a run-unique key. The previous `actions/cache@v4` used
       # a month-stamped key, and cache actions do not save on a hit, so the

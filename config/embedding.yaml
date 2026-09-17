@@ -1,29 +1,40 @@
-# Embedding model used for the library profile and for candidate similarity.
+# Embedding configuration.
 #
-# Changing `model_name` changes the vector dimension, so the FAISS index and the
-# stored embeddings must be rebuilt. This happens automatically: `watch` rebuilds
-# the profile on every run, and the CI profile cache key includes the model name.
-#
-# Alternatives:
-#   sentence-transformers/allenai-specter    768d, 512 tokens, trained on the
-#                                            citation graph for scientific paper
-#                                            similarity. Default.
-#   sentence-transformers/all-MiniLM-L6-v2   384d, 256 tokens, general web text.
-#                                            Faster and smaller, but truncates
-#                                            most abstracts and has no domain
-#                                            grounding. Previous default.
-#   BAAI/bge-m3                              1024d, 8192 tokens, strong on mixed
-#                                            Chinese/English. ~2.2 GB download.
-model_name: sentence-transformers/allenai-specter
+# Default: reuse the same encoder ZotPilot already uses on this machine
+# (SiliconFlow, Qwen/Qwen3-Embedding-8B). Reusing the *encoder* is the part that
+# matters. The library vector indexes held by ZotPilot / OneFind / zotero-mcp
+# cannot be reused directly:
+#   - the weekly job scores ~1000 brand-new papers that exist in no local index,
+#     so an encoder is needed no matter what;
+#   - those indexes are chunk-level full-text (ZotPilot averages 89 chunks per
+#     paper) and are built for locating evidence passages, not for a one-vector
+#     -per-paper interest profile;
+#   - each tool uses a different model, and vectors from different models are not
+#     comparable;
+#   - the workflow runs on a GitHub runner with no access to local paths.
+# What this config does reuse is the encoder itself, so ZotWatch and ZotPilot
+# measure similarity on the same scale, and CI needs no model download at all.
 
-# How title and abstract are joined before encoding. SPECTER was trained with the
-# tokenizer SEP token between the two fields; general-purpose models expect plain
-# text, so use "\n" for those.
-text_separator: "[SEP]"
+provider: openai-compatible          # openai-compatible | local
+base_url: https://api.siliconflow.cn/v1
+model_name: Qwen/Qwen3-Embedding-8B
+# Native output is 4096; the API honours a `dimensions` request (Matryoshka
+# truncation). 1024 matches ZotPilot and keeps the FAISS index small.
+dimensions: 1024
+api_key_env: EMBEDDING_API_KEY
+timeout_seconds: 120
 
-# Similarity is the mean cosine over this many nearest library items instead of
-# the single nearest one. A single lucky match against one library paper is not
-# evidence of relevance; averaging a few neighbours is much more stable.
+# Used when EMBEDDING_API_KEY is absent, so a missing secret degrades to a local
+# run instead of failing. Requires sentence-transformers (not installed in CI).
+# Set to "" to make a missing key a hard error instead.
+local_fallback_model: sentence-transformers/all-MiniLM-L6-v2
+
+# How title and abstract are joined before encoding.
+text_separator: "\n"
+
+# Similarity is the mean cosine over this many nearest library items rather than
+# the single nearest one; one lucky match is not evidence of relevance.
 neighbors: 5
 
+# ~14 texts/s measured against SiliconFlow at this batch size.
 batch_size: 32

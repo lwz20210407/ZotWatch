@@ -36,6 +36,9 @@ class FaissIndex:
 
     def save(self, path: Path | str) -> None:
         logger.info("Saving FAISS index to %s", path)
+        # A fresh clone has no data/ directory; only the workflow's `mkdir -p`
+        # was making this work.
+        Path(path).parent.mkdir(parents=True, exist_ok=True)
         faiss.write_index(self.index, str(path))
 
     @classmethod
