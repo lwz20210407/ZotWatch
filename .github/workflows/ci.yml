@@ -1,0 +1,31 @@
+name: CI
+
+# Validates code changes. The weekly digest workflow deliberately has no push
+# trigger, so this is what runs on every commit.
+on:
+  push:
+    branches-ignore:
+      - "gh-pages"
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+          cache-dependency-path: "requirements.txt"
+      - run: pip install -r requirements.txt
+      - name: Validate configuration files
+        run: python -m src.check_config
+      - name: Unit tests
+        run: python -B -m unittest discover -s tests -v

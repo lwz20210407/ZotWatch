@@ -10,7 +10,6 @@ __pycache__/
 /data/*.sqlite
 /data/*.index
 /data/profile.json
-/data/watch-state/
 /data/network-state/
 /reports/ranking-*.json
 /data/feedback-issues.json
@@ -18,10 +17,18 @@ __pycache__/
 /data/cache/
 /data/cache/*
 
-# Reports
+# Delivery history is tracked on purpose: it is what stops already-read papers
+# from being pushed again, and it used to live only in a 90-day CI artifact.
+/data/watch-state/*
+!/data/watch-state/state.json
+
+# Reports are tracked so past digests stay reachable. GitHub Pages replaces the
+# whole site on every deploy, so an untracked report is gone the moment the next
+# digest is published -- including from the links in every email already sent.
 /reports/*.html
-/reports/feed.xml
+!/reports/report-*.html
 /public/
+/reports/email-preview.eml
 
 # Logs and caches
 *.log
