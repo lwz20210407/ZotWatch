@@ -13,7 +13,7 @@ import numpy as np
 from .faiss_store import FaissIndex
 from .models import CandidateWork, RankedWork
 from .settings import Settings
-from .topic_matching import research_priority
+from .topic_matching import normalize_text, research_priority
 from .vectorizer import TextVectorizer
 
 logger = logging.getLogger(__name__)
@@ -54,7 +54,7 @@ class WorkRanker:
             with path.open("r", encoding="utf-8") as fh:
                 reader = csv.DictReader(fh)
                 for row in reader:
-                    title = (row.get("title") or "").strip().lower()
+                    title = normalize_text(row.get("title") or "")
                     sjr = row.get("sjr")
                     if not title or not sjr:
                         continue
@@ -138,9 +138,9 @@ class WorkRanker:
 
 
 def _bonus(values: List[str], whitelist: List[str]) -> float:
-    whitelist_lower = {v.lower() for v in whitelist}
+    whitelist_lower = {normalize_text(v) for v in whitelist}
     for value in values:
-        if value and value.lower() in whitelist_lower:
+        if value and normalize_text(value) in whitelist_lower:
             return 1.0
     return 0.0
 
@@ -148,7 +148,7 @@ def _bonus(values: List[str], whitelist: List[str]) -> float:
 def _journal_quality_score(venue: Optional[str], metrics: Dict[str, float]) -> Tuple[float, Optional[float]]:
     if not venue:
         return 1.0, None
-    key = venue.strip().lower()
+    key = normalize_text(venue)
     value = metrics.get(key)
     if value is None:
         return 1.0, None

@@ -2,11 +2,28 @@ from __future__ import annotations
 
 import logging
 import time
+from datetime import datetime, timezone
+from email.utils import parsedate_to_datetime
 from typing import Iterable
 
 import requests
 
 RETRYABLE_STATUS_CODES = frozenset({408, 425, 429, 500, 502, 503, 504})
+
+
+def _retry_delay(header: str | None, fallback: float) -> float:
+    if not header:
+        return fallback
+    try:
+        return max(fallback, float(header))
+    except ValueError:
+        try:
+            retry_at = parsedate_to_datetime(header)
+            if retry_at.tzinfo is None:
+                retry_at = retry_at.replace(tzinfo=timezone.utc)
+            return max(fallback, (retry_at - datetime.now(timezone.utc)).total_seconds())
+        except (ValueError, TypeError, OverflowError):
+            return fallback
 
 
 def request_with_retry(
@@ -45,15 +62,16 @@ def request_with_retry(
         if response.status_code in retryable_codes:
             if attempt == attempts:
                 response.raise_for_status()
+            delay = _retry_delay(response.headers.get("Retry-After"), backoff_seconds * attempt)
             logger.warning(
                 "%s returned HTTP %s on attempt %d/%d; retrying in %.1fs",
                 context,
                 response.status_code,
                 attempt,
                 attempts,
-                backoff_seconds * attempt,
+                delay,
             )
-            time.sleep(backoff_seconds * attempt)
+            time.sleep(delay)
             continue
 
         response.raise_for_status()

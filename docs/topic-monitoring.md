@@ -37,14 +37,14 @@ are applied. Current coefficients are heuristic and adjustable:
 | Research category | Multiplier |
 | --- | --- |
 | Peripheral reference (fatigue/creep/lattice/atomistic) | 0.70 |
-| Transferable methods | 1.00 |
+| Transferable methods | 0.95 |
 | Mechanism reference | 0.85 |
 | TC4 core | 1.00 |
-| Other accepted research | 1.00 |
+| Other accepted research | 0.90 |
 
-Peripheral matches are checked first; a paper mentioning such a topic can be
-demoted even when it also mentions TC4. Transferable calibration methods take
-precedence over mechanism references. These coefficients are not calibrated
+Peripheral matches are checked against the title only, so an incidental mention
+in the abstract does not demote core work. TC4 core evidence is then checked,
+followed by transferable methods and mechanism references. These coefficients are not calibrated
 probabilities and do not guarantee a fixed category order. Downweighted papers
 can fall below the existing recommendation threshold; they are not categorically
 discarded during topic filtering. The original score, multiplier and category
@@ -60,3 +60,23 @@ Tests cover word collisions, aliases, recall across metals, unrelated results,
 ranking adjustments and preservation of input candidates. Embedding inference
 is stubbed in scoring tests; a successful deployed workflow is a separate
 end-to-end check.
+
+## Retrieval coverage
+
+The expanded configuration has 57 tracked journals, 165 short queries, 383
+include terms, 18 explicit off-topic exclusions, and 19 alternative topic rules.
+See [research-coverage.md](research-coverage.md) for the research map and sources.
+
+Queries operate across journals; tracked journals are extra discovery sources,
+not an eligibility whitelist. OpenAlex interprets unconnected search words as
+AND, so alternative model names now have separate short queries. Crossref topic
+queries are sorted by relevance within the publication window. Both providers
+use cursors with a cap of two 100-item pages per topic query; journal queries use
+up to five 100-item pages. Caps and failed requests produce coverage warnings.
+Known journal ISSNs avoid exact-title punctuation mismatches. Crossref publication
+dates come from published/online/print/issued metadata, not record creation dates.
+Retry-After is honored on retriable responses.
+
+Coverage remains bounded by these caps, service availability, metadata indexing,
+available abstracts, lexical rules and the final top-20 recommendation limit.
+Configuration expansion does not establish exhaustive literature coverage.

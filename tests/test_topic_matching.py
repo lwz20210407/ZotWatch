@@ -101,6 +101,35 @@ class TopicTests(unittest.TestCase):
                 self.assertFalse(self.kept(title))
         self.assertFalse(self.kept("Steel commodity price prediction", "Engineering Fracture Mechanics"))
 
+    def test_research_facets(self) -> None:
+        for title in [
+            "Ti64 cryogenic tensile fracture",
+            "Ti-6Al-4V intermediate strain rate plasticity",
+            "Thermomechanical coupling of titanium alloy flow stress",
+            "Titanium alloy combined tension shear fracture strain",
+            "Titanium alloy nonproportional loading damage evolution",
+            "Ti-6Al-4V Hockett-Sherby hardening",
+            "Steel post-necking hardening extrapolation",
+            "Aluminium damage regularisation and mesh sensitivity",
+            "Stress integration and return mapping for anisotropic plasticity",
+            "Physics-informed neural network for constitutive plasticity",
+            "Pulse shaping for split Hopkinson high strain rate testing",
+            "High speed DIC for dynamic tension stress strain measurement",
+            "PBF-LB/M Ti-6Al-4V build direction and mechanical properties",
+            "Ti64 prior beta grains and fracture",
+            "Ti-6Al-4V heat treatment and tensile strength",
+            "X-ray computed tomography of titanium alloy void growth and damage",
+            "Titanium plate ballistic limit and residual velocity",
+            "Steel projectile perforation and petalling failure",
+            "Titanium alloy Taylor impact model validation",
+        ]:
+            with self.subTest(title=title):
+                self.assertTrue(self.kept(title))
+        # Mentioning a peripheral method only in the abstract must not demote core research.
+        work = CandidateWork(source="test", identifier="p", title="TC4 high strain rate ductile fracture",
+                             abstract="Experiments are compared with molecular dynamics.")
+        self.assertEqual(research_priority(work, self.settings.scoring), ("TC4核心研究", 1.0))
+
     def test_priority_and_ranker(self) -> None:
         # These tests exercise scoring, not the optional torch/model runtime.
         with patch.dict(sys.modules, {"src.vectorizer": SimpleNamespace(TextVectorizer=object)}):
@@ -108,7 +137,7 @@ class TopicTests(unittest.TestCase):
 
         examples = [
             ("TC4 ductile fracture", "TC4核心研究", 1.0),
-            ("Steel LS-OPT constitutive model calibration", "跨金属方法参考", 1.0),
+            ("Steel LS-OPT constitutive model calibration", "跨金属方法参考", 0.95),
             ("Titanium alloy crystal plasticity", "机制参考", 0.85),
             ("Steel fatigue performance damage", "外围方法参考", 0.70),
         ]

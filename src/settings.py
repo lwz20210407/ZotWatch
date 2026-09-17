@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import os
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Literal, Optional
 
 import yaml
 from pydantic import BaseModel, Field, validator
@@ -91,6 +91,11 @@ class PublicCandidatesApiConfig(BaseModel):
 
 class SourcesConfig(BaseModel):
     window_days: int = 30
+    page_size: int = Field(100, ge=1, le=200)
+    query_max_pages: int = Field(2, ge=1, le=10)
+    venue_max_pages: int = Field(5, ge=1, le=20)
+    request_interval_seconds: float = Field(0.5, ge=0.0)
+    tracked_venue_issns: Dict[str, str] = Field(default_factory=dict)
     queries: List[str] = Field(default_factory=list)
     tracked_venues: List[str] = Field(default_factory=list)
     include_keywords: List[str] = Field(default_factory=list)
@@ -133,6 +138,7 @@ class ResearchPriority(BaseModel):
     name: str
     required_groups: List[List[str]]
     multiplier: float = Field(1.0, gt=0.0, le=1.0)
+    match_fields: Literal["title", "title_abstract"] = "title_abstract"
 
     @validator("required_groups")
     def validate_groups(cls, value: List[List[str]]) -> List[List[str]]:
@@ -150,6 +156,7 @@ class ScoringConfig(BaseModel):
     whitelist_authors: List[str] = Field(default_factory=list)
     whitelist_venues: List[str] = Field(default_factory=list)
     research_priorities: List[ResearchPriority] = Field(default_factory=list)
+    default_priority_multiplier: float = Field(1.0, gt=0.0, le=1.0)
 
 
 class Settings(BaseModel):

@@ -14,6 +14,7 @@ import requests
 
 from .http_utils import request_with_retry
 from .models import CandidateWork
+from .source_paging import crossref_publication_date, iter_works
 from .settings import Settings
 from .topic_matching import matches_any, matches_groups
 from .utils import ensure_isoformat, iso_to_datetime, utc_now
@@ -115,7 +116,7 @@ class CandidateFetcher:
                 enabled_sources,
                 len(stale_candidates),
             )
-            return stale_candidates
+            return self._filter_by_topic(stale_candidates)
 
         results = self._filter_by_topic(results)
         logger.info("Fetched %d candidate works", len(results))
@@ -293,25 +294,16 @@ class CandidateFetcher:
                 "filter": f"from_publication_date:{since.date().isoformat()}",
                 "search": query,
                 "sort": "publication_date:desc",
-                "per-page": 100,
+                "per-page": self.settings.sources.page_size,
                 "mailto": self.settings.sources.openalex.mailto,
             }
             logger.info("Fetching OpenAlex works for query '%s' since %s", query, since.date())
-            try:
-                resp = request_with_retry(
-                    self.session,
-                    "GET",
-                    url,
-                    params=params,
-                    timeout=30,
-                    logger=logger,
-                    context=f"OpenAlex fetch for {query}",
-                )
-            except requests.RequestException as exc:
-                logger.warning("OpenAlex query '%s' failed; continuing: %s", query, exc)
-                continue
-            data = resp.json()
-            for item in data.get("results", []):
+            for item in iter_works(
+                self.session, url, params, provider="openalex",
+                max_pages=self.settings.sources.query_max_pages,
+                interval_seconds=self.settings.sources.request_interval_seconds,
+                logger=logger, context=f"openalex query {query}",
+            ):
                 title = _clean_title(item.get("display_name"))
                 if not title:
                     continue
@@ -343,27 +335,18 @@ class CandidateFetcher:
             params = {
                 "filter": f"from-pub-date:{since.date().isoformat()}",
                 "query.bibliographic": query,
-                "sort": "created",
+                "sort": "relevance",
                 "order": "desc",
-                "rows": 100,
+                "rows": self.settings.sources.page_size,
                 "mailto": self.settings.sources.crossref.mailto,
             }
             logger.info("Fetching Crossref works for query '%s' since %s", query, since.date())
-            try:
-                resp = request_with_retry(
-                    self.session,
-                    "GET",
-                    url,
-                    params=params,
-                    timeout=30,
-                    logger=logger,
-                    context=f"Crossref fetch for {query}",
-                )
-            except requests.RequestException as exc:
-                logger.warning("Crossref query '%s' failed; continuing: %s", query, exc)
-                continue
-            message = resp.json().get("message", {})
-            for item in message.get("items", []):
+            for item in iter_works(
+                self.session, url, params, provider="crossref",
+                max_pages=self.settings.sources.query_max_pages,
+                interval_seconds=self.settings.sources.request_interval_seconds,
+                logger=logger, context=f"crossref query {query}",
+            ):
                 title = _clean_title((item.get("title") or [""])[0])
                 if not title:
                     continue
@@ -381,7 +364,7 @@ class CandidateFetcher:
                         authors=[a for a in authors if a],
                         doi=doi,
                         url=item.get("URL"),
-                        published=_parse_date(item.get("created", {}).get("date-time")),
+                        published=crossref_publication_date(item),
                         venue=(item.get("container-title") or [None])[0],
                         metrics={"is-referenced-by": float(item.get("is-referenced-by-count", 0))},
                         extra={"type": item.get("type"), "query": query},
@@ -441,28 +424,21 @@ class CandidateFetcher:
             return []
         results: List[CandidateWork] = []
         for venue in venues:
+            issn = self.settings.sources.tracked_venue_issns.get(venue)
+            venue_filter = f"issn:{issn}" if issn else f"container-title:{venue}"
             params = {
-                "filter": f"from-pub-date:{since.date().isoformat()},container-title:{venue}",
+                "filter": f"from-pub-date:{since.date().isoformat()},{venue_filter}",
                 "sort": "created",
                 "order": "desc",
-                "rows": 100,
+                "rows": self.settings.sources.page_size,
                 "mailto": self.settings.sources.crossref.mailto,
             }
-            try:
-                resp = request_with_retry(
-                    self.session,
-                    "GET",
-                    "https://api.crossref.org/works",
-                    params=params,
-                    timeout=30,
-                    logger=logger,
-                    context=f"Crossref top venue fetch for {venue}",
-                )
-            except Exception as exc:
-                logger.warning("Failed to fetch Crossref top venue %s: %s", venue, exc)
-                continue
-            message = resp.json().get("message", {})
-            for item in message.get("items", []):
+            for item in iter_works(
+                self.session, "https://api.crossref.org/works", params, provider="crossref",
+                max_pages=self.settings.sources.venue_max_pages,
+                interval_seconds=self.settings.sources.request_interval_seconds,
+                logger=logger, context=f"Crossref venue {venue}",
+            ):
                 title = _clean_title((item.get("title") or [""])[0])
                 if not title:
                     continue
@@ -480,8 +456,8 @@ class CandidateFetcher:
                         authors=[a for a in authors if a],
                         doi=doi,
                         url=item.get("URL"),
-                        published=_parse_date(item.get("created", {}).get("date-time")),
-                        venue=venue,
+                        published=crossref_publication_date(item),
+                        venue=(item.get("container-title") or [venue])[0],
                         metrics={"is-referenced-by": float(item.get("is-referenced-by-count", 0))},
                         extra={
                             "source": "top_venue",

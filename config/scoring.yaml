@@ -14,31 +14,49 @@ decay_days:
   medium: 7
   slow: 30
 whitelist_authors: []
-# First matching rule wins. Multipliers are conservative heuristics, not
-# scientifically calibrated relevance probabilities. Scores still use Zotero similarity.
+# First match wins. Coefficients are adjustable heuristics, not probabilities.
+default_priority_multiplier: 0.90
 research_priorities:
   - name: "外围方法参考"
     multiplier: 0.70
+    match_fields: title
     required_groups:
-      - ["fatigue performance", "creep damage", "lattice structure", "molecular dynamics", "atomistic simulation"]
-  - name: "跨金属方法参考"
-    multiplier: 1.0
-    required_groups:
-      - &metals ["Ti-6Al-4V", "TC4", "titanium", "aluminum", "aluminium", "magnesium", "steel", "copper", "nickel", "Inconel", "metal", "alloy"]
-      - ["LS-OPT", "inverse identification", "inverse parameter identification", "parameter identification", "parameter calibration", "parameter inversion", "inverse calibration", "inverse modeling", "inverse modelling", "finite element model updating", "parameter identifiability", "parameter sensitivity", "uncertainty quantification", "Bayesian calibration", "multi-objective calibration", "post-necking identification", "inverse finite element identification", "full-field identification", "virtual fields method", "integrated digital image correlation", "Bridgman correction", "mesh dependency", "mesh dependence", "mesh objectivity", "damage regularization", "characteristic length", "fracture energy", "nonlocal damage", "element size sensitivity"]
-      - &mechanics ["constitutive", "plasticity", "plastic", "hardening", "flow stress", "yield", "yielding", "fracture", "damage", "ductility", "ductile", "stress strain", "Johnson-Cook", "GISSMO"]
-  - name: "机制参考"
-    multiplier: 0.85
-    required_groups:
-      - *metals
-      - ["crystal plasticity", "single crystal", "bicrystal", "process-microstructure", "microstructure engineering", "martensite decomposition", "texture-induced anisotropy", "hot isostatic pressing", "defect morphology", "lack-of-fusion defects"]
-      - *mechanics
+      - ["fatigue performance", "creep damage", "lattice structure", "molecular dynamics", "atomistic simulation", "corrosion", "coating", "machining", "welding", "concrete", "cement", "polymer", "ceramic", "biomedical", "implant"]
   - name: "TC4核心研究"
     multiplier: 1.0
     required_groups:
       - ["Ti-6Al-4V", "TC4", "titanium alloy"]
+      - ["constitutive", "ductile fracture", "fracture criterion", "damage evolution", "damage initiation", "flow stress", "strain hardening", "stress triaxiality", "Lode", "strain rate", "dynamic tension", "dynamic compression", "thermoviscoplastic", "thermo-viscoplastic", "thermal softening", "ballistic", "penetration", "perforation", "Johnson-Cook", "GISSMO"]
+      - &mechanics ["constitutive", "plasticity", "plastic", "hardening", "flow stress", "yield", "yielding", "fracture", "damage", "ductility", "ductile", "stress strain", "Johnson-Cook", "GISSMO", "failure", "ballistic limit"]
+  - name: "跨金属方法参考"
+    multiplier: 0.95
+    required_groups:
+      - ["LS-OPT", "inverse identification", "inverse parameter identification", "parameter identification", "parameter calibration", "parameter inversion", "inverse calibration", "inverse modeling", "inverse modelling", "finite element model updating", "parameter identifiability", "parameter sensitivity", "uncertainty quantification", "Bayesian calibration", "multi-objective calibration", "post-necking", "hardening extrapolation", "inverse finite element identification", "full-field identification", "virtual fields method", "integrated digital image correlation", "Bridgman correction", "FEMU", "VFM", "mesh dependency", "mesh dependence", "mesh objectivity", "damage regularization", "damage regularisation", "characteristic length", "fracture energy", "nonlocal damage", "element size sensitivity", "element deletion", "model validation", "cross-validation", "return mapping", "stress integration", "consistent tangent", "user-defined material", "VUMAT", "UMAT", "UMAT41", "MAT_224"]
       - *mechanics
+  - name: "机制参考"
+    multiplier: 0.85
+    required_groups:
+      - ["Ti-6Al-4V", "TC4", "titanium", "aluminum", "aluminium", "magnesium", "steel", "copper", "nickel", "Inconel", "metal", "alloy"]
+      - ["crystal plasticity", "single crystal", "bicrystal", "process-microstructure", "microstructure engineering", "martensite decomposition", "texture-induced anisotropy", "hot isostatic pressing", "defect morphology", "lack of fusion", "porosity", "build orientation", "build direction", "crystallographic texture", "columnar grains", "prior beta grains", "deformation twinning", "slip system", "EBSD", "fractography", "heat treatment", "heat treated"]
+      - ["mechanical properties", "mechanical behavior", "deformation", "anisotropy", "ductility", "fracture", "damage", "plasticity", "strength", "hardening"]
+  - name: "跨金属方法参考"
+    multiplier: 0.95
+    required_groups:
+      - ["aluminum", "aluminium", "magnesium", "steel", "copper", "nickel", "Inconel", "metal", "alloy"]
+      - ["constitutive", "ductile fracture", "fracture criterion", "damage evolution", "stress triaxiality", "Lode", "flow stress", "hardening", "Gurson", "GTN", "MMC", "GISSMO", "Johnson-Cook"]
 whitelist_venues:
+  - Journal of Dynamic Behavior of Materials
+  - Metallurgical and Materials Transactions A
+  - Computational Mechanics
+  - Journal of Materials Engineering and Performance
+  - Experimental Techniques
+  - Journal of Manufacturing Processes
+  - Scripta Materialia
+  - Materialia
+  - Measurement
+  - Mechanics Research Communications
+  - Optics and Lasers in Engineering
+  - International Journal for Numerical Methods in Engineering
   - International Journal of Plasticity
   - International Journal of Impact Engineering
   - Engineering Fracture Mechanics

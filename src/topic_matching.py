@@ -15,6 +15,7 @@ def normalize_text(text: str) -> str:
     text = unicodedata.normalize("NFKC", text).casefold()
     text = re.sub(r"[\u2010-\u2015\u2212]", "-", text)
     text = re.sub(r"(?<!\w)ti[\s-]*6[\s-]*al[\s-]*4[\s-]*v(?!\w)", "ti6al4v", text)
+    text = re.sub(r"(?<!\w)ti[\s-]*64(?!\w)", "ti6al4v", text)
     text = re.sub(
         r"(?<!\w)(?:l[\s-]*pbf|lpbf|slm|pbf[\s-]*lb\s*/\s*m|"
         r"selective laser melting|laser beam powder bed fusion|laser powder bed fusion)(?!\w)",
@@ -53,6 +54,7 @@ def matches_groups(text: str, groups: List[List[str]]) -> bool:
 def research_priority(work: CandidateWork, scoring: ScoringConfig) -> Tuple[str, float]:
     text = " ".join(filter(None, [work.title, work.abstract]))
     for rule in scoring.research_priorities:
-        if rule.required_groups and matches_groups(text, rule.required_groups):
+        scope = work.title if rule.match_fields == "title" else text
+        if rule.required_groups and matches_groups(scope, rule.required_groups):
             return rule.name, rule.multiplier
-    return "其他相关研究", 1.0
+    return "其他相关研究", scoring.default_priority_multiplier
