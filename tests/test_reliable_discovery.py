@@ -93,6 +93,16 @@ class ReliableTests(unittest.TestCase):
             restored = FeedbackModel(load_feedback(tmp, config), config)
             self.assertEqual(restored.preferences, {})
 
+    def test_budget_break_resumes_unprocessed_journal(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            session = BudgetSession(tmp, NetworkConfig())
+            sequence = session.iter_rotation('venues', ['a', 'b', 'c'], 3)
+            self.assertEqual(next(sequence), 'a')
+            self.assertEqual(next(sequence), 'b')  # a processed; b yielded but budget check stops it.
+            sequence.close()
+            restored = BudgetSession(tmp, NetworkConfig())
+            self.assertEqual(list(restored.iter_rotation('venues', ['a', 'b', 'c'], 2)), ['b', 'c'])
+
     def test_profiles_are_separate_and_respect_explicit_collections(self):
         config = self.settings.research.model_copy(deep=True)
         config.facets = config.facets[:2]

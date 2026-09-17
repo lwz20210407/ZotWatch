@@ -388,10 +388,10 @@ class CandidateFetcher:
     def _scheduled_queries(self, provider):
         queries = self._topic_queries()
         if isinstance(self.session, BudgetSession):
-            selected = self.session.rotate("topics_" + provider, queries, self.settings.network.topic_queries_per_run)
-            if len(selected) < len(queries):
-                logger.warning("%s topic rotation coverage cap: %d/%d queries this run", provider, len(selected), len(queries))
-            return selected
+            limit = self.settings.network.topic_queries_per_run
+            if limit < len(queries):
+                logger.warning("%s topic rotation coverage cap: %d/%d queries this run", provider, limit, len(queries))
+            return self.session.iter_rotation("topics_" + provider, queries, limit)
         return queries
 
     def _fetch_semantic(self, since):
@@ -477,6 +477,8 @@ class CandidateFetcher:
         venues = self._tracked_venues()
         if not venues:
             return []
+        if isinstance(self.session, BudgetSession):
+            venues = self.session.iter_rotation("crossref_venues", venues, len(venues))
         results: List[CandidateWork] = []
         for venue in venues:
             if isinstance(self.session, BudgetSession) and self.session.calls.get("api.crossref.org", 0) >= self.settings.network.crossref_max_requests - 25:

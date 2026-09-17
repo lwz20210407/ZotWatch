@@ -52,6 +52,17 @@ class BudgetSession(requests.Session):
         ceiling = self.config.openalex_key_budget if os.getenv("OPENALEX_API_KEY") else self.config.openalex_anonymous_budget
         return max(0, ceiling - spent)
 
+    def iter_rotation(self, name, values, limit):
+        """Advance only after caller processes a yielded query; an early break retains the next one."""
+        if not values:
+            return
+        cursor = self.state.setdefault("rotation", {}).get(name, 0) % len(values)
+        for offset in range(min(limit, len(values))):
+            index = (cursor + offset) % len(values)
+            yield values[index]
+            self.state["rotation"][name] = (index + 1) % len(values)
+            self.save()
+
     def request(self, method, url, **kwargs):
         host = urlparse(url).hostname
         if host not in {"api.openalex.org", "api.crossref.org"} or method.upper() != "GET":
