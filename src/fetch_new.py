@@ -15,6 +15,7 @@ import requests
 from .http_utils import request_with_retry
 from .models import CandidateWork
 from .settings import Settings
+from .topic_matching import matches_any, matches_groups
 from .utils import ensure_isoformat, iso_to_datetime, utc_now
 
 logger = logging.getLogger(__name__)
@@ -393,13 +394,13 @@ class CandidateFetcher:
         return queries or ["titanium alloy plasticity fracture"]
 
     def _filter_by_topic(self, candidates: List[CandidateWork]) -> List[CandidateWork]:
-        include = [term.lower() for term in self.settings.sources.include_keywords if term.strip()]
+        include = [term for term in self.settings.sources.include_keywords if term.strip()]
         required_groups = [
-            [term.lower() for term in group if term.strip()]
+            [term for term in group if term.strip()]
             for group in self.settings.sources.required_keyword_groups
         ]
         required_any_group_sets = [
-            [[term.lower() for term in group if term.strip()] for group in group_set]
+            [[term for term in group if term.strip()] for group in group_set]
             for group_set in self.settings.sources.required_any_group_sets
         ]
         required_any_group_sets = [
@@ -407,7 +408,7 @@ class CandidateFetcher:
             for group_set in required_any_group_sets
         ]
         required_any_group_sets = [group_set for group_set in required_any_group_sets if group_set]
-        exclude = [term.lower() for term in self.settings.sources.exclude_keywords if term.strip()]
+        exclude = [term for term in self.settings.sources.exclude_keywords if term.strip()]
         required_groups = [group for group in required_groups if group]
         if not include and not required_groups and not required_any_group_sets and not exclude:
             return _dedupe_candidates(candidates)
@@ -415,18 +416,18 @@ class CandidateFetcher:
         kept: List[CandidateWork] = []
         for candidate in candidates:
             haystack = " ".join(
-                part for part in [candidate.title, candidate.abstract, candidate.venue] if part
-            ).lower()
-            if exclude and any(term in haystack for term in exclude):
+                part for part in [candidate.title, candidate.abstract] if part
+            )
+            if exclude and matches_any(haystack, exclude):
                 continue
             if required_any_group_sets:
                 if not any(_matches_required_groups(haystack, group_set) for group_set in required_any_group_sets):
                     continue
             elif required_groups:
-                if not all(any(term in haystack for term in group) for group in required_groups):
+                if not matches_groups(haystack, required_groups):
                     continue
             if self.settings.sources.require_topic_match and include:
-                if not any(term in haystack for term in include):
+                if not matches_any(haystack, include):
                     continue
             kept.append(candidate)
         removed = len(candidates) - len(kept)
@@ -675,7 +676,7 @@ def _dedupe_candidates(candidates: List[CandidateWork]) -> List[CandidateWork]:
 
 
 def _matches_required_groups(haystack: str, groups: List[List[str]]) -> bool:
-    return all(any(term in haystack for term in group) for group in groups)
+    return matches_groups(haystack, groups)
 
 
 __all__ = ["CandidateFetcher"]

@@ -129,6 +129,18 @@ class Thresholds(BaseModel):
     consider: float = 0.5
 
 
+class ResearchPriority(BaseModel):
+    name: str
+    required_groups: List[List[str]]
+    multiplier: float = Field(1.0, gt=0.0, le=1.0)
+
+    @validator("required_groups")
+    def validate_groups(cls, value: List[List[str]]) -> List[List[str]]:
+        if not value or any(not group or any(not term.strip() for term in group) for group in value):
+            raise ValueError("Research priority groups must contain nonempty terms.")
+        return value
+
+
 class ScoringConfig(BaseModel):
     weights: ScoreWeights = Field(default_factory=ScoreWeights)
     thresholds: Thresholds = Field(default_factory=Thresholds)
@@ -137,6 +149,7 @@ class ScoringConfig(BaseModel):
     )
     whitelist_authors: List[str] = Field(default_factory=list)
     whitelist_venues: List[str] = Field(default_factory=list)
+    research_priorities: List[ResearchPriority] = Field(default_factory=list)
 
 
 class Settings(BaseModel):

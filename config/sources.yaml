@@ -46,6 +46,18 @@ tracked_venues:
   - Materials Today Communications
   - Intermetallics
 queries:
+  - "Ti-6Al-4V post-necking inverse identification"
+  - "metal plasticity full-field identification virtual fields method"
+  - "integrated digital image correlation constitutive parameter identification"
+  - "Johnson-Cook parameter identifiability Bayesian calibration"
+  - "ductile fracture multi-objective calibration uncertainty quantification"
+  - "steel ductile damage mesh objectivity regularization"
+  - "aluminum alloy fracture energy characteristic length damage"
+  - "nonlocal damage metal ductile fracture element size sensitivity"
+  - "LPBF Ti-6Al-4V build orientation ductile fracture"
+  - "Ti-6Al-4V lack-of-fusion defects fracture"
+  - "Ti-6Al-4V hot isostatic pressing ductility damage"
+  - "Ti-6Al-4V martensite decomposition texture-induced anisotropy plasticity"
   - "laser powder bed fusion Ti-6Al-4V plasticity fracture"
   - "laser powder bed fusion TC4 titanium alloy plastic behavior damage mechanism"
   - "additively manufactured TC4 titanium alloy constitutive model fracture criterion"
@@ -181,6 +193,46 @@ queries:
   - "triaxiality cutoff cut-off value ductile fracture ballistic impact"
   - "void shape effect shear coalescence internal necking ductile damage"
 include_keywords:
+  - "constitutive modeling"
+  - "constitutive modelling"
+  - "constitutive parameters"
+  - "electroplasticity"
+  - "fatigue performance"
+  - "creep damage"
+  - "lattice structure"
+  - "molecular dynamics"
+  - "atomistic simulation"
+  - "inverse modeling"
+  - "inverse modelling"
+  - "finite element model updating"
+  - "parameter identifiability"
+  - "parameter sensitivity"
+  - "uncertainty quantification"
+  - "Bayesian calibration"
+  - "multi-objective calibration"
+  - "post-necking identification"
+  - "inverse finite element identification"
+  - "full-field identification"
+  - "virtual fields method"
+  - "integrated digital image correlation"
+  - "Bridgman correction"
+  - "mesh dependency"
+  - "mesh dependence"
+  - "mesh objectivity"
+  - "damage regularization"
+  - "characteristic length"
+  - "fracture energy"
+  - "nonlocal damage"
+  - "element size sensitivity"
+  - "build orientation"
+  - "build direction"
+  - "lack-of-fusion defects"
+  - "defect morphology"
+  - "hot isostatic pressing"
+  - "martensite decomposition"
+  - "texture-induced anisotropy"
+  - "crystal plasticity"
+  - "backstress"
   - "Ti-6Al-4V"
   - "TC4"
   - "titanium alloy"
@@ -412,6 +464,19 @@ required_keyword_groups:
   - ["Ti-6Al-4V", "Ti6Al4V", "TC4", "titanium alloy", "titanium alloys"]
   - ["stress state", "stress-state", "stress triaxiality", "triaxiality", "Lode", "ductile fracture", "fracture criterion", "fracture locus", "damage evolution", "damage initiation", "strain rate", "high strain rate", "temperature dependent", "dynamic constitutive", "constitutive model", "Johnson-Cook", "Johnson Cook", "modified Johnson-Cook", "MJC", "GISSMO", "DIEM", "MMC", "Modified Mohr-Coulomb", "Hosford-Coulomb", "GTN", "CDM", "UMAT", "VUMAT", "LS-DYNA", "ABAQUS", "penetration", "ballistic", "adiabatic shear", "thermo-viscoplastic", "thermoviscoplastic", "thermal softening", "adiabatic heating", "shear localization", "anisotropic ductile fracture", "load-path-dependent damage", "load path dependent damage"]
 required_any_group_sets:
+  # Transferable methods require a metal context and a mechanical object.
+  -
+    - &research_metals ["Ti-6Al-4V", "TC4", "titanium", "aluminum", "aluminium", "magnesium", "steel", "copper", "nickel", "Inconel", "metal", "alloy", "sheet metal"]
+    - ["inverse modeling", "inverse modelling", "finite element model updating", "parameter identifiability", "parameter sensitivity", "uncertainty quantification", "Bayesian calibration", "multi-objective calibration", "post-necking identification", "inverse finite element identification", "full-field identification", "virtual fields method", "integrated digital image correlation", "Bridgman correction", "mesh dependency", "mesh dependence", "mesh objectivity", "damage regularization", "characteristic length", "fracture energy", "nonlocal damage", "element size sensitivity"]
+    - &research_mechanics ["constitutive", "plasticity", "plastic", "hardening", "flow stress", "yield", "yielding", "fracture", "damage", "ductility", "ductile", "stress strain", "Johnson-Cook", "GISSMO"]
+  -
+    - *research_metals
+    - ["constitutive modeling", "constitutive modelling", "constitutive parameters", "electroplasticity"]
+  # Mechanism and neighboring topics can enter ranking when mechanically relevant.
+  -
+    - *research_metals
+    - ["build orientation", "build direction", "lack-of-fusion defects", "defect morphology", "hot isostatic pressing", "martensite decomposition", "texture-induced anisotropy", "crystal plasticity", "backstress", "single crystal", "bicrystal", "process-microstructure", "microstructure engineering", "heat treated", "brittle fracture", "ductile-brittle transition", "fatigue performance", "creep damage", "lattice structure", "molecular dynamics", "atomistic simulation"]
+    - *research_mechanics
   -
     - ["Ti-6Al-4V", "Ti6Al4V", "TC4", "titanium alloy", "titanium alloys"]
     - ["stress state", "stress-state", "stress triaxiality", "triaxiality", "Lode", "ductile fracture", "fracture criterion", "fracture locus", "damage evolution", "damage initiation", "strain rate", "high strain rate", "temperature dependent", "dynamic constitutive", "constitutive model", "Johnson-Cook", "Johnson Cook", "modified Johnson-Cook", "MJC", "GISSMO", "DIEM", "MMC", "Modified Mohr-Coulomb", "Hosford-Coulomb", "GTN", "CDM", "UMAT", "VUMAT", "LS-DYNA", "ABAQUS", "penetration", "ballistic", "adiabatic shear", "thermo-viscoplastic", "thermoviscoplastic", "thermal softening", "adiabatic heating", "shear localization", "anisotropic ductile fracture", "load-path-dependent damage", "load path dependent damage"]
@@ -471,14 +536,6 @@ exclude_keywords:
   - "patient"
   - "large language model"
   - "reinforcement learning"
-  - "molecular dynamics"
-  - "molecular dynamics simulation"
-  - "atomistic simulation"
-  - "bicrystal"
-  - "bicrystals"
-  - "single crystal"
-  - "crystal plasticity"
-  - "backstress"
   - "stress dip"
   - "UHMWPE"
   - "hybrid ballistic panel"
@@ -487,17 +544,12 @@ exclude_keywords:
   - "armor panel"
   - "armour panel"
   - "protective panel"
-  - "process-microstructure"
-  - "process microstructure"
-  - "microstructure engineering"
   - "processing map"
   - "hot processing map"
   - "dynamic precipitation"
   - "dynamic dissolution"
-  - "creep damage"
   - "surface integrity"
   - "shot peening"
-  - "fatigue performance"
   - "powder particle impact"
   - "geotechnical"
   - "sandy dolomite"
@@ -509,17 +561,11 @@ exclude_keywords:
   - "stable diffusion"
   - "deeplab"
   - "image restoration"
-  - "brittle fracture"
-  - "ductile-brittle transition"
   - "polycarbonate"
   - "cold spray"
-  - "microstructure, mechanical properties"
-  - "mechanical properties and additive manufacturing"
-  - "mechanical properties of heat-treated"
   - "post-fire"
   - "weldments"
   - "girth weld"
-  - "thermal behavior, microstructure evolution and mechanical properties"
   - "hole-flangeability"
   - "toolpaths"
   - "amorphous polymers"
@@ -527,7 +573,6 @@ exclude_keywords:
   - "residual stress during machining"
   - "helmet liner"
   - "traumatic brain injury"
-  - "lattice structure"
 require_topic_match: true
 public_api:
   enabled: false

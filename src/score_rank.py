@@ -13,6 +13,7 @@ import numpy as np
 from .faiss_store import FaissIndex
 from .models import CandidateWork, RankedWork
 from .settings import Settings
+from .topic_matching import research_priority
 from .vectorizer import TextVectorizer
 
 logger = logging.getLogger(__name__)
@@ -101,6 +102,17 @@ class WorkRanker:
                 + venue_bonus * weights.venue_bonus
             )
 
+            priority, multiplier = research_priority(candidate, self.settings.scoring)
+            base_score = score
+            score *= multiplier
+            payload = candidate.model_dump()
+            payload["extra"] = {
+                **candidate.extra,
+                "research_priority": priority,
+                "priority_multiplier": multiplier,
+                "base_score": base_score,
+            }
+
             label = "ignore"
             if score >= thresholds.must_read:
                 label = "must_read"
@@ -109,7 +121,7 @@ class WorkRanker:
 
             ranked.append(
                 RankedWork(
-                    **candidate.dict(),
+                    **payload,
                     score=score,
                     similarity=similarity,
                     recency_score=recency_score,

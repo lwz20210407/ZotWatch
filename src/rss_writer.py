@@ -42,6 +42,8 @@ def write_rss(
         published_text = work.published.isoformat() if work.published else "Unknown"
         description_lines.append(f"Published: {published_text}")
         description_lines.append(f"Venue: {work.venue or 'Unknown'}")
+        if work.extra.get("research_priority"):
+            description_lines.append(f"研究类型: {work.extra['research_priority']}")
         ET.SubElement(item, "description").text = "\n".join(description_lines)
 
     tree = ET.ElementTree(rss)

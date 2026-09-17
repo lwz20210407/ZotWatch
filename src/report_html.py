@@ -32,6 +32,7 @@ _TEMPLATE = """
       <h2>{{ loop.index }}. <a href="{{ work.url or '#' }}">{{ work.title }}</a></h2>
       <div class="meta">
         <span>Label: {{ work.label }}</span> |
+        <span>研究类型: {{ work.extra.get('research_priority', '其他相关研究') }}</span> |
         <span>Score: {{ '%.3f'|format(work.score) }}</span> |
         <span>Similarity: {{ '%.3f'|format(work.similarity) }}</span> |
         <span>Published: {{ work.published.strftime('%Y-%m-%d') if work.published else 'Unknown' }}</span> |
