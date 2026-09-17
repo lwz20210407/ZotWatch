@@ -9,6 +9,7 @@ from zoneinfo import ZoneInfo
 from dotenv import load_dotenv
 
 from .build_profile import ProfileBuilder
+from .author_watch import author_news, merge_report_works, work_key
 from .dedupe import DedupeEngine
 from .fetch_new import CandidateFetcher
 from .ingest_zotero_api import ZoteroIngestor
@@ -93,15 +94,19 @@ def run_watch(
     ranked = ranker.rank(filtered)
 
     ranked = _filter_recent(ranked, days=settings.sources.window_days)
+    watched = author_news(ranked, settings.author_watch)
     ranked = [work for work in ranked if work.label != "ignore"]
     ranked = _limit_preprints(ranked, max_ratio=0.3)
 
     if top and len(ranked) > top:
         ranked = ranked[:top]
 
-    ranked = enrich_ranked_works(ranked, settings)
+    combined = enrich_ranked_works(merge_report_works(ranked, watched), settings)
+    enriched_by_key = {work_key(work): work for work in combined}
+    ranked = [enriched_by_key[work_key(work)] for work in ranked]
+    watched = [enriched_by_key[work_key(work)] for work in watched]
 
-    if not ranked:
+    if not combined:
         logging.getLogger(__name__).info("No ranked results available")
         if rss:
             write_rss([], base_dir / "reports" / "feed.xml")
@@ -112,11 +117,11 @@ def run_watch(
     _log_top_results(ranked)
 
     if rss:
-        write_rss(ranked, base_dir / "reports" / "feed.xml")
+        write_rss(combined, base_dir / "reports" / "feed.xml")
     if report:
         report_date = datetime.now(ZoneInfo("Asia/Shanghai"))
         report_name = f"report-{report_date:%Y%m%d}.html"
-        render_html(ranked, base_dir / "reports" / report_name)
+        render_html(ranked, base_dir / "reports" / report_name, watched_works=watched)
     if push:
         ZoteroPusher(settings).push(ranked)
 
@@ -130,8 +135,9 @@ def _log_top_results(ranked: list[RankedWork]) -> None:
 def _filter_recent(ranked: list[RankedWork], *, days: int) -> list[RankedWork]:
     if days <= 0:
         return ranked
-    cutoff = datetime.now(timezone.utc) - timedelta(days=days)
-    kept = [work for work in ranked if work.published and work.published >= cutoff]
+    now = datetime.now(timezone.utc)
+    cutoff = now - timedelta(days=days)
+    kept = [work for work in ranked if work.published and cutoff <= work.published <= now]
     removed = len(ranked) - len(kept)
     if removed > 0:
         logging.getLogger(__name__).info("Dropped %d items older than %d days", removed, days)

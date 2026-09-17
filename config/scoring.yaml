@@ -21,17 +21,17 @@ research_priorities:
     multiplier: 0.70
     match_fields: title
     required_groups:
-      - ["fatigue performance", "creep damage", "lattice structure", "molecular dynamics", "atomistic simulation", "corrosion", "coating", "machining", "welding", "concrete", "cement", "polymer", "ceramic", "biomedical", "implant"]
+      - ["fatigue performance", "creep damage", "lattice structure", "molecular dynamics", "atomistic simulation", "corrosion", "coating", "machining", "welding", "concrete", "cement", "polymer", "ceramic", "biomedical", "implant", "混凝土", "水泥", "聚合物", "陶瓷", "生物医学"]
   - name: "TC4核心研究"
     multiplier: 1.0
     required_groups:
-      - ["Ti-6Al-4V", "TC4", "titanium alloy"]
-      - ["constitutive", "ductile fracture", "fracture criterion", "damage evolution", "damage initiation", "flow stress", "strain hardening", "stress triaxiality", "Lode", "strain rate", "dynamic tension", "dynamic compression", "thermoviscoplastic", "thermo-viscoplastic", "thermal softening", "ballistic", "penetration", "perforation", "Johnson-Cook", "GISSMO"]
-      - &mechanics ["constitutive", "plasticity", "plastic", "hardening", "flow stress", "yield", "yielding", "fracture", "damage", "ductility", "ductile", "stress strain", "Johnson-Cook", "GISSMO", "failure", "ballistic limit"]
+      - ["Ti-6Al-4V", "TC4", "titanium alloy", "钛合金"]
+      - ["constitutive", "ductile fracture", "fracture criterion", "damage evolution", "damage initiation", "flow stress", "strain hardening", "stress triaxiality", "Lode", "strain rate", "dynamic tension", "dynamic compression", "thermoviscoplastic", "thermo-viscoplastic", "thermal softening", "ballistic", "penetration", "perforation", "Johnson-Cook", "GISSMO", "本构", "延性断裂", "损伤演化", "应力状态", "应变率", "屈服", "侵彻"]
+      - &mechanics ["constitutive", "plasticity", "plastic", "hardening", "flow stress", "yield", "yielding", "fracture", "damage", "ductility", "ductile", "stress strain", "Johnson-Cook", "GISSMO", "failure", "ballistic limit", "塑性", "本构", "断裂", "损伤", "硬化", "屈服", "侵彻"]
   - name: "跨金属方法参考"
     multiplier: 0.95
     required_groups:
-      - ["LS-OPT", "inverse identification", "inverse parameter identification", "parameter identification", "parameter calibration", "parameter inversion", "inverse calibration", "inverse modeling", "inverse modelling", "finite element model updating", "parameter identifiability", "parameter sensitivity", "uncertainty quantification", "Bayesian calibration", "multi-objective calibration", "post-necking", "hardening extrapolation", "inverse finite element identification", "full-field identification", "virtual fields method", "integrated digital image correlation", "Bridgman correction", "FEMU", "VFM", "mesh dependency", "mesh dependence", "mesh objectivity", "damage regularization", "damage regularisation", "characteristic length", "fracture energy", "nonlocal damage", "element size sensitivity", "element deletion", "model validation", "cross-validation", "return mapping", "stress integration", "consistent tangent", "user-defined material", "VUMAT", "UMAT", "UMAT41", "MAT_224"]
+      - ["LS-OPT", "inverse identification", "inverse parameter identification", "parameter identification", "parameter calibration", "parameter inversion", "inverse calibration", "inverse modeling", "inverse modelling", "finite element model updating", "parameter identifiability", "parameter sensitivity", "uncertainty quantification", "Bayesian calibration", "multi-objective calibration", "post-necking", "hardening extrapolation", "inverse finite element identification", "full-field identification", "virtual fields method", "integrated digital image correlation", "Bridgman correction", "FEMU", "VFM", "mesh dependency", "mesh dependence", "mesh objectivity", "damage regularization", "damage regularisation", "characteristic length", "fracture energy", "nonlocal damage", "element size sensitivity", "element deletion", "model validation", "cross-validation", "return mapping", "stress integration", "consistent tangent", "user-defined material", "VUMAT", "UMAT", "UMAT41", "MAT_224", "反演", "参数标定", "数字图像相关", "颈缩后", "有限元更新", "网格客观性", "损伤正则化"]
       - *mechanics
   - name: "机制参考"
     multiplier: 0.85

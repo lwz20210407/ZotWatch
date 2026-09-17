@@ -53,14 +53,16 @@ Elsevier Shop 或 Acta Materialia 主办方页面。没有声称覆盖所有相�
 | Optics and Lasers in Engineering | 0143-8166 | 光学测量、DIC/全场实验方法；[出版社](https://shop.elsevier.com/journals/optics-and-lasers-in-engineering/0143-8166) |
 | International Journal for Numerical Methods in Engineering | 0029-5981 | 有限元、算法及数值实现；[出版社](https://onlinelibrary.wiley.com/page/journal/10970207/homepage/productinformation.html) |
 
-原 45 本保留，总数 57 本。主题检索不限定在这些期刊内，列表以外的论文也可以进入。
+首轮在原45本基础上补充至57本；随后全库网络审计再补13本，当前70本，详见
+[全库审计](library-network-audit.md)。主题检索不限定在这些期刊内，列表以外的论文也可以进入。
 Materials Science and Engineering: A 的 Crossref 刊名为 Materials Science and Engineering A；
 已用 ISSN 0921-5093 定位，并规范刊名标点用于排序加分匹配。
 
 ## 检索行为核验与限制
 
 - [OpenAlex 官方检索说明](https://help.openalex.org/api/searching/)说明，无显式 Boolean
-  运算符的词按 AND 组合。因此旧的长串替代模型查询改为 165 条分主题短查询。
+  运算符的词按 AND 组合。因此旧的长串替代模型查询首轮改为165条分主题短查询，
+  全库网络审计后补充至179条。
 - [Crossref filters](https://www.crossref.org/documentation/retrieve-metadata/rest-api/rest-api-filters/)
   说明 `container-title` 是精确匹配，`issn` 可用于稳定定位。
 - [Crossref API 文档](https://github.com/CrossRef/rest-api-doc)提供 cursor 分页、相关性排序

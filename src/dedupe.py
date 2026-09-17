@@ -65,7 +65,8 @@ class DedupeEngine:
 
 
 def _normalize_identifier(value: str) -> str:
-    return (value or "").lower().strip()
+    normalized = (value or "").lower().strip()
+    return re.sub(r"^https?://(?:dx\.)?doi\.org/", "", normalized)
 
 
 def _normalize_title(title: str) -> str:

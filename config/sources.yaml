@@ -4,6 +4,19 @@ query_max_pages: 2
 venue_max_pages: 5
 request_interval_seconds: 0.5
 tracked_venue_issns:
+  Mechanics of Advanced Materials and Structures: "1537-6494"
+  Journal of Materials Science & Technology: "1005-0302"
+  International Journal of Applied Mechanics: "1758-8251"
+  The International Journal of Advanced Manufacturing Technology: "0268-3768"
+  International Journal of Pressure Vessels and Piping: "0308-0161"
+  Finite Elements in Analysis and Design: "0168-874X"
+  Modelling and Simulation in Materials Science and Engineering: "0965-0393"
+  Strain: "0039-2103"
+  Optics & Laser Technology: "0030-3992"
+  International Journal of Machine Tools and Manufacture: "0890-6955"
+  PAMM: "1617-7061"
+  Acta Mechanica Sinica: "0567-7718"
+  Acta Mechanica Solida Sinica: "0894-9166"
   "Materials Science and Engineering: A": "0921-5093"
   Journal of Dynamic Behavior of Materials: "2199-7446"
   Metallurgical and Materials Transactions A: "1073-5623"
@@ -18,6 +31,19 @@ tracked_venue_issns:
   Optics and Lasers in Engineering: "0143-8166"
   International Journal for Numerical Methods in Engineering: "0029-5981"
 tracked_venues:
+  - Mechanics of Advanced Materials and Structures
+  - Journal of Materials Science & Technology
+  - International Journal of Applied Mechanics
+  - The International Journal of Advanced Manufacturing Technology
+  - International Journal of Pressure Vessels and Piping
+  - Finite Elements in Analysis and Design
+  - Modelling and Simulation in Materials Science and Engineering
+  - Strain
+  - Optics & Laser Technology
+  - International Journal of Machine Tools and Manufacture
+  - PAMM
+  - Acta Mechanica Sinica
+  - Acta Mechanica Solida Sinica
   - International Journal of Plasticity
   - International Journal of Impact Engineering
   - Engineering Fracture Mechanics
@@ -76,6 +102,21 @@ tracked_venues:
   - Optics and Lasers in Engineering
   - International Journal for Numerical Methods in Engineering
 queries:
+  # Gaps identified from the local citation/coauthor network, September 2026.
+  - "stress state post-necking hardening"
+  - "Lode dependent plasticity steel"
+  - "micro-void shape ductile fracture"
+  - "inelastic predictor elastic corrector damage"
+  - "anisotropic plasticity nonproportional loading"
+  - "negative triaxiality fracture calibration"
+  - "principal stress direction ductile fracture"
+  - "evolving plasticity differential hardening"
+  - "coupled yield criterion convexity"
+  - "stress state loading path damage evolution"
+  - "钛合金 应力状态 本构"
+  - "钛合金 应变率 断裂"
+  - "金属 罗德 屈服"
+  - "金属 非比例加载 损伤"
   # TC4 / LPBF core
   - "Ti-6Al-4V plasticity"
   - "Ti-6Al-4V ductile fracture"
@@ -251,6 +292,29 @@ queries:
   - "aluminum alloy LS-OPT fracture"
   - "steel thermal softening fracture"
 include_keywords:
+  - "micro-void shape"
+  - "microvoid shape"
+  - "void shearing"
+  - "inelastic predictor"
+  - "elastic corrector"
+  - "evolving plasticity"
+  - "evolutionary anisotropy"
+  - "yield surface evolution"
+  - "strain path change"
+  - "principal stress direction"
+  - "negative triaxiality"
+  - "钛合金"
+  - "应力状态"
+  - "应力三轴度"
+  - "罗德"
+  - "本构"
+  - "塑性"
+  - "屈服"
+  - "损伤"
+  - "断裂"
+  - "应变率"
+  - "非比例加载"
+  - "侵彻"
   - "viscoplasticity"
   - "viscoplastic"
   - "elastoplastic"
@@ -638,6 +702,12 @@ required_keyword_groups:
   - ["Ti-6Al-4V", "Ti6Al4V", "TC4", "titanium alloy", "titanium alloys"]
   - ["stress state", "stress-state", "stress triaxiality", "triaxiality", "Lode", "ductile fracture", "fracture criterion", "fracture locus", "damage evolution", "damage initiation", "strain rate", "high strain rate", "temperature dependent", "dynamic constitutive", "constitutive model", "Johnson-Cook", "Johnson Cook", "modified Johnson-Cook", "MJC", "GISSMO", "DIEM", "MMC", "Modified Mohr-Coulomb", "Hosford-Coulomb", "GTN", "CDM", "UMAT", "VUMAT", "LS-DYNA", "ABAQUS", "penetration", "ballistic", "adiabatic shear", "thermo-viscoplastic", "thermoviscoplastic", "thermal softening", "adiabatic heating", "shear localization", "anisotropic ductile fracture", "load-path-dependent damage", "load path dependent damage"]
 required_any_group_sets:
+  -
+    - ["micro-void shape", "microvoid shape", "void shearing", "inelastic predictor", "elastic corrector", "evolving plasticity", "evolutionary anisotropy", "yield surface evolution", "strain path change", "principal stress direction", "negative triaxiality"]
+    - ["plasticity", "constitutive", "yield", "hardening", "fracture", "damage"]
+  -
+    - ["钛合金", "TC4", "金属", "钢", "铝合金", "镁合金"]
+    - ["应力状态", "三轴度", "罗德", "本构", "塑性", "屈服", "损伤", "断裂", "应变率", "侵彻"]
   # Transferable methods require a metal context and a mechanical object.
   -
     - &research_metals ["Ti-6Al-4V", "TC4", "titanium", "aluminum", "aluminium", "magnesium", "steel", "copper", "nickel", "Inconel", "metal", "alloy", "sheet metal"]

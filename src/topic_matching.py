@@ -27,6 +27,9 @@ def normalize_text(text: str) -> str:
 @lru_cache(maxsize=2048)
 def _term_pattern(term: str) -> re.Pattern:
     normalized = normalize_text(term)
+    if re.search(r"[\u3400-\u9fff]", normalized):
+        # Chinese scientific phrases are not separated by spaces in running text.
+        return re.compile(re.escape(normalized))
     words = normalized.split()
     if not words:
         return re.compile(r"(?!)")

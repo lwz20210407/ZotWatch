@@ -63,9 +63,11 @@ end-to-end check.
 
 ## Retrieval coverage
 
-The expanded configuration has 57 tracked journals, 165 short queries, 383
-include terms, 18 explicit off-topic exclusions, and 19 alternative topic rules.
+The expanded configuration has 70 tracked journals, 179 short queries, 406
+include terms, 18 explicit off-topic exclusions, and 21 alternative topic rules.
 See [research-coverage.md](research-coverage.md) for the research map and sources.
+The full-library follow-up and author discovery are documented in
+[library-network-audit.md](library-network-audit.md) and [author-tracking.md](author-tracking.md).
 
 Queries operate across journals; tracked journals are extra discovery sources,
 not an eligibility whitelist. OpenAlex interprets unconnected search words as

@@ -27,6 +27,22 @@ _TEMPLATE = """
 <body>
   <h1>ZotWatcher Recommendations</h1>
   <p>Generated at {{ generated_at }}</p>
+  {% if watched_works %}
+  <section>
+    <h2>重点作者新作</h2>
+    <p>已通过主题筛选，按发表时间排列；独立于综合推荐前 20 篇，不代表全部达到优先阅读评分阈值。</p>
+    {% for work in watched_works %}
+    <article>
+      <h3><a href="{{ work.url or '#' }}">{{ work.title }}</a></h3>
+      <div class="meta">关注作者：{% for author in work.extra.get('watched_authors', []) %}{{ author.name }}{% if not loop.last %}、{% endif %}{% endfor %}
+      | {{ work.published.strftime('%Y-%m-%d') if work.published else 'Unknown' }}
+      | {{ work.extra.get('research_priority', '其他相关研究') }}</div>
+      {% if work.abstract %}<p>{{ work.abstract }}</p>{% endif %}
+    </article>
+    {% endfor %}
+  </section>
+  {% endif %}
+  <h2>综合推荐</h2>
   {% for work in works %}
     <article>
       <h2>{{ loop.index }}. <a href="{{ work.url or '#' }}">{{ work.title }}</a></h2>
@@ -49,10 +65,10 @@ _TEMPLATE = """
 """
 
 
-def render_html(works: List[RankedWork], output_path: Path | str) -> Path:
+def render_html(works: List[RankedWork], output_path: Path | str, *, watched_works: List[RankedWork] | None = None) -> Path:
     env = Environment(autoescape=True)
     template: Template = env.from_string(_TEMPLATE)
-    rendered = template.render(works=works, generated_at=datetime.utcnow().isoformat())
+    rendered = template.render(works=works, watched_works=watched_works or [], generated_at=datetime.utcnow().isoformat())
     path = Path(output_path)
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(rendered, encoding="utf-8")

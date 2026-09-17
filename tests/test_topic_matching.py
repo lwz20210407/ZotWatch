@@ -30,6 +30,7 @@ class TopicTests(unittest.TestCase):
         return bool(self.fetcher._filter_by_topic([work]))
 
     def test_boundaries(self) -> None:
+        self.assertTrue(matches_term("研究应力三轴度对钛合金的影响", "应力三轴度"))
         for text, term in [
             ("prediction", "DIC"), ("generalized model", "gene"),
             ("cellular metal", "cell"), ("modelling", "Lode"),
@@ -129,6 +130,9 @@ class TopicTests(unittest.TestCase):
         work = CandidateWork(source="test", identifier="p", title="TC4 high strain rate ductile fracture",
                              abstract="Experiments are compared with molecular dynamics.")
         self.assertEqual(research_priority(work, self.settings.scoring), ("TC4核心研究", 1.0))
+        self.assertTrue(self.kept("考虑应力状态依赖性的钛合金塑性本构模型"))
+        chinese = CandidateWork(source="test", identifier="cn", title="考虑应力状态依赖性的钛合金塑性本构模型")
+        self.assertEqual(research_priority(chinese, self.settings.scoring), ("TC4核心研究", 1.0))
 
     def test_priority_and_ranker(self) -> None:
         # These tests exercise scoring, not the optional torch/model runtime.

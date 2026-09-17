@@ -13,6 +13,7 @@ import feedparser
 import requests
 
 from .http_utils import request_with_retry
+from .author_watch import authorship_identifiers, fetch_author_works, mark_watched_authors, work_key
 from .models import CandidateWork
 from .source_paging import crossref_publication_date, iter_works
 from .settings import Settings
@@ -36,6 +37,9 @@ class CandidateFetcher:
         self.top_venues = self._load_top_venues()
 
     def fetch_all(self) -> List[CandidateWork]:
+        now = datetime.now(timezone.utc)
+        since = now - timedelta(days=self.settings.sources.window_days)
+        watched = fetch_author_works(self.session, self.settings, since)
         stale_candidates: List[CandidateWork] | None = None
         cached = self._load_cache()
         if cached:
@@ -48,15 +52,12 @@ class CandidateFetcher:
                     fetched_at.isoformat(),
                     age.total_seconds() / 3600,
                 )
-                return self._filter_by_topic(candidates)
+                return self._filter_by_topic([*watched, *candidates])
             logger.info(
                 "Candidate cache is stale (age %.1f hours); refreshing",
                 age.total_seconds() / 3600,
             )
-        window_days = self.settings.sources.window_days
-        now = datetime.now(timezone.utc)
-        since = now - timedelta(days=window_days)
-        results: List[CandidateWork] = []
+        results: List[CandidateWork] = list(watched)
         enabled_sources = 0
         failed_sources = 0
 
@@ -116,7 +117,7 @@ class CandidateFetcher:
                 enabled_sources,
                 len(stale_candidates),
             )
-            return self._filter_by_topic(stale_candidates)
+            return self._filter_by_topic([*watched, *stale_candidates])
 
         results = self._filter_by_topic(results)
         logger.info("Fetched %d candidate works", len(results))
@@ -323,7 +324,8 @@ class CandidateFetcher:
                         published=_parse_date(item.get("publication_date")),
                         venue=source_info.get("display_name"),
                         metrics={"cited_by": float(item.get("cited_by_count", 0))},
-                        extra={"concepts": [c.get("display_name") for c in item.get("concepts", [])], "query": query},
+                        extra={"concepts": [c.get("display_name") for c in item.get("concepts", [])], "query": query,
+                               "openalex_authorships": authorship_identifiers(item), "is_retracted": bool(item.get("is_retracted")), "work_type": item.get("type")},
                     )
                 )
         return _dedupe_candidates(results)
@@ -393,24 +395,29 @@ class CandidateFetcher:
         required_any_group_sets = [group_set for group_set in required_any_group_sets if group_set]
         exclude = [term for term in self.settings.sources.exclude_keywords if term.strip()]
         required_groups = [group for group in required_groups if group]
-        if not include and not required_groups and not required_any_group_sets and not exclude:
-            return _dedupe_candidates(candidates)
-
         kept: List[CandidateWork] = []
         for candidate in candidates:
+            if candidate.extra.get("work_type", candidate.extra.get("type")) in {"dataset", "supplementary-material", "peer-review"}:
+                continue
+            if candidate.extra.get("is_retracted") or re.search(r"\b(?:retracted|retraction)\b|撤稿", candidate.title, re.I):
+                continue
+            candidate = mark_watched_authors(candidate, self.settings.author_watch)
             haystack = " ".join(
                 part for part in [candidate.title, candidate.abstract] if part
             )
             if exclude and matches_any(haystack, exclude):
                 continue
+            author_topic_match = bool(candidate.extra.get("watched_authors")) and matches_any(
+                haystack, self.settings.author_watch.topic_keywords
+            )
             if required_any_group_sets:
-                if not any(_matches_required_groups(haystack, group_set) for group_set in required_any_group_sets):
+                if not author_topic_match and not any(_matches_required_groups(haystack, group_set) for group_set in required_any_group_sets):
                     continue
             elif required_groups:
-                if not matches_groups(haystack, required_groups):
+                if not author_topic_match and not matches_groups(haystack, required_groups):
                     continue
             if self.settings.sources.require_topic_match and include:
-                if not matches_any(haystack, include):
+                if not author_topic_match and not matches_any(haystack, include):
                     continue
             kept.append(candidate)
         removed = len(candidates) - len(kept)
@@ -643,7 +650,7 @@ def _dedupe_candidates(candidates: List[CandidateWork]) -> List[CandidateWork]:
     seen: set[str] = set()
     unique: List[CandidateWork] = []
     for candidate in candidates:
-        key = (candidate.doi or candidate.identifier or candidate.title).strip().lower()
+        key = work_key(candidate)
         if not key or key in seen:
             continue
         seen.add(key)

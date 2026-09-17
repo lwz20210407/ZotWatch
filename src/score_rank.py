@@ -105,12 +105,16 @@ class WorkRanker:
             priority, multiplier = research_priority(candidate, self.settings.scoring)
             base_score = score
             score *= multiplier
+            watched_bonus = (self.settings.author_watch.score_bonus
+                             if self.settings.author_watch.enabled and candidate.extra.get("watched_authors") else 0.0)
+            score += watched_bonus
             payload = candidate.model_dump()
             payload["extra"] = {
                 **candidate.extra,
                 "research_priority": priority,
                 "priority_multiplier": multiplier,
                 "base_score": base_score,
+                "watched_author_bonus": watched_bonus,
             }
 
             label = "ignore"

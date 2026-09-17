@@ -1,0 +1,675 @@
+enabled: true
+max_pages: 3
+max_report_items: 20
+score_bonus: 0.03
+authors:
+- name: Michael Brünig
+  enabled: true
+  openalex_ids:
+  - A5030435787
+  reason: 各向异性塑性、损伤及非比例路径的持续发展
+  institution_ids: []
+  evidence_dois:
+  - 10.1016/j.ijsolstr.2025.113770
+  - 10.1177/10567895231160810
+  - 10.1016/j.prostr.2022.12.145
+  verified_on: '2026-09-17'
+- name: Steffen Gerke
+  enabled: true
+  openalex_ids:
+  - A5075842720
+  reason: 各向异性塑性、损伤及非比例路径的持续发展
+  institution_ids: []
+  evidence_dois:
+  - 10.1016/j.ijsolstr.2025.113770
+  - 10.1177/10567895231160810
+  - 10.1016/j.prostr.2022.12.145
+  verified_on: '2026-09-17'
+- name: Moritz Zistl
+  enabled: true
+  openalex_ids:
+  - A5073111278
+  reason: 各向异性塑性、损伤及非比例路径的持续发展
+  institution_ids: []
+  evidence_dois:
+  - 10.1016/j.prostr.2022.12.145
+  - 10.1088/1757-899x/651/1/012009
+  - 10.1016/j.tafmec.2024.104339
+  verified_on: '2026-09-17'
+- name: Zhichao Wei
+  enabled: true
+  openalex_ids:
+  - A5027265282
+  reason: 各向异性塑性、损伤及非比例路径的持续发展
+  institution_ids:
+  - I40527276
+  - I887968799
+  evidence_dois:
+  - 10.1016/j.ijsolstr.2025.113770
+  - 10.1016/j.ijmecsci.2026.111424
+  - 10.1016/j.ijsolstr.2026.113896
+  verified_on: '2026-09-17'
+- name: Sanjeev Koirala
+  enabled: true
+  openalex_ids:
+  - A5036449853
+  reason: 各向异性塑性、损伤及非比例路径的持续发展
+  institution_ids: []
+  evidence_dois:
+  - 10.1016/j.ijsolstr.2025.113770
+  - 10.1177/10567895231160810
+  - 10.1007/978-3-031-58006-2_22
+  verified_on: '2026-09-17'
+- name: František Šebek
+  enabled: true
+  openalex_ids:
+  - A5073384685
+  reason: 各向异性塑性、损伤及非比例路径的持续发展
+  institution_ids: []
+  evidence_dois:
+  - 10.1016/j.ijpvp.2026.105949
+  - 10.1007/s11340-024-01108-3
+  - 10.1016/j.ijmecsci.2016.02.001
+  verified_on: '2026-09-17'
+- name: Petr Kubík
+  enabled: true
+  openalex_ids:
+  - A5035395302
+  reason: 各向异性塑性、损伤及非比例路径的持续发展
+  institution_ids: []
+  evidence_dois:
+  - 10.1016/j.ijpvp.2026.105949
+  - 10.1016/j.ijmecsci.2016.02.001
+  - 10.7712/100016.2291.5668
+  verified_on: '2026-09-17'
+- name: Jindřich Petruška
+  enabled: true
+  openalex_ids:
+  - A5089796758
+  reason: 各向异性塑性、损伤及非比例路径的持续发展
+  institution_ids: []
+  evidence_dois:
+  - 10.1016/j.ijmecsci.2016.02.001
+  - 10.7712/100016.2291.5668
+  - 10.1016/j.ijplas.2022.103301
+  verified_on: '2026-09-17'
+- name: Yanshan Lou
+  enabled: true
+  openalex_ids:
+  - A5077106792
+  reason: 应力状态依赖塑性、差异硬化与屈服面
+  institution_ids: []
+  evidence_dois:
+  - 10.1016/j.ijimpeng.2019.02.004
+  - 10.1016/j.ijimpeng.2018.06.008
+  - 10.1016/j.jmapro.2023.07.067
+  verified_on: '2026-09-17'
+- name: Jeong Whan Yoon
+  enabled: true
+  openalex_ids:
+  - A5061676060
+  reason: 应力状态依赖塑性、差异硬化与屈服面
+  institution_ids: []
+  evidence_dois:
+  - 10.1088/1742-6596/896/1/012110
+  - 10.1016/j.ijimpeng.2024.105138
+  - 10.1016/j.ijplas.2019.04.015
+  verified_on: '2026-09-17'
+- name: Qi Hu
+  enabled: true
+  openalex_ids:
+  - A5083114459
+  reason: 应力状态依赖塑性、差异硬化与屈服面
+  institution_ids: []
+  evidence_dois:
+  - 10.1016/j.ijmecsci.2021.106467
+  - 10.1007/s11665-020-04592-5
+  - 10.1016/j.euromechsol.2017.08.017
+  verified_on: '2026-09-17'
+- name: Chong Zhang
+  enabled: true
+  openalex_ids:
+  - A5100393893
+  - A5100393894
+  - A5100393901
+  reason: 应力状态依赖塑性、差异硬化与屈服面
+  institution_ids:
+  - I87445476
+  evidence_dois:
+  - 10.1016/j.jmatprotec.2023.117997
+  - 10.1016/j.tafmec.2022.103677
+  - 10.1016/j.ijsolstr.2022.111993
+  verified_on: '2026-09-17'
+- name: Xiaosheng Gao
+  enabled: true
+  openalex_ids:
+  - A5101467031
+  reason: 应力状态依赖塑性、差异硬化与屈服面
+  institution_ids:
+  - I110152177
+  evidence_dois:
+  - 10.1016/j.ijsolstr.2016.04.031
+  - 10.1016/j.ijsolstr.2006.08.028
+  - 10.1016/s0013-7944(03)00114-0
+  verified_on: '2026-09-17'
+- name: Yuanli Bai
+  enabled: true
+  openalex_ids:
+  - A5007495168
+  reason: 应力状态依赖塑性、差异硬化与屈服面
+  institution_ids: []
+  evidence_dois:
+  - 10.1016/j.tafmec.2023.104059
+  - 10.1016/j.ijmecsci.2016.07.022
+  - 10.1016/j.ijimpeng.2018.09.015
+  verified_on: '2026-09-17'
+- name: Oana Cazacu
+  enabled: true
+  openalex_ids:
+  - A5013867147
+  reason: 应力状态依赖塑性、差异硬化与屈服面
+  institution_ids: []
+  evidence_dois:
+  - 10.1016/j.jmps.2024.105542
+  - 10.1016/j.ijplas.2005.06.001
+  - 10.1016/j.mechmat.2024.105150
+  verified_on: '2026-09-17'
+- name: F. Barlat
+  enabled: true
+  openalex_ids:
+  - A5064999677
+  reason: 应力状态依赖塑性、差异硬化与屈服面
+  institution_ids: []
+  evidence_dois:
+  - 10.1016/j.ijplas.2005.06.001
+  - 10.1016/j.ijnonlinmec.2012.12.007
+  - 10.1016/0749-6419(89)90019-3
+  verified_on: '2026-09-17'
+- name: Yong Hou
+  enabled: true
+  openalex_ids:
+  - A5066664870
+  reason: 应力状态依赖塑性、差异硬化与屈服面
+  institution_ids:
+  - I139264467
+  - I200332995
+  - I116953780
+  evidence_dois:
+  - 10.1016/j.ijsolstr.2025.113251
+  - 10.1016/j.ijplas.2023.103818
+  - 10.1088/1757-899x/1284/1/012049
+  verified_on: '2026-09-17'
+- name: Zhiyang Xie
+  enabled: true
+  openalex_ids:
+  - A5037080886
+  reason: 应力状态依赖塑性、差异硬化与屈服面
+  institution_ids:
+  - I116953780
+  - I84218800
+  evidence_dois:
+  - 10.1016/j.ijmecsci.2024.109914
+  - 10.1016/j.jcsr.2023.107797
+  - 10.1016/j.engfracmech.2023.109462
+  verified_on: '2026-09-17'
+- name: Zejian Xu
+  enabled: true
+  openalex_ids:
+  - A5024204789
+  - A5103051461
+  reason: 应力状态依赖塑性、差异硬化与屈服面
+  institution_ids:
+  - I125839683
+  evidence_dois:
+  - 10.1016/j.ijimpeng.2024.104898
+  - 10.1016/j.ijsolstr.2024.113036
+  - 10.1016/j.ijmecsci.2022.107965
+  verified_on: '2026-09-17'
+- name: Wang Dou
+  enabled: true
+  openalex_ids:
+  - A5047791371
+  reason: 应力状态依赖塑性、差异硬化与屈服面
+  institution_ids:
+  - I167383011
+  - I125839683
+  evidence_dois:
+  - 10.1016/j.ijimpeng.2024.104898
+  - 10.1016/j.ijmecsci.2022.107965
+  - 10.1016/j.ijimpeng.2021.103897
+  verified_on: '2026-09-17'
+- name: Junhe Lian
+  enabled: true
+  openalex_ids:
+  - A5082943112
+  reason: 塑性—损伤耦合及多尺度验证
+  institution_ids:
+  - I9927081
+  - I887968799
+  - I63966007
+  evidence_dois:
+  - 10.1007/s10704-016-0097-7
+  - 10.1016/j.engfracmech.2024.110217
+  - 10.1016/j.euromechsol.2021.104446
+  verified_on: '2026-09-17'
+- name: Sebastian Münstermann
+  enabled: true
+  openalex_ids:
+  - A5026259562
+  reason: 塑性—损伤耦合及多尺度验证
+  institution_ids: []
+  evidence_dois:
+  - 10.1007/s10704-016-0097-7
+  - 10.1016/j.engfracmech.2024.110217
+  - 10.1016/j.euromechsol.2021.104446
+  verified_on: '2026-09-17'
+- name: Fuhui Shen
+  enabled: true
+  openalex_ids:
+  - A5060864665
+  reason: 塑性—损伤耦合及多尺度验证
+  institution_ids:
+  - I887968799
+  - I9927081
+  - I32597200
+  evidence_dois:
+  - 10.1016/j.ijmecsci.2025.110565
+  - 10.1016/j.engfracmech.2023.109541
+  - 10.1016/j.tafmec.2022.103381
+  verified_on: '2026-09-17'
+- name: Wenqi Liu
+  enabled: true
+  openalex_ids:
+  - A5011983493
+  reason: 塑性—损伤耦合及多尺度验证
+  institution_ids: []
+  evidence_dois:
+  - 10.1016/j.euromechsol.2021.104446
+  - 10.1016/j.ijmecsci.2020.105534
+  - 10.25518/esaform21.4322
+  verified_on: '2026-09-17'
+- name: Jonas Faleskog
+  enabled: true
+  openalex_ids:
+  - A5025454416
+  reason: 塑性—损伤耦合及多尺度验证
+  institution_ids: []
+  evidence_dois:
+  - 10.1016/j.ijsolstr.2013.08.028
+  - 10.1016/j.euromechsol.2023.105051
+  - 10.1016/j.euromechsol.2023.105056
+  verified_on: '2026-09-17'
+- name: A.A. Benzerga
+  enabled: true
+  openalex_ids:
+  - A5038443588
+  reason: 塑性—损伤耦合及多尺度验证
+  institution_ids: []
+  evidence_dois:
+  - 10.1016/j.engfracmech.2024.110711
+  - 10.1016/j.jmps.2022.104923
+  - 10.1016/j.jmps.2021.104468
+  verified_on: '2026-09-17'
+- name: Lucival Malcher
+  enabled: true
+  openalex_ids:
+  - A5040858152
+  reason: 塑性—损伤耦合及多尺度验证
+  institution_ids: []
+  evidence_dois:
+  - 10.1177/13694332231182862
+  - 10.1016/j.ijplas.2014.01.002
+  - 10.1016/j.ijplas.2013.08.015
+  verified_on: '2026-09-17'
+- name: Dirk Mohr
+  enabled: true
+  openalex_ids:
+  - A5110517133
+  reason: 断裂标定、FEMU、全场反演
+  institution_ids: []
+  evidence_dois:
+  - 10.1051/epjconf/201818301052
+  - 10.1016/j.ijimpeng.2019.05.008
+  - 10.1016/j.ijmecsci.2023.108643
+  verified_on: '2026-09-17'
+- name: Christian C. Roth
+  enabled: true
+  openalex_ids:
+  - A5002966042
+  reason: 断裂标定、FEMU、全场反演
+  institution_ids: []
+  evidence_dois:
+  - 10.1051/epjconf/201818301052
+  - 10.1016/j.ijimpeng.2019.05.008
+  - 10.1016/j.ijmecsci.2023.108643
+  verified_on: '2026-09-17'
+- name: Stéphane J. Marcadet
+  enabled: true
+  openalex_ids:
+  - A5024555533
+  reason: 断裂标定、FEMU、全场反演
+  institution_ids: []
+  evidence_dois:
+  - 10.1016/j.ijplas.2015.05.002
+  - 10.1051/epjconf/20159401080
+  - 10.1016/j.ijsolstr.2015.02.024
+  verified_on: '2026-09-17'
+- name: Yannis P. Korkolis
+  enabled: true
+  openalex_ids:
+  - A5040744131
+  reason: 断裂标定、FEMU、全场反演
+  institution_ids: []
+  evidence_dois:
+  - 10.1016/j.ijsolstr.2016.04.031
+  - 10.1016/j.ijplas.2018.02.009
+  - 10.1016/j.ijsolstr.2018.07.015
+  verified_on: '2026-09-17'
+- name: Allison M. Beese
+  enabled: true
+  openalex_ids:
+  - A5048839338
+  reason: LPBF金属的多轴塑性与断裂
+  institution_ids: []
+  evidence_dois:
+  - 10.3390/ma14133657
+  - 10.1016/j.msea.2019.05.097
+  - 10.1016/j.msea.2018.09.077
+  verified_on: '2026-09-17'
+- name: Alexander E. Wilson-Heid
+  enabled: true
+  openalex_ids:
+  - A5015702003
+  reason: LPBF金属的多轴塑性与断裂
+  institution_ids: []
+  evidence_dois:
+  - 10.3390/ma14133657
+  - 10.1016/j.msea.2019.05.097
+  - 10.1016/j.msea.2018.09.077
+  verified_on: '2026-09-17'
+- name: Shipin Qin
+  enabled: true
+  openalex_ids:
+  - A5110668501
+  reason: LPBF金属的多轴塑性与断裂
+  institution_ids:
+  - I130769515
+  evidence_dois:
+  - 10.1016/j.msea.2018.09.077
+  - 10.1016/j.eml.2021.101271
+  - 10.1016/j.actamat.2020.08.066
+  verified_on: '2026-09-17'
+- name: Luca Cortese
+  enabled: true
+  openalex_ids:
+  - A5101571118
+  reason: LPBF金属的多轴塑性与断裂
+  institution_ids: []
+  evidence_dois:
+  - 10.1016/j.engfracmech.2020.107395
+  - 10.1111/str.70039
+  - 10.1016/j.prostr.2020.02.072
+  verified_on: '2026-09-17'
+- name: Filippo Nalli
+  enabled: true
+  openalex_ids:
+  - A5056810355
+  reason: LPBF金属的多轴塑性与断裂
+  institution_ids: []
+  evidence_dois:
+  - 10.1016/j.engfracmech.2020.107395
+  - 10.1016/j.prostr.2020.02.072
+  - 10.3390/app12052444
+  verified_on: '2026-09-17'
+- name: Franco Concli
+  enabled: true
+  openalex_ids:
+  - A5011784857
+  reason: LPBF金属的多轴塑性与断裂
+  institution_ids: []
+  evidence_dois:
+  - 10.1016/j.engfracmech.2020.107395
+  - 10.1177/0954406219832333
+  - 10.3390/app15073569
+  verified_on: '2026-09-17'
+- name: Yulong Li
+  enabled: true
+  openalex_ids:
+  - A5100404095
+  reason: TC4/金属动态本构、复杂加载与局部化
+  institution_ids:
+  - I17145004
+  evidence_dois:
+  - 10.1007/s10338-026-00816-8
+  - 10.1016/j.ijimpeng.2023.104781
+  - 10.1016/j.tafmec.2018.07.008
+  verified_on: '2026-09-17'
+- name: Yazhou Guo
+  enabled: true
+  openalex_ids:
+  - A5007128861
+  reason: TC4/金属动态本构、复杂加载与局部化
+  institution_ids:
+  - I17145004
+  evidence_dois:
+  - 10.1007/s10338-026-00816-8
+  - 10.1016/j.ijimpeng.2023.104781
+  - 10.1016/j.tafmec.2018.07.008
+  verified_on: '2026-09-17'
+- name: Tao Suo
+  enabled: true
+  openalex_ids:
+  - A5022704617
+  reason: TC4/金属动态本构、复杂加载与局部化
+  institution_ids: []
+  evidence_dois:
+  - 10.1016/j.ijsolstr.2024.113201
+  - 10.1016/j.jallcom.2021.161689
+  - 10.1016/j.msea.2013.04.013
+  verified_on: '2026-09-17'
+- name: Weiguo Guo
+  enabled: true
+  openalex_ids:
+  - A5040010122
+  reason: TC4/金属动态本构、复杂加载与局部化
+  institution_ids:
+  - I17145004
+  evidence_dois:
+  - 10.1089/3dp.2021.0101
+  - 10.1016/j.msea.2015.08.043
+  - 10.1016/j.mechmat.2020.103641
+  verified_on: '2026-09-17'
+- name: Antonio Pellegrino
+  enabled: true
+  openalex_ids:
+  - A5025031474
+  reason: TC4/金属动态本构、复杂加载与局部化
+  institution_ids: []
+  evidence_dois:
+  - 10.1016/j.jalmes.2025.100228
+  - 10.1016/j.mechmat.2022.104262
+  - 10.1016/j.ijmecsci.2020.105970
+  verified_on: '2026-09-17'
+- name: Govind Gour
+  enabled: true
+  openalex_ids:
+  - A5059341983
+  reason: TC4/金属动态本构、复杂加载与局部化
+  institution_ids: []
+  evidence_dois:
+  - 10.1016/j.jalmes.2025.100228
+  - 10.1016/j.msea.2019.138552
+  verified_on: '2026-09-17'
+- name: Nik Petrinic
+  enabled: true
+  openalex_ids:
+  - A5014927867
+  reason: TC4/金属动态本构、复杂加载与局部化
+  institution_ids: []
+  evidence_dois:
+  - 10.1016/j.mechmat.2022.104262
+  - 10.1016/j.ijmecsci.2020.105970
+  - 10.1016/j.msea.2019.138552
+  verified_on: '2026-09-17'
+- name: Akhtar S. Khan
+  enabled: true
+  openalex_ids:
+  - A5103415985
+  - A5103507464
+  reason: TC4/金属动态本构、复杂加载与局部化
+  institution_ids: []
+  evidence_dois:
+  - 10.1016/j.ijplas.2019.07.011
+  - 10.1016/j.ijplas.2012.03.013
+  - 10.1016/j.ijplas.2012.03.015
+  verified_on: '2026-09-17'
+- name: Xinke Xiao
+  enabled: true
+  openalex_ids:
+  - A5100412760
+  reason: 应力状态相关断裂与冲击验证、后续模型改进
+  institution_ids:
+  - I4210115515
+  - I204983213
+  evidence_dois:
+  - 10.1016/j.ijimpeng.2023.104493
+  - 10.1016/j.istruc.2022.01.071
+  - 10.1016/j.ijimpeng.2019.02.004
+  verified_on: '2026-09-17'
+- name: Yunfei Deng
+  enabled: true
+  openalex_ids:
+  - A5100897023
+  - A5102662742
+  reason: 应力状态相关断裂与冲击验证、后续模型改进
+  institution_ids:
+  - I28813325
+  evidence_dois:
+  - 10.3901/jme.2020.20.074
+  - 10.1016/j.engfracmech.2023.109634
+  - 10.3901/jme.2023.14.138
+  verified_on: '2026-09-17'
+- name: Wenchao Li
+  enabled: true
+  openalex_ids:
+  - A5037856109
+  - A5100381730
+  reason: 应力状态相关断裂与冲击验证、后续模型改进
+  institution_ids:
+  - I25355098
+  evidence_dois:
+  - 10.1016/j.tws.2022.109280
+  - 10.3390/buildings12091358
+  - 10.1016/j.engfailanal.2025.110357
+  verified_on: '2026-09-17'
+- name: Yuan Jing
+  enabled: true
+  openalex_ids:
+  - A5042923414
+  reason: 应力状态相关断裂与冲击验证、后续模型改进
+  institution_ids:
+  - I25355098
+  evidence_dois:
+  - 10.1016/j.tws.2022.109280
+  - 10.3390/buildings12091358
+  - 10.1016/j.jcsr.2023.108202
+  verified_on: '2026-09-17'
+- name: Shuaitao Wu
+  enabled: true
+  openalex_ids:
+  - A5075375934
+  reason: 应力状态相关断裂与冲击验证、后续模型改进
+  institution_ids: []
+  evidence_dois:
+  - 10.1016/j.ijimpeng.2023.104493
+  - 10.3390/met15050563
+  verified_on: '2026-09-17'
+- name: Yaopei Wang
+  enabled: true
+  openalex_ids:
+  - A5053421808
+  reason: 应力状态相关断裂与冲击验证、后续模型改进
+  institution_ids:
+  - I4210115515
+  evidence_dois:
+  - 10.1016/j.ijimpeng.2019.02.004
+  - 10.1016/j.ijimpeng.2019.103498
+  - 10.1016/j.ijimpeng.2021.104082
+  verified_on: '2026-09-17'
+- name: Tore Børvik
+  enabled: true
+  openalex_ids:
+  - A5019254296
+  reason: 应力状态相关断裂与冲击验证、后续模型改进
+  institution_ids: []
+  evidence_dois:
+  - 10.1016/j.euromechsol.2011.02.003
+  - 10.1016/j.ijimpeng.2009.11.001
+  - 10.2495/susi250121
+  verified_on: '2026-09-17'
+- name: Odd Sture Hopperstad
+  enabled: true
+  openalex_ids:
+  - A5083761599
+  reason: 应力状态相关断裂与冲击验证、后续模型改进
+  institution_ids: []
+  evidence_dois:
+  - 10.1016/j.euromechsol.2011.02.003
+  - 10.1016/j.ijimpeng.2009.11.001
+  - 10.1016/j.ijplas.2019.01.008
+  verified_on: '2026-09-17'
+- name: David Morin
+  enabled: true
+  openalex_ids:
+  - A5008945542
+  - A5107347338
+  reason: 应力状态相关断裂与冲击验证、后续模型改进
+  institution_ids: []
+  evidence_dois:
+  - 10.1016/j.euromechsol.2026.106191
+  - 10.1016/j.jmps.2022.104873
+  - 10.1007/s10704-020-00495-7
+  verified_on: '2026-09-17'
+- name: Lars Edvard Blystad Dæhli
+  enabled: true
+  openalex_ids:
+  - A5047927809
+  reason: 应力状态相关断裂与冲击验证、后续模型改进
+  institution_ids: []
+  evidence_dois:
+  - 10.1016/j.ijplas.2019.01.008
+  - 10.1177/20414196251395072
+  - 10.1016/j.jmps.2022.104873
+  verified_on: '2026-09-17'
+- name: Borja Erice
+  enabled: true
+  openalex_ids:
+  - A5080021308
+  reason: 应力状态相关断裂与冲击验证、后续模型改进
+  institution_ids: []
+  evidence_dois:
+  - 10.1016/j.engfracmech.2011.08.023
+  - 10.1016/j.engfracmech.2023.109471
+  - 10.1016/j.ijsolstr.2013.09.015
+  verified_on: '2026-09-17'
+- name: André Haufe
+  enabled: true
+  openalex_ids:
+  - A5039227234
+  reason: LS-DYNA损伤实现和工程标定
+  institution_ids: []
+  evidence_dois:
+  - 10.25518/esaform21.1496
+  - 10.1016/j.engfracmech.2024.110574
+  - 10.1007/s10704-016-0081-2
+  verified_on: '2026-09-17'
+- name: Filipe X. C. Andrade
+  enabled: true
+  openalex_ids:
+  - A5109839410
+  reason: LS-DYNA损伤实现和工程标定
+  institution_ids: []
+  evidence_dois:
+  - 10.1007/s12289-009-0525-6
+  - 10.1007/s10704-016-0081-2
+  verified_on: '2026-09-17'

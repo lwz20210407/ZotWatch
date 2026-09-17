@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+import re
 from pathlib import Path
 from typing import Any, Dict, List, Literal, Optional
 
@@ -159,10 +160,46 @@ class ScoringConfig(BaseModel):
     default_priority_multiplier: float = Field(1.0, gt=0.0, le=1.0)
 
 
+class TrackedAuthor(BaseModel):
+    name: str
+    openalex_ids: List[str]
+    reason: str = ""
+    enabled: bool = True
+    institution_ids: List[str] = Field(default_factory=list)
+    evidence_dois: List[str] = Field(default_factory=list)
+    verified_on: str = ""
+
+    @validator("openalex_ids")
+    def validate_author_ids(cls, value: List[str]) -> List[str]:
+        if not value or any(not re.fullmatch(r"A\d+", item) for item in value):
+            raise ValueError("Tracked authors require explicit OpenAlex A-identifiers.")
+        return list(dict.fromkeys(value))
+
+    @validator("institution_ids")
+    def validate_institution_ids(cls, value: List[str]) -> List[str]:
+        if any(not re.fullmatch(r"I\d+", item) for item in value):
+            raise ValueError("Institution guards require OpenAlex I-identifiers.")
+        return value
+
+
+class AuthorWatchConfig(BaseModel):
+    enabled: bool = False
+    max_pages: int = Field(3, ge=1, le=10)
+    max_report_items: int = Field(20, ge=0, le=100)
+    score_bonus: float = Field(0.03, ge=0, le=0.1)
+    topic_keywords: List[str] = Field(default_factory=lambda: [
+        "plasticity", "constitutive", "ductile fracture", "damage model", "damage evolution",
+        "yield surface", "flow stress", "hardening", "fracture criterion", "strain localization",
+        "应力状态", "本构", "塑性", "屈服", "损伤演化", "延性断裂",
+    ])
+    authors: List[TrackedAuthor] = Field(default_factory=list)
+
+
 class Settings(BaseModel):
     zotero: ZoteroConfig
     sources: SourcesConfig
     scoring: ScoringConfig
+    author_watch: AuthorWatchConfig = Field(default_factory=AuthorWatchConfig)
 
 
 
@@ -192,10 +229,13 @@ def load_settings(base_dir: Path | str) -> Settings:
     zotero_cfg = _load_yaml(base / "config" / "zotero.yaml")
     sources_cfg = _load_yaml(base / "config" / "sources.yaml")
     scoring_cfg = _load_yaml(base / "config" / "scoring.yaml")
+    author_path = base / "config" / "authors.yaml"
+    author_cfg = _load_yaml(author_path) if author_path.exists() else {}
     return Settings(
         zotero=ZoteroConfig(**zotero_cfg),
         sources=SourcesConfig(**sources_cfg),
         scoring=ScoringConfig(**scoring_cfg),
+        author_watch=AuthorWatchConfig(**author_cfg),
     )
 
 

@@ -44,6 +44,10 @@ def write_rss(
         description_lines.append(f"Venue: {work.venue or 'Unknown'}")
         if work.extra.get("research_priority"):
             description_lines.append(f"研究类型: {work.extra['research_priority']}")
+        if work.extra.get("watched_authors"):
+            names = ", ".join(author["name"] for author in work.extra["watched_authors"])
+            description_lines.append(f"重点作者新作: {names}")
+            ET.SubElement(item, "category").text = "重点作者新作"
         ET.SubElement(item, "description").text = "\n".join(description_lines)
 
     tree = ET.ElementTree(rss)
