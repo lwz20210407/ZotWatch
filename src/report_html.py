@@ -121,6 +121,30 @@ def citations(work: RankedWork) -> int:
     return int(metrics.get("cited_by", metrics.get("is-referenced-by", 0)) or 0)
 
 
+# One hue per research direction, assigned by a stable hash of the name so the
+# same direction keeps its colour across runs and any new facet still gets one.
+# Colour carries meaning here -- which of the seven directions a paper belongs to
+# -- rather than alternating just for variety.
+DIRECTION_HUES = (
+    ("#d9541f", "#fdeee6"),
+    ("#1f6fb5", "#e9f2fb"),
+    ("#2f8f4e", "#e9f6ee"),
+    ("#8a4bb8", "#f3ecfa"),
+    ("#b3341f", "#fceee9"),
+    ("#0f8a8a", "#e6f6f6"),
+    ("#a8781a", "#fbf3e1"),
+    ("#5c6bc0", "#eceefb"),
+)
+
+
+def direction_hue(name: str) -> dict:
+    if not name:
+        return {"fg": "#7c736c", "bg": "#f3f1ed"}
+    index = sum(ord(ch) for ch in name) % len(DIRECTION_HUES)
+    fg, bg = DIRECTION_HUES[index]
+    return {"fg": fg, "bg": bg}
+
+
 def anchor(work: RankedWork) -> str:
     nearest = (work.extra.get("nearest_library_work") or {}).get("title")
     if nearest:
@@ -133,6 +157,45 @@ def anchor(work: RankedWork) -> str:
     if work.extra.get("referenced_by"):
         return f"被 {len(work.extra['referenced_by'])} 篇相关论文引用"
     return ""
+
+
+def scatter(works, problem_names: dict, *, width: int = 252, height: int = 158) -> dict:
+    """Points for the recency/relevance bubble chart.
+
+    Borrowed in spirit from Connected Papers, whose graph encodes several
+    dimensions at once: here x is how recently a paper appeared, y is its
+    relevance to the library, bubble area is citation count and colour is the
+    research direction -- the same hue the card and the sidebar use.
+    """
+    rows = [w for w in works if w.published and w.score is not None]
+    if not rows:
+        return {}
+    now = beijing_now()
+    ages = [max((now - w.published.astimezone(now.tzinfo)).days, 0) for w in rows]
+    scores = [float(w.score) for w in rows]
+    max_age = max(max(ages), 1)
+    lo, hi = min(scores), max(scores)
+    span = max(hi - lo, 0.06)
+    pad_l, pad_r, pad_t, pad_b = 8, 10, 10, 16
+    points = []
+    for work, age, score in zip(rows, ages, scores):
+        x = pad_l + (width - pad_l - pad_r) * (1 - age / max_age)
+        y = pad_t + (height - pad_t - pad_b) * (1 - (score - lo) / span)
+        radius = 3.2 + min(float(citations(work)), 200.0) ** 0.42
+        hue = direction_hue(direction(work, problem_names))
+        points.append({"x": round(x, 1), "y": round(y, 1), "r": round(min(radius, 11.0), 1),
+                       "color": hue["fg"], "title": work.title, "score": score,
+                       "cites": citations(work), "age": age})
+    return {"points": points, "width": width, "height": height,
+            "max_age": max_age, "lo": lo, "hi": hi}
+
+
+def venue_counts(works, limit: int = 5) -> list:
+    counts: dict = {}
+    for work in works:
+        if work.venue:
+            counts[work.venue] = counts.get(work.venue, 0) + 1
+    return sorted(counts.items(), key=lambda kv: (-kv[1], kv[0]))[:limit]
 
 
 _TEMPLATE = """
@@ -159,8 +222,20 @@ _TEMPLATE = """
   a{color:inherit}
   .ico{flex:none;vertical-align:-2px;color:var(--faint)}
 
-  .shell{max-width:1180px;margin:0 auto;padding:30px 22px 80px;
-    display:grid;grid-template-columns:270px minmax(0,1fr);gap:26px;align-items:start}
+  /* Fill the viewport instead of stranding a fixed 1180px column in the middle of
+     a wide monitor, but cap it so text lines stay readable. */
+  /* Three columns: filters left, the paper column in the middle at a readable
+     width, data cards right. A single centred column stranded most of a wide
+     monitor as empty margin. */
+  .shell{width:100%;max-width:1780px;margin:0 auto;padding:28px clamp(14px,2vw,34px) 80px;
+    display:grid;grid-template-columns:250px minmax(0,1fr) 292px;
+    gap:clamp(16px,1.5vw,26px);align-items:start}
+  .cards{display:grid;grid-template-columns:1fr;gap:16px;align-content:start}
+  @media (max-width:1400px){
+    .shell{grid-template-columns:240px minmax(0,1fr)}
+    aside.right{grid-column:1/-1;display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px;position:static}
+  }
 
   /* ---------------- sidebar ---------------- */
   aside{position:sticky;top:26px;display:flex;flex-direction:column;gap:14px}
@@ -177,6 +252,8 @@ _TEMPLATE = """
     transition:background .12s,color .12s}
   .fitem:hover{background:var(--soft)}
   .fitem[aria-pressed="true"]{background:var(--accent-soft);color:var(--accent-d);font-weight:600}
+  .fitem span:first-child{display:flex;align-items:center;gap:8px;min-width:0}
+  .dot{width:8px;height:8px;border-radius:50%;flex:none}
   .fitem span:last-child{font-size:12px;color:var(--faint);font-variant-numeric:tabular-nums}
   .fitem[aria-pressed="true"] span:last-child{color:var(--accent-d)}
   .sw{display:flex;align-items:center;justify-content:space-between;gap:10px;
@@ -205,7 +282,10 @@ _TEMPLATE = """
 
   /* ---------------- card ---------------- */
   article{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
-    box-shadow:var(--shadow);padding:24px 26px;margin-bottom:18px}
+    border-left:4px solid var(--hue,var(--line));
+    box-shadow:var(--shadow);padding:22px clamp(18px,1.6vw,28px);margin:0;
+    display:flex;flex-direction:column;break-inside:avoid}
+  article .foot{margin-top:auto}
   article[hidden]{display:none}
   .badges{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-bottom:11px}
   .rank{font-size:12px;font-weight:700;color:var(--faint);font-variant-numeric:tabular-nums}
@@ -224,9 +304,9 @@ _TEMPLATE = """
     font-size:14px;line-height:1.55;color:var(--muted)}
   .line em{font-style:italic}
 
-  .tldr{margin:14px 0 0;padding:12px 15px;background:var(--accent-soft);
-    border-left:3px solid var(--accent);border-radius:0 10px 10px 0;
-    font-size:15px;line-height:1.7;color:#59341a}
+  .tldr{margin:14px 0 0;padding:12px 15px;background:var(--hue-soft,var(--accent-soft));
+    border-left:3px solid var(--hue,var(--accent));border-radius:0 10px 10px 0;
+    font-size:15px;line-height:1.7;color:#33291f}
 
   .abs{margin-top:14px;font-size:16px;line-height:1.5;color:var(--body)}
   .abs .lead::before{content:"摘要：";color:var(--muted)}
@@ -245,8 +325,9 @@ _TEMPLATE = """
 
   /* why this paper is here -- the thing a public search engine cannot show */
   .why{display:flex;align-items:center;gap:7px;margin-top:13px;font-size:13.5px;
-    color:var(--accent-d);background:var(--accent-soft);border-radius:9px;padding:8px 12px}
-  .why .ico{color:var(--accent)}
+    color:var(--hue,var(--accent-d));background:var(--hue-soft,var(--accent-soft));
+    border-radius:9px;padding:8px 12px}
+  .why .ico{color:var(--hue,var(--accent))}
 
   .foot{display:flex;flex-wrap:wrap;align-items:center;gap:14px;margin-top:16px;
     padding-top:14px;border-top:1px solid var(--line);font-size:13px;color:var(--muted)}
@@ -256,7 +337,7 @@ _TEMPLATE = """
   .foot .m b{font-weight:600;color:var(--ink);font-variant-numeric:tabular-nums}
   .bar{display:inline-block;width:52px;height:5px;border-radius:3px;background:var(--line);
     overflow:hidden;margin-left:2px}
-  .bar i{display:block;height:100%;background:var(--accent);border-radius:3px}
+  .bar i{display:block;height:100%;background:var(--hue,var(--accent));border-radius:3px}
 
   .rate{margin-left:auto;display:flex;gap:7px}
   .rb{padding:5px 12px;border:1px solid var(--line);border-radius:8px;
@@ -264,6 +345,31 @@ _TEMPLATE = """
   .rb:hover{border-color:var(--accent);color:var(--accent-d);background:var(--accent-soft)}
   .rb-1:hover{border-color:#2f8f4e;color:#246b3b;background:#eaf6ee}
   .rb-2:hover{border-color:#b3341f;color:var(--must);background:var(--must-bg)}
+
+  /* ---------------- right rail ---------------- */
+  aside.right{position:sticky;top:26px;display:flex;flex-direction:column;gap:14px}
+  .chart{width:100%;height:auto;display:block;margin-top:2px;overflow:visible}
+  .chart .grid{stroke:var(--line);stroke-width:1}
+  .chart .bub{opacity:.72;transition:opacity .12s}
+  .chart .bub:hover{opacity:1}
+  .axis{display:flex;justify-content:space-between;font-size:10.5px;color:var(--faint);
+    margin-top:2px}
+  .legend{margin-top:11px;display:flex;flex-direction:column;gap:6px}
+  .lg{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--muted)}
+  .lg .dot{width:7px;height:7px}
+  .lg b{margin-left:auto;font-weight:600;color:var(--ink);font-variant-numeric:tabular-nums}
+  .bars{display:flex;flex-direction:column;gap:9px;margin-top:2px}
+  .brow{font-size:12.5px;color:var(--muted)}
+  .brow .t{display:flex;justify-content:space-between;gap:8px;margin-bottom:4px}
+  .brow .t b{color:var(--ink);font-weight:600;font-variant-numeric:tabular-nums}
+  .track{height:6px;border-radius:4px;background:var(--soft);overflow:hidden}
+  .track i{display:block;height:100%;border-radius:4px}
+  .funnel{display:flex;flex-direction:column;gap:7px;margin-top:2px}
+  .fstep{font-size:12.5px;color:var(--muted)}
+  .fstep .t{display:flex;justify-content:space-between;margin-bottom:3px}
+  .fstep .t b{color:var(--ink);font-weight:600;font-variant-numeric:tabular-nums}
+  .fbar{height:22px;border-radius:6px;background:var(--accent-soft);position:relative}
+  .fbar i{position:absolute;inset:0 auto 0 0;border-radius:6px;background:var(--accent);opacity:.82}
 
   details.diag{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
     box-shadow:var(--shadow);padding:18px 22px}
@@ -284,6 +390,9 @@ _TEMPLATE = """
 
   @media (max-width:900px){
     .shell{grid-template-columns:1fr;padding:22px 14px 60px;gap:16px}
+    .cards{gap:14px}
+    aside.left{flex-direction:column}
+    aside.left .panel{min-width:0}
     aside{position:static;flex-direction:row;overflow-x:auto;padding-bottom:4px}
     aside .panel{min-width:230px;flex:none}
     article{padding:19px 17px}
@@ -294,7 +403,7 @@ _TEMPLATE = """
 <body>
 <div class="shell">
 
-<aside>
+<aside class="left">
   <div class="panel">
     <h3>{{ icon('target') }} 本期概览</h3>
     <div class="kv"><span>推送</span><b>{{ counts.total }}</b></div>
@@ -310,7 +419,9 @@ _TEMPLATE = """
     <h3>{{ icon('book') }} 研究方向</h3>
     <button class="fitem" aria-pressed="true" data-dir=""><span>全部</span><span>{{ counts.total }}</span></button>
     {% for name, n in directions %}
-    <button class="fitem" aria-pressed="false" data-dir="{{ name }}"><span>{{ name }}</span><span>{{ n }}</span></button>
+    {% set h = direction_hue(name) %}
+    <button class="fitem" aria-pressed="false" data-dir="{{ name }}">
+      <span><i class="dot" style="background:{{ h.fg }}"></i>{{ name }}</span><span>{{ n }}</span></button>
     {% endfor %}
   </div>
   {% endif %}
@@ -327,7 +438,7 @@ _TEMPLATE = """
     <h3>{{ icon('clock') }} 关于本期</h3>
     <div style="font-size:13px;line-height:1.75;color:var(--muted)">
       画像来自你的 Zotero 文库{% if library_size %} {{ library_size }}{% endif %}。<br />
-      中文标题与一句话摘要由模型生成，仅供快速筛选，**以原文为准**。
+      中文标题与一句话摘要由模型生成，仅供快速筛选，<b style="color:var(--ink)">以原文为准</b>。
     </div>
   </div>
 </aside>
@@ -343,11 +454,13 @@ _TEMPLATE = """
 {% macro card(work, rank) %}
 {% set dir = direction(work, problem_names) %}
 {% set abs_lead, abs_rest = split_abstract(work.abstract) %}
-<article data-dir="{{ dir }}" data-must="{{ 1 if work.label == 'must_read' else 0 }}">
+{% set hue = direction_hue(dir) %}
+<article data-dir="{{ dir }}" data-must="{{ 1 if work.label == 'must_read' else 0 }}"
+         style="--hue:{{ hue.fg }};--hue-soft:{{ hue.bg }}">
   <div class="badges">
     {% if rank %}<span class="rank">{{ '%02d'|format(rank) }}</span>{% endif %}
     {% if work.label == 'must_read' %}<span class="pill p-must">必读</span>{% endif %}
-    {% if dir %}<span class="pill p-dir">{{ dir }}</span>{% endif %}
+    {% if dir %}<span class="pill p-dir" style="color:{{ hue.fg }};background:{{ hue.bg }}">{{ dir }}</span>{% endif %}
   </div>
 
   <a class="title" href="{{ work.url or '#' }}" target="_blank" rel="noopener">{{ work.title }}{%
@@ -395,26 +508,26 @@ _TEMPLATE = """
 {% endif %}
 
 {% if works %}
-{% for work in works %}{{ card(work, loop.index) }}{% endfor %}
+<div class="cards">{% for work in works %}{{ card(work, loop.index) }}{% endfor %}</div>
 <div class="empty" id="noMatch" hidden>该方向本期没有推荐。</div>
 {% endif %}
 
 {% if watched_works %}
 <h2>重点作者新作 <em>{{ watched_works|length }} 篇</em></h2>
 <p class="note">已通过主题筛选，按发表时间排列；不代表都达到优先阅读阈值。</p>
-{% for work in watched_works %}{{ card(work, 0) }}{% endfor %}
+<div class="cards">{% for work in watched_works %}{{ card(work, 0) }}{% endfor %}</div>
 {% endif %}
 
 {% if classic_works %}
 <h2>经典文献补漏 <em>{{ classic_works|length }} 篇</em></h2>
 <p class="note">来自重点论文或本轮高相关论文的参考文献，不受近期窗口限制。“经典”是栏目名，不等于已人工认定为奠基性论文。</p>
-{% for work in classic_works %}{{ card(work, 0) }}{% endfor %}
+<div class="cards">{% for work in classic_works %}{{ card(work, 0) }}{% endfor %}</div>
 {% endif %}
 
 {% if exploration_works %}
 <h2>跨圈方法发现 <em>{{ exploration_works|length }} 篇</em></h2>
 <p class="note">独立语义检索所得，不要求与种子有引文关系；超出近期窗口，不能当作新发表。</p>
-{% for work in exploration_works %}{{ card(work, 0) }}{% endfor %}
+<div class="cards">{% for work in exploration_works %}{{ card(work, 0) }}{% endfor %}</div>
 {% endif %}
 
 {% if update_works %}
@@ -461,6 +574,73 @@ _TEMPLATE = """
 </details>
 {% endif %}
 </main>
+
+<aside class="right">
+  {% if chart %}
+  <div class="panel">
+    <h3>{{ icon('target') }} 本期分布</h3>
+    <div style="font-size:11.5px;line-height:1.6;color:var(--faint);margin:-6px 0 8px">
+      横轴越靠右越新，纵轴越靠上越相关，圆越大被引越多。
+    </div>
+    <svg class="chart" viewBox="0 0 {{ chart.width }} {{ chart.height }}" role="img"
+         aria-label="本期论文的时间与相关度分布">
+      <line class="grid" x1="8" y1="{{ chart.height - 16 }}" x2="{{ chart.width - 10 }}" y2="{{ chart.height - 16 }}"/>
+      <line class="grid" x1="8" y1="10" x2="8" y2="{{ chart.height - 16 }}"/>
+      {% for pt in chart.points %}
+      <circle class="bub" cx="{{ pt.x }}" cy="{{ pt.y }}" r="{{ pt.r }}" fill="{{ pt.color }}">
+        <title>{{ pt.title }}｜相关度 {{ '%.2f'|format(pt.score) }}｜被引 {{ pt.cites }}｜{{ pt.age }} 天前</title>
+      </circle>
+      {% endfor %}
+    </svg>
+    <div class="axis"><span>{{ chart.max_age }} 天前</span><span>今天</span></div>
+  </div>
+  {% endif %}
+
+  {% if directions %}
+  <div class="panel">
+    <h3>{{ icon('book') }} 方向分布</h3>
+    <div class="bars">
+      {% for name, n in directions %}
+      {% set h = direction_hue(name) %}
+      <div class="brow">
+        <div class="t"><span>{{ name }}</span><b>{{ n }}</b></div>
+        <div class="track"><i style="width:{{ (n / directions[0][1] * 100)|round|int }}%;background:{{ h.fg }}"></i></div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  {% if venues %}
+  <div class="panel">
+    <h3>{{ icon('book') }} 本期期刊</h3>
+    <div class="legend">
+      {% for name, n in venues %}
+      <div class="lg"><span style="min-width:0;overflow:hidden;text-overflow:ellipsis;
+        white-space:nowrap">{{ name }}</span><b>{{ n }}</b></div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  {% if funnel %}
+  <div class="panel">
+    <h3>{{ icon('target') }} 检索漏斗</h3>
+    <div class="funnel">
+      {% for label, value in [('抓取候选', funnel.raw), ('主题通过', funnel.topic),
+                              ('库内去重', funnel.dedup), ('本期推送', counts.total)] %}
+      <div class="fstep">
+        <div class="t"><span>{{ label }}</span><b>{{ value }}</b></div>
+        <div class="fbar"><i style="width:{{ (value / (funnel.raw or 1) * 100)|round(1) }}%"></i></div>
+      </div>
+      {% endfor %}
+    </div>
+    <div style="font-size:11.5px;line-height:1.6;color:var(--faint);margin-top:9px">
+      推送数量少时，看这里能分辨是本周确实安静，还是检索出了问题。
+    </div>
+  </div>
+  {% endif %}
+</aside>
 
 <footer>
   <a href="feed.xml">RSS 订阅</a> · <a href="archive.html">历史推送</a><br />
@@ -551,6 +731,9 @@ def render_html(works: List[RankedWork], output_path: Path | str, *, watched_wor
         recommendation_reasons=recommendation_reasons,
         authors_line=authors_line, source_line=source_line, direction=direction,
         anchor=anchor, clamp=clamp, split_abstract=split_abstract, icon=icon,
+        direction_hue=direction_hue,
+        chart=scatter(every, problem_names),
+        venues=venue_counts(every),
         rating_buttons=rating_buttons, citations=citations,
     )
     path = Path(output_path)
@@ -561,4 +744,5 @@ def render_html(works: List[RankedWork], output_path: Path | str, *, watched_wor
 
 
 __all__ = ["render_html", "funnel_totals", "clamp", "split_abstract", "authors_line", "source_line",
-           "direction", "anchor", "icon", "rating_buttons", "citations"]
+           "direction", "direction_hue", "anchor", "icon", "rating_buttons", "citations",
+           "scatter", "venue_counts"]
