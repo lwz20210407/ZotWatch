@@ -302,9 +302,14 @@ def _run_watch(
                          for k, v in (ranker.profile.get("problem_profiles") or {}).items()),
                         key=lambda kv: -kv[1]))
         # The email is only a reminder pointing here; it carries a short preview.
+        digest_args = dict(problem_names=profile_names, issue_no=issue_no)
         for suffix, text in (
-            ("html", render_digest(ranked, report_url=site_url(), feed_url=site_url() + "feed.xml")),
-            ("txt", render_text(ranked, report_url=site_url())),
+            ("html", render_digest(ranked, report_url=site_url(),
+                                   feed_url=site_url() + "feed.xml",
+                                   extras={"重点作者新作": watched, "经典文献补漏": classics,
+                                           "跨圈方法发现": exploration, "版本与更正提醒": alerts},
+                                   **digest_args)),
+            ("txt", render_text(ranked, report_url=site_url(), **digest_args)),
         ):
             (base_dir / "reports" / f"digest-{report_date:%Y%m%d}.{suffix}").write_text(
                 text, encoding="utf-8")
