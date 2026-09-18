@@ -8,5 +8,6 @@ base_url: https://api.siliconflow.cn/v1
 model_name: Qwen/Qwen3-8B
 # Reuses the embedding key; set a different variable here to separate them.
 api_key_env: EMBEDDING_API_KEY
-batch_size: 20
-timeout_seconds: 90
+# Each item returns a full translated abstract, so keep batches small.
+batch_size: 8
+timeout_seconds: 180

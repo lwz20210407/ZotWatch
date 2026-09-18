@@ -324,11 +324,18 @@ _TEMPLATE = """
   @media (max-width:1400px){
     .shell{grid-template-columns:240px minmax(0,1fr)}
     aside.right{grid-column:1/-1;display:grid;
-      grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px;position:static}
+      grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px;
+      position:static;max-height:none;overflow:visible}
   }
 
   /* ---------------- sidebar ---------------- */
-  aside{position:sticky;top:26px;display:flex;flex-direction:column;gap:14px}
+  aside{position:sticky;top:22px;max-height:calc(100vh - 44px);
+    display:flex;flex-direction:column;gap:14px;
+    overflow-y:auto;overscroll-behavior:contain;padding-right:5px;margin-right:-5px}
+  aside::-webkit-scrollbar{width:7px}
+  aside::-webkit-scrollbar-thumb{background:var(--line);border-radius:4px}
+  aside::-webkit-scrollbar-thumb:hover{background:#d5d0ca}
+  aside{scrollbar-width:thin;scrollbar-color:var(--line) transparent}
   .panel{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
     box-shadow:var(--shadow);padding:17px 18px}
   .panel h3{margin:0 0 12px;font-size:13.5px;font-weight:600;color:var(--ink);
@@ -360,30 +367,29 @@ _TEMPLATE = """
   /* Masthead, built like a periodical's: a wordmark, a bilingual title lockup,
      an issue line and a standfirst. "文献周报" alone was four characters floating
      at the top of a page this wide. */
-  .mast{margin:0 0 26px;padding-bottom:22px;border-bottom:1px solid var(--line);
-    position:relative}
-  .mast::after{content:"";position:absolute;left:0;bottom:-1px;width:72px;height:3px;
-    border-radius:2px;background:var(--accent)}
+  .mast{margin:0 0 26px;padding-bottom:24px;border-bottom:1px solid var(--line);
+    position:relative;text-align:center}
+  .mast::after{content:"";position:absolute;left:50%;transform:translateX(-50%);
+    bottom:-1px;width:96px;height:3px;border-radius:2px;background:var(--accent)}
 
-  .brand{display:flex;align-items:center;gap:11px;flex-wrap:wrap}
+  .brand{display:flex;align-items:center;justify-content:center;gap:11px;flex-wrap:wrap}
   .mark{font-size:13px;font-weight:700;letter-spacing:.02em;color:var(--accent);
     padding:3px 10px;border:1.5px solid var(--accent);border-radius:7px}
   .brand-sep{width:22px;height:1px;background:var(--line)}
   .brand-note{font-size:12.5px;color:var(--faint)}
 
-  .lockup{display:flex;align-items:baseline;gap:clamp(12px,1.4vw,20px);flex-wrap:wrap;
-    margin-top:17px}
-  h1{margin:0;font-size:clamp(34px,3.8vw,50px);line-height:1;font-weight:700;
-    letter-spacing:.04em;color:var(--ink)}
-  .latin{font-size:clamp(12px,1vw,14px);font-weight:600;letter-spacing:.24em;
-    text-transform:uppercase;color:var(--faint);white-space:nowrap;
-    padding-bottom:clamp(2px,.4vw,5px)}
+  .lockup{display:flex;flex-direction:column;align-items:center;gap:10px;margin-top:18px}
+  h1{margin:0;font-size:clamp(27px,3vw,40px);line-height:1.15;font-weight:700;
+    letter-spacing:.03em;color:var(--ink)}
+  .latin{font-size:clamp(11px,.85vw,13px);font-weight:600;letter-spacing:.26em;
+    text-transform:uppercase;color:var(--faint);white-space:nowrap}
 
   .issue{margin-top:14px;font-size:14px;color:var(--body);font-weight:500}
   .issue .no{color:var(--accent-d);font-weight:650}
   .issue .sep{margin:0 9px;color:var(--faint);font-weight:400}
 
-  .lede{margin:13px 0 0;max-width:58ch;font-size:14.5px;line-height:1.85;color:var(--muted)}
+  .lede{margin:13px auto 0;max-width:58ch;font-size:14.5px;line-height:1.85;
+    color:var(--muted)}
   .lede b{color:var(--ink);font-weight:650}
 
   h2{margin:34px 0 12px;font-size:15px;font-weight:600;color:var(--ink);
@@ -423,11 +429,18 @@ _TEMPLATE = """
   .abs .lead::before{content:"摘要：";color:var(--muted)}
   .abs .rest{display:none}
   .abs.open .rest{display:inline}
-  .more{margin-top:9px;background:none;border:0;padding:0;cursor:pointer;
-    font:inherit;font-size:14px;color:var(--accent);display:inline-flex;align-items:center;gap:5px}
+  .absbar{display:flex;align-items:center;gap:17px;margin-top:9px}
+  .more,.alt{background:none;border:0;padding:0;cursor:pointer;font:inherit;
+    display:inline-flex;align-items:center;gap:5px}
+  .more{font-size:14px;color:var(--accent)}
   .more::before{content:"⌄";font-size:15px;line-height:1}
-  .abs.open+.more::before{content:"⌃"}
-  .more:hover{color:var(--accent-d)}
+  .more.open::before{content:"⌃"}
+  .alt{font-size:13px;color:var(--muted);gap:6px}
+  .alt::before{content:"译";font-size:10.5px;font-weight:700;border:1px solid currentColor;
+    border-radius:3px;padding:0 3.5px;line-height:1.4}
+  .more:hover,.alt:hover{color:var(--accent-d)}
+  .abs.zh{color:var(--body);font-size:15px;border-left:2px solid var(--hue,var(--line));
+    padding-left:13px;margin-top:11px}
 
   /* method-transfer note: project-specific, no public search engine has it */
   .transfer{margin-top:12px;padding:10px 13px;background:var(--soft);border-radius:10px;
@@ -459,10 +472,9 @@ _TEMPLATE = """
   .rb-2:hover{border-color:#b3341f;color:var(--must);background:var(--must-bg)}
 
   /* ---------------- right rail ---------------- */
-  aside.right{position:sticky;top:26px;display:flex;flex-direction:column;gap:14px}
+  aside.right{top:22px}
   .hint{font-size:11.5px;line-height:1.65;color:var(--faint);margin:-5px 0 10px}
-  .toc{display:flex;flex-direction:column;gap:1px;max-height:46vh;overflow-y:auto;
-    margin:-4px -6px 0}
+  .toc{display:flex;flex-direction:column;gap:1px;margin:-4px -6px 0}
   .toc a{display:flex;align-items:baseline;gap:7px;padding:7px 8px;border-radius:8px;
     font-size:12.5px;line-height:1.5;color:var(--body);text-decoration:none;
     transition:background .12s}
@@ -523,13 +535,11 @@ _TEMPLATE = """
   .warn{background:var(--accent-soft);color:var(--accent-d);border-radius:9px;
     padding:10px 13px;font-size:13px;margin:10px 0}
   .empty{text-align:center;color:var(--faint);padding:40px 0;font-size:15px}
-  footer{grid-column:1/-1;margin-top:40px;padding-top:22px;border-top:1px solid var(--line);
-    text-align:center;font-size:12.5px;line-height:2;color:var(--faint)}
-  footer a{color:var(--accent-d);text-decoration:none}
 
   @media (max-width:900px){
     .shell{grid-template-columns:1fr;padding:22px 14px 60px;gap:16px}
     .cards{gap:14px}
+    aside{position:static;max-height:none;overflow:visible;padding-right:0;margin-right:0}
     aside.left{flex-direction:column}
     aside.left .panel{min-width:0}
     aside{position:static;flex-direction:row;overflow-x:auto;padding-bottom:4px}
@@ -591,7 +601,7 @@ _TEMPLATE = """
     </div>
 
     <div class="lockup">
-      <h1>文献周刊</h1>
+      <h1>每周最新文献订阅与追踪</h1>
       <div class="latin">Weekly&nbsp;Research&nbsp;Digest</div>
     </div>
 
@@ -610,6 +620,8 @@ _TEMPLATE = """
 
 {% macro card(work, rank) %}
 {% set dir = direction(work, problem_names) %}
+{# The original is what is shown; the translation is one click away. #}
+{% set zh = work.extra.get('abstract_zh') %}
 {% set abs_lead, abs_rest = split_abstract(work.abstract) %}
 {% set hue = direction_hue(dir, hue_order) %}
 <article id="p{{ rank }}" data-dir="{{ dir }}" data-must="{{ 1 if work.label == 'must_read' else 0 }}"
@@ -632,7 +644,11 @@ _TEMPLATE = """
   {% if abs_lead %}
   <div class="abs"><span class="lead">{{ abs_lead }}</span>{%
     if abs_rest %}<span class="rest"> {{ abs_rest }}</span>{% endif %}</div>
-  {% if abs_rest %}<button class="more" type="button">显示更多</button>{% endif %}
+  <div class="absbar">
+    {% if abs_rest %}<button class="more" type="button">显示更多</button>{% endif %}
+    {% if zh %}<button class="alt" type="button">翻译</button>{% endif %}
+  </div>
+  {% if zh %}<div class="abs zh" hidden>{{ zh }}</div>{% endif %}
   {% endif %}
 
   {% for c in work.extra.get('transfer_cards', [])[:2] %}
@@ -807,19 +823,22 @@ _TEMPLATE = """
   </div>
 </aside>
 
-<footer>
-  <a href="feed.xml">RSS 订阅</a> · <a href="archive.html">历史推送</a><br />
-  全流程只使用标题、摘要与引文元数据，不获取正文。
-</footer>
-
 </div>
 <script>
 document.addEventListener('click', function (e) {
   var more = e.target.closest('.more');
   if (more) {
-    var box = more.previousElementSibling;
-    box.classList.toggle('open');
-    more.textContent = box.classList.contains('open') ? '收起' : '显示更多';
+    var box = more.closest('article').querySelector('.abs:not(.zh)');
+    var open = box.classList.toggle('open');
+    more.classList.toggle('open', open);
+    more.textContent = open ? '收起' : '显示更多';
+    return;
+  }
+  var alt = e.target.closest('.alt');
+  if (alt) {
+    var zh = alt.closest('article').querySelector('.abs.zh');
+    zh.hidden = !zh.hidden;
+    alt.textContent = zh.hidden ? '翻译' : '隐藏译文';
     return;
   }
   var btn = e.target.closest('#dirFilter .fitem');

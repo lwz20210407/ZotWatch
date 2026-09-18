@@ -26,15 +26,21 @@ from .http_utils import request_with_retry
 
 logger = logging.getLogger(__name__)
 
-SYSTEM_PROMPT = """你是材料与冲击动力学方向的科研助手。对每篇论文输出两项：
+SYSTEM_PROMPT = """你是材料与冲击动力学方向的科研助手。对每篇论文输出三项：
 
-1. title_zh：标题的简体中文翻译。专业术语用标准中文译法（应力三轴度、Lode 参数、
-   延性断裂、绝热剪切带、本构模型、颈缩后硬化、网格客观性）；合金牌号、化学式、
-   模型名和缩写保留原文（Ti-6Al-4V、TC4、LPBF、SHPB、DIC、GTN、Johnson-Cook）。
-2. tldr：一句话中文概括，30-50 字，必须说清「对什么材料/对象、用什么方法、得到什么结果」。
-   禁止写「本文研究了…」「具有重要意义」这类空话。没有摘要时根据标题克制概括。
+1. title_zh：标题的简体中文翻译。
+2. tldr：一句话中文概括，30-50 字，必须说清「对什么材料/对象、用什么方法、得到什么
+   结果」。禁止「本文研究了…」「具有重要意义」这类空话。没有摘要时根据标题克制概括。
+3. abstract_zh：摘要的完整简体中文翻译。逐句译全，不许概括、不许删句、不许添话；
+   原文没有的结论不能写。没有摘要时输出空字符串。
 
-严格输出 JSON 对象：{"items": [{"i": 序号, "title_zh": "...", "tldr": "..."}, ...]}，
+三项共同的术语规则：专业术语用标准中文译法（应力三轴度、Lode 参数、延性断裂、
+绝热剪切带、本构模型、颈缩后硬化、网格客观性、弹道极限）；合金牌号、化学式、模型名、
+缩写和数值单位保留原文（Ti-6Al-4V、TC4、DP800、LPBF、SHPB、DIC、GTN、Johnson-Cook、
+200-600 m/s）。
+
+严格输出 JSON 对象：
+{"items": [{"i": 序号, "title_zh": "...", "tldr": "...", "abstract_zh": "..."}, ...]}
 items 顺序与输入一致、长度一致，不要输出任何其他文字。"""
 
 CJK = re.compile(r"[㐀-鿿]")
@@ -90,7 +96,7 @@ class ChineseEnricher:
                 "Content-Type": "application/json",
             })
         payload = [
-            {"i": i, "title": row["title"], "abstract": (row.get("abstract") or "")[:900]}
+            {"i": i, "title": row["title"], "abstract": (row.get("abstract") or "")[:2000]}
             for i, row in enumerate(batch)
         ]
         response = request_with_retry(
@@ -104,7 +110,8 @@ class ChineseEnricher:
                     {"role": "user", "content": json.dumps(payload, ensure_ascii=False)},
                 ],
                 "temperature": 0.2,
-                "max_tokens": 220 * len(batch) + 256,
+                # A whole translated abstract per item, not just a title and a line.
+                "max_tokens": 900 * len(batch) + 512,
                 "response_format": {"type": "json_object"},
                 # Qwen3 emits a long reasoning trace by default, which blows the
                 # timeout and buries the JSON. This digest needs the answer only.
@@ -140,6 +147,7 @@ class ChineseEnricher:
                         self.cache[row["key"]] = {
                             "title_zh": str(out.get("title_zh") or "").strip(),
                             "tldr": str(out.get("tldr") or "").strip(),
+                            "abstract_zh": str(out.get("abstract_zh") or "").strip(),
                         }
                         self._dirty = True
                 except Exception as exc:  # best effort; never break the digest
@@ -157,6 +165,9 @@ class ChineseEnricher:
                 work.extra["title_zh"] = title_zh
             if row.get("tldr"):
                 work.extra["tldr_zh"] = row["tldr"]
+            abstract_zh = row.get("abstract_zh") or ""
+            if abstract_zh and CJK.search(abstract_zh):
+                work.extra["abstract_zh"] = abstract_zh
 
     def save(self) -> None:
         if not self._dirty:
