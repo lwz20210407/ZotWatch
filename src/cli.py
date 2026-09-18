@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 import logging
 import json
+import tarfile
 from collections import Counter
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -16,6 +17,7 @@ from .watch_history import WatchHistory
 from .dedupe import DedupeEngine
 from .fetch_new import CandidateFetcher
 from .ingest_zotero_api import ZoteroIngestor
+from .zotero_local import ingest_local
 from .logging_utils import setup_logging
 from .metadata_enrich import enrich_ranked_works
 from .models import RankedWork
@@ -50,6 +52,12 @@ def main(argv: Optional[list[str]] = None) -> None:
     parser.add_argument("--verbose", action="store_true", help="Enable debug logging")
     parser.add_argument("--full", action="store_true", help="Full rebuild (profile command)")
     parser.add_argument("--weekly", action="store_true", help="Alias for --full in profile command")
+    parser.add_argument("--local", action="store_true",
+                        help="Build the profile from the local zotero.sqlite instead of the Web API")
+    parser.add_argument("--bundle", action="store_true",
+                        help="Also pack the profile artifacts into data/profile-bundle.tar.gz")
+    parser.add_argument("--prebuilt-profile", action="store_true",
+                        help="watch: use the existing profile as-is; skip Zotero sync and re-embedding")
     parser.add_argument("--rss", action="store_true", help="Generate RSS feed (watch command)")
     parser.add_argument("--report", action="store_true", help="Generate HTML report (watch command)")
     parser.add_argument("--top", type=int, default=50, help="Number of top results to keep")
@@ -81,26 +89,67 @@ def main(argv: Optional[list[str]] = None) -> None:
     storage = ProfileStorage(base_dir / "data" / "profile.sqlite")
 
     if args.command == "profile":
-        run_profile(base_dir, settings, storage, full=args.full or args.weekly)
+        run_profile(base_dir, settings, storage, full=args.full or args.weekly,
+                    local=args.local, bundle=args.bundle)
     elif args.command == "watch":
         run_watch(base_dir, settings, storage, rss=args.rss, report=args.report, top=args.top, push=args.push,
-                  defer_history=args.defer_history)
+                  defer_history=args.defer_history, prebuilt_profile=args.prebuilt_profile)
 
 
-def run_profile(base_dir: Path, settings: Settings, storage: ProfileStorage, *, full: bool) -> None:
-    ingest = ZoteroIngestor(storage, settings)
-    stats = ingest.run(full=full)
-    logging.getLogger(__name__).info(
-        "Ingest stats: fetched=%s updated=%s removed=%s", stats.fetched, stats.updated, stats.removed
-    )
+def run_profile(base_dir: Path, settings: Settings, storage: ProfileStorage, *, full: bool,
+                local: bool = False, bundle: bool = False) -> None:
+    logger = logging.getLogger(__name__)
+    if local:
+        data_dir = settings.zotero.local.resolved_dir()
+        if not data_dir:
+            raise SystemExit(
+                "profile --local needs zotero.local.data_dir in config/zotero.yaml "
+                "(the directory containing zotero.sqlite)."
+            )
+        stats = ingest_local(storage, data_dir)
+        logger.info(
+            "Local ingest: %s documents (%s synced, %s local-only)",
+            stats.documents, stats.synced, stats.local_only,
+        )
+    else:
+        ingest = ZoteroIngestor(storage, settings)
+        stats = ingest.run(full=full)
+        logger.info(
+            "Ingest stats: fetched=%s updated=%s removed=%s", stats.fetched, stats.updated, stats.removed
+        )
     builder = ProfileBuilder(base_dir, storage, settings)
     artifacts = builder.run()
-    logging.getLogger(__name__).info(
+    logger.info(
         "Profile artifacts generated: sqlite=%s faiss=%s json=%s",
         artifacts.sqlite_path,
         artifacts.faiss_path,
         artifacts.profile_json_path,
     )
+    if bundle:
+        path = write_profile_bundle(base_dir)
+        logger.info("Profile bundle: %s (%.1f MB)", path, path.stat().st_size / 1e6)
+
+
+def write_profile_bundle(base_dir: Path) -> Path:
+    """Pack the profile artifacts so CI can consume a locally built profile.
+
+    Shipped as a release asset rather than committed: the FAISS index is tens of
+    megabytes and is replaced on every refresh, which would bloat git history.
+    """
+    data_dir = Path(base_dir) / "data"
+    path = data_dir / "profile-bundle.tar.gz"
+    members = [
+        data_dir / "profile.sqlite",
+        data_dir / "faiss.index",
+        data_dir / "profile.json",
+    ]
+    missing = [member.name for member in members if not member.exists()]
+    if missing:
+        raise SystemExit(f"Cannot bundle profile; missing {', '.join(missing)}")
+    with tarfile.open(path, "w:gz") as archive:
+        for member in members:
+            archive.add(member, arcname=f"data/{member.name}")
+    return path
 
 
 def run_watch(base_dir, settings, storage, **kwargs):
@@ -123,18 +172,28 @@ def _run_watch(
     top: int,
     push: bool,
     defer_history: bool = False,
+    prebuilt_profile: bool = False,
     warning_recorder=None,
 ) -> None:
     history = WatchHistory(base_dir / "data" / "watch-state")
     config = settings.research
     feedback = FeedbackModel(load_feedback(base_dir, config, history.state.get("feedback_entries", [])), config)
     history.state["feedback_entries"] = [e.model_dump() for e in feedback.entries.values()]
-    ingest = ZoteroIngestor(storage, settings)
-    ingest.run(full=False)
-    # Always match the index and its ordered evidence mapping to the current library.
     builder = ProfileBuilder(base_dir, storage, settings)
     builder.feedback_entries = list(feedback.entries.values())
-    builder.run()
+    if prebuilt_profile:
+        # The profile was built elsewhere from the full local library. Re-running
+        # the Web API sync here would add nothing (it only sees synced items) and
+        # rebuilding would re-embed a library this run cannot see in full.
+        logging.getLogger(__name__).info(
+            "Using the prebuilt profile; skipping Zotero sync and profile rebuild"
+        )
+        builder.vectorizer.load()
+    else:
+        ingest = ZoteroIngestor(storage, settings)
+        ingest.run(full=False)
+        # Always match the index and its ordered evidence mapping to the current library.
+        builder.run()
 
     fetcher = CandidateFetcher(settings, base_dir)
     candidates = fetcher.fetch_all()

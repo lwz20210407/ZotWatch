@@ -24,9 +24,23 @@ class ZoteroApiConfig(BaseModel):
         return key
 
 
+class ZoteroLocalConfig(BaseModel):
+    """Direct access to zotero.sqlite, for building the profile from the whole library.
+
+    The Web API only exposes items synced to zotero.org; anything with
+    items.version = 0 is invisible to it.
+    """
+
+    data_dir: str = ""
+
+    def resolved_dir(self) -> Optional[str]:
+        return os.path.expandvars(os.path.expanduser(self.data_dir)) if self.data_dir else None
+
+
 class ZoteroConfig(BaseModel):
     mode: str = "api"
     api: ZoteroApiConfig = Field(default_factory=ZoteroApiConfig)
+    local: ZoteroLocalConfig = Field(default_factory=ZoteroLocalConfig)
 
     @validator("mode")
     def validate_mode(cls, value: str) -> str:

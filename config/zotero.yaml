@@ -4,3 +4,13 @@ api:
   api_key_env: "ZOTERO_API_KEY"
   page_size: 100
   polite_delay_ms: 200
+
+# Local Zotero data directory, used by `python -m src.cli profile --local`.
+#
+# The Web API above only returns items synced to zotero.org. On this library only
+# 518 of 4399 documents have ever been uploaded, so an API-built profile
+# represents 12% of the actual reading. `profile --local` reads zotero.sqlite
+# directly (read-only, on a copy) to cover the whole library; the resulting
+# bundle is uploaded for CI to consume. Leave empty to disable.
+local:
+  data_dir: "E:/ZoteroData"

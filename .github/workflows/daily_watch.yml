@@ -90,12 +90,49 @@ jobs:
           [ "$missing" -eq 0 ] || exit 1
           echo "Embedding signature: ${{ steps.model.outputs.signature }}"
 
-      # restore + save with a run-unique key. The previous `actions/cache@v4` used
-      # a month-stamped key, and cache actions do not save on a hit, so the
-      # freshly synced sqlite and index produced by each run were discarded and
-      # every run restarted from the same month-old snapshot.
+      # The Zotero Web API only returns items synced to zotero.org; on this
+      # library that is 518 of 4399 documents, so an API-built profile represents
+      # 12% of the actual reading. The profile is therefore built locally from
+      # zotero.sqlite (python -m src.cli profile --local --bundle) and published
+      # as a draft release asset, which only accounts with write access can read.
+      - name: Fetch prebuilt profile
+        id: prebuilt
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          if gh release download profile-latest --repo "$GITHUB_REPOSITORY" \
+               --pattern profile-bundle.tar.gz --dir /tmp --clobber 2>/dev/null; then
+            tar -xzf /tmp/profile-bundle.tar.gz
+            python - <<'PY' >> "$GITHUB_OUTPUT"
+          import json, pathlib
+          p = json.loads(pathlib.Path("data/profile.json").read_text(encoding="utf-8"))
+          print(f"items={p.get('item_count', 0)}")
+          print(f"signature={p.get('embedding_signature', '')}")
+          print(f"generated={p.get('generated_at', '')}")
+          PY
+            echo "found=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "::warning::No prebuilt profile release found; falling back to the Zotero Web API, which only sees synced items."
+            echo "found=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Verify prebuilt profile matches the configured encoder
+        if: steps.prebuilt.outputs.found == 'true'
+        run: |
+          echo "Prebuilt profile: ${{ steps.prebuilt.outputs.items }} items, generated ${{ steps.prebuilt.outputs.generated }}"
+          if [ "${{ steps.prebuilt.outputs.signature }}" != "${{ steps.model.outputs.signature }}" ]; then
+            echo "::error::Profile was built with '${{ steps.prebuilt.outputs.signature }}' but config/embedding.yaml now says '${{ steps.model.outputs.signature }}'. Vectors from different models are not comparable. Rebuild locally with: python -m src.cli profile --local --bundle"
+            exit 1
+          fi
+
+      # Fallback path only, when no prebuilt profile exists. restore + save with a
+      # run-unique key: the previous actions/cache@v4 used a month-stamped key,
+      # and cache actions do not save on a hit, so the sqlite and index each run
+      # produced were discarded and every run restarted from the same snapshot.
       - name: Restore profile
         id: cache-profile
+        if: steps.prebuilt.outputs.found != 'true'
         uses: actions/cache/restore@v4
         with:
           path: |
@@ -137,13 +174,21 @@ jobs:
           fi
 
       - name: Build Zotero profile
-        if: steps.cache-profile.outputs.cache-matched-key == ''
+        if: steps.prebuilt.outputs.found != 'true' && steps.cache-profile.outputs.cache-matched-key == ''
         run: python -m src.cli profile --full
 
-      - run: python -m src.cli watch --rss --report --top 20 --defer-history
+      # --prebuilt-profile skips the Web API sync and the re-embed: the profile
+      # already covers the whole library and this runner cannot see the rest of it.
+      - name: Watch
+        run: |
+          if [ "${{ steps.prebuilt.outputs.found }}" = "true" ]; then
+            python -m src.cli watch --rss --report --top 20 --defer-history --prebuilt-profile
+          else
+            python -m src.cli watch --rss --report --top 20 --defer-history
+          fi
 
       - name: Save profile
-        if: always()
+        if: always() && steps.prebuilt.outputs.found != 'true'
         uses: actions/cache/save@v4
         with:
           path: |

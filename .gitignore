@@ -10,6 +10,9 @@ __pycache__/
 /data/*.sqlite
 /data/*.index
 /data/profile.json
+# Built by `profile --local --bundle` and shipped as a release asset, never
+# committed: tens of megabytes, replaced on every refresh.
+/data/profile-bundle.tar.gz
 /data/network-state/
 /reports/ranking-*.json
 /data/feedback-issues.json
