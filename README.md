@@ -1,179 +1,206 @@
-# ZotWatcher
+# ZotWatch
 
 [English Version](README.en.md)
 
-ZotWatcher 是一个基于 Zotero 数据构建个人兴趣画像，并持续监测学术信息源的新文献推荐流程。本仓库每周四北京时间 07:00 在 GitHub Actions 上运行，生成 RSS/HTML 报告并邮件推送，也可本地手动执行。
+从 Zotero 文库反推研究兴趣画像，每周自动检索新发表文献，按相关度排序后推送到邮箱、
+RSS 和 GitHub Pages。
 
-当前研究配置包括主题、期刊、重点作者，以及 **18 篇种子的前向被引追踪、经典参考文献补漏、
-语义与引文联合的可解释推荐**。每轮同步后更新画像，并记录跨周推送历史。
-具体阈值、请求上限和失败恢复机制见 [引文发现说明](docs/citation-discovery.md)。
+每周四北京时间 07:00 由 GitHub Actions 自动运行，也可手动触发或本地执行。
 
-另已加入[研究助手六项功能](docs/research-assistant.md)：阅读反馈、研究方向覆盖诊断、
-方法迁移卡、摘要方法作用线索、待确认作者/种子候选，以及版本/更正提醒。
-按当前研究偏好，全部只使用标题、摘要及引文元数据，**不获取正文**。
+> Fork 自 [Yorks0n/ZotWatch](https://github.com/Yorks0n/ZotWatch)，保留原作者的整体思路，
+> 在检索、打分、画像来源和投递链路上做了较多改动，详见 [与上游的差异](#与上游的差异)。
 
-最新增加[可靠检索与分问题推荐](docs/reliable-discovery.md)：长等待熔断、预算/缓存检查点、
-独立语义发现、7个问题画像、多样性选择、合作组合、局部证据图和离线评估。没有人工评估集时
-不声称准确率提升；限流或查询轮换时会明确报告覆盖不足。
+---
 
-## 功能概览
-- **Zotero 同步**：通过 Zotero Web API 获取文库条目，增量更新本地画像。
-- **画像构建**：对条目向量化，提取高频作者/期刊，并记录近期热门期刊。
-- **候选抓取**：当前直连 OpenAlex/Crossref，结合主题、期刊、重点作者和引文关系；公共候选池配置保留但未启用。
-- **去重打分**：结合语义相似度、时间衰减、引用/Altmetric、SJR 期刊指标及白名单加分生成推荐列表。
-- **输出发布**：生成 `reports/feed.xml` 供 RSS 订阅，并通过 GitHub Pages 发布；同样可生成 HTML 报告或推送回 Zotero。
+## 它怎么判断"跟我相关"
 
-## 快速开始
-1. 登录GitHub后，打开仓库页面 [ZotWatch](https://github.com/Yorks0n/ZotWatch)
+不是靠一张手写的关键词表，而是靠你的文库：
 
-2. 在顶部点击**Fork**按钮创建分支，将仓库复制到自己的GitHub账号下：**Fork - Create fork**
+```
+1. 画像   读本地 zotero.sqlite 的全部 4399 篇 → 标题+摘要编码成向量 → FAISS 索引
+2. 检索   OpenAlex / Crossref 拉近 30 天新论文（主题、期刊、重点作者、引文关系四条线）
+3. 打分   每篇新论文编码后，与画像中最近 5 篇求余弦均值 → 语义分（权重 0.68）
+4. 投递   去重、多样性选择 Top 20 → 邮件正文 + RSS + Pages
+```
 
-3. 到fork后的ZotWatch页面，点击设置（**Settings**），在设置页面左侧找到**Secrets and variables**，展开并点击下级的**Action**。
-   ![image1](images/image1.png)
+关键词配置（`config/sources.yaml`）只负责**粗筛**决定去抓什么，排序由向量相似度决定。
 
-4. 点击右侧的**New repository secret**按钮，添加几个必要的Repository secrets
-   ![image2](images/image2.png)
+### 打分是有界的
 
-5. 添加几个必要的键值对，包括：
+7 个分量各自压到 [0, 1]，权重和为 1，所以总分也在 [0, 1]，`must_read` / `consider`
+阈值跨轮次可比。完整公式、饱和参数和设计理由见 **[docs/scoring-model.md](docs/scoring-model.md)**。
 
-   - `ZOTERO_API_KEY`，此为获取 Zotero 数据库中现有个人信息所必须。登录 Zotero 网站的[个人账户](https://www.zotero.org/settings/)后，在 **Settings - Security - Applications** 处点击 **Create new private key**，其中 Personal Library 给予 Allow library access，Default Group Permissions 给予 Read Only 权限，保存获得 API。
-   - `ZOTERO_USER_ID`，该 ID 可从上述 **Settings - Security - Applications** 处 **Create new private key** 按钮下方一行 `User ID: Your user ID for use in API calls is ******` 获取。
-   - `CROSSREF_MAILTO`，邮箱地址，用于个人热门期刊补抓时的礼貌标注。
-   - `OPENALEX_MAILTO`，仅在关闭统一公共候选池、回退到直连 OpenAlex 时需要。
-   - 邮件推送还需要 `SMTP_HOST`、`SMTP_PORT`、`SMTP_USERNAME`、`SMTP_PASSWORD`、`SMTP_FROM`，
-     以及收件人 `EMAIL_TO`（建议放在同一页的 **Variables** 标签，而不是写死在 workflow 里）。
-     ![image3](images/image3.png)
+### 画像来自本地库，不是云端
 
-6. 回到自己仓库首页，点击顶部**Settings**，在左侧找到**Pages**，在页面中为其**Source**选择**GitHub Actions**，使得生成的RSS页面直接发布到GitHub Pages。
+Zotero Web API 只返回**已同步到 zotero.org** 的条目。本库 4399 篇里有 3881 篇
+`version = 0`，从未上云——只用 API 的话画像只覆盖 12%。所以画像改为本地生成：
 
-   ![image4](images/image4.png)
+```bash
+python -m src.cli profile --local --bundle
+```
 
-7. 接下来点击顶部的**Actions**栏目，并确认开启GitHub Actins
-   ![image5](images/image5.png)
+直接读 `zotero.sqlite`（先复制再只读打开，绝不写入你的库），产出 `data/profile-bundle.tar.gz`，
+上传为 **draft release** 供 CI 取用。用 draft 是因为 bundle 含全库标题摘要，而本仓库是公开的。
 
-8. 点击左侧**Weekly Watch & RSS**，默认情况下fork来仓库的Workflow是关闭状态，点击右侧Enable workflow激活。
-   ![image6](images/image6.png)
+---
 
-9. 此时仓库会在每周四早上七点（北京时间）自动运行，要立刻运行请点击**Run workflow**（可勾选 `dry_run` 先演练）。首次运行需要全量生成向量数据库，会比较慢，可以点击**All workflows**查看运行状态。
+## 日常维护
 
-   ![image7](images/image7.png)
+| 什么时候 | 做什么 |
+|---|---|
+| 每周四 07:00 | 自动运行，无需干预 |
+| 文库新增较多后（约每月） | 本地刷新画像并重新上传 bundle，见下 |
+| 想改推荐口径 | 调 `config/scoring.yaml` 的权重/阈值，或 `config/sources.yaml` 的期刊与关键词 |
+| 收到不相关的推荐 | 点报告里的反馈链接开 Issue，下轮生效 |
 
-10. 运行完后去 **Settings - Pages** 页面上可以看到自己的站点地址，此时直接访问此地址并不能打开，需要复制地址并在末尾加上`/feed.xml`，例如`https://[username].github.io/ZotWatch/feed.xml`，该地址可以导入 Zotero 的 RSS 订阅，或用于导入你喜欢的 RSS 阅读器。
-       ![image8](images/image8.png)
+### 刷新画像
 
-11. 本项目的上游仓库会定期更新以修复错误/优化性能，因此假如你看到有更新提示，可以点击顶部的**Update branch**来更新到最新版。
+```bash
+python -m src.cli profile --local --bundle
+gh release upload profile-latest data/profile-bundle.tar.gz --clobber
+```
 
-![image-20260306112507934](images//image-20260306112507934.png)
+不刷新也能跑，只是新加入文库的论文暂时不影响排序。
 
+### 手动触发
 
+Actions → **Weekly Watch & RSS** → Run workflow。勾选 `dry_run` 可演练：
+照常检索打分出报告，但**不发邮件、不部署 Pages、不记录推送历史**。
+
+---
+
+## 首次部署
+
+1. **Fork 本仓库**，在 Settings → Pages 把 Source 设为 **GitHub Actions**。
+
+2. **配置 Secrets**（Settings → Secrets and variables → Actions）：
+
+   | 名称 | 用途 |
+   |---|---|
+   | `ZOTERO_API_KEY` | Zotero [个人设置](https://www.zotero.org/settings/security) → Create new private key，Personal Library 给读权限 |
+   | `ZOTERO_USER_ID` | 同页面 `User ID: ...` |
+   | `EMBEDDING_API_KEY` | 嵌入服务的 key，见 `config/embedding.yaml` |
+   | `EMAIL_TO` | 收件人，多个用逗号分隔 |
+   | `SMTP_HOST` / `SMTP_PORT` / `SMTP_USERNAME` / `SMTP_PASSWORD` / `SMTP_FROM` | 发信账户 |
+   | `CROSSREF_MAILTO` / `OPENALEX_MAILTO` | 礼貌标注邮箱（可选但建议） |
+
+   **`EMAIL_TO` 要存成 Secret，不要存成 Variable**：公开仓库的 Actions 日志也是公开的，
+   只有 Secret 会被打码，Variable 会把邮箱明文写进日志。
+
+   缺 `EMBEDDING_API_KEY` 或 `EMAIL_TO` 时，工作流在**开头**就报错退出，
+   而不是跑完 40 分钟、Pages 都部署完了才在最后一步失败。
+
+3. **改配置**：`config/sources.yaml` 的关键词和期刊、`config/research.yaml` 的研究方向，
+   都是按 TC4 钛合金本构与断裂写的，换方向必须改。
+
+4. **生成画像**：本地 `python -m src.cli profile --local --bundle` 后上传 release，
+   或者直接跑一次工作流让它走 Web API 路径（只覆盖已同步的部分）。
+
+5. Actions → 启用 workflow → Run workflow。
+
+订阅地址：`https://<用户名>.github.io/ZotWatch/feed.xml`，
+历史推送在 `https://<用户名>.github.io/ZotWatch/archive.html`。
+
+---
 
 ## 本地运行
-1. **克隆仓库并准备环境**
-   ```bash
-   git clone <your-repo-url>
-   cd ZotWatcher
-   mamba env create -n ZotWatcher --file requirements.txt  # 或使用 pip 安装
-   conda activate ZotWatcher
-   ```
 
-2. **配置环境变量**
-   在仓库根目录创建 `.env` 或 GitHub Secrets，至少包含：
-   - `ZOTERO_API_KEY`：Zotero Web API 访问密钥
-   - `ZOTERO_USER_ID`：Zotero 用户 ID（数字）
-   可选：
-   - `SUPABASE_PUBLISHABLE_KEY`：覆盖仓库内置的统一公共候选池只读 key
-   - `ALTMETRIC_KEY`：用于获取 Altmetric 数据
-   - `CROSSREF_MAILTO`：覆盖个人热门期刊补抓的联系邮箱
-   - `OPENALEX_MAILTO`：仅在关闭统一公共候选池、回退直连 OpenAlex 时使用
+```bash
+git clone https://github.com/lwz20210407/ZotWatch.git && cd ZotWatch
+pip install -r requirements.txt
 
-3. **本地运行**
-   ```bash
-   # 配置自检（不联网，校验权重求和与优先级规则顺序）
-   python -m src.check_config
-
-   # 首次全量画像构建
-   python -m src.cli profile --full
-
-   # 日常监测（生成 RSS + HTML）
-   python -m src.cli watch --rss --report --top 20
-
-   # 只生成邮件、不发送，落盘到 reports/email-preview.eml
-   python -m src.cli notify --dry-run
-   ```
-
-## 邮件推送
-收件人来自 `EMAIL_TO`，在 **Settings - Secrets and variables - Actions** 配置，
-多个地址用逗号或分号分隔。
-
-**要存成 Secret，不要存成 Variable。** 公开仓库的 Actions 日志也是公开的，
-而只有 Secret 会被 GitHub 打码；Variable 会把邮箱明文打进公开日志。
-
-SMTP 参数同样放 Secrets：`SMTP_HOST`、`SMTP_PORT`、`SMTP_USERNAME`、`SMTP_PASSWORD`、`SMTP_FROM`。
-嵌入服务需要 `EMBEDDING_API_KEY`。缺 `EMBEDDING_API_KEY` 或 `EMAIL_TO` 时，
-工作流会在**开头**就报错退出，而不是跑完 40 分钟、Pages 都部署了才在最后一步失败。
-
-邮件正文即当期完整报告（`multipart/alternative`），纯文本部分列出前 8 篇标题与链接，
-附件只保留 `feed.xml`。历史推送保存在 `reports/` 并由 Pages 发布，入口 `archive.html`。
-
-## 运行触发
-- 定时：每周四北京时间 07:00（`.github/workflows/daily_watch.yml`）。
-- 手动：Actions - **Weekly Watch & RSS** - Run workflow，可勾选 `dry_run` 只演练不推送。
-- 代码改动由 `.github/workflows/ci.yml` 单独校验。**推送流程没有 `push` 触发器**：
-  否则每次提交都会跑完整流程、发一封邮件，并把这批论文记为"已推送"，正式周推就不会再出现。
-
-## 目录结构
-```
-├─ src/                   # 主流程模块
-├─ config/                # YAML 配置，含 API 及评分权重
-├─ data/                  # 画像/缓存/指标文件
-│   └─ watch-state/       # 推送历史（纳入版本控制，防止重复推送）
-├─ reports/               # 生成的 RSS/HTML 输出（历史报告纳入版本控制）
-└─ .github/workflows/     # GitHub Actions 配置
+python -m src.check_config                      # 配置自检，不联网
+python -m src.cli profile --local --bundle      # 从本地 zotero.sqlite 建画像
+python -m src.cli watch --rss --report --top 20 # 检索打分出报告
+python -m src.cli notify --dry-run              # 只生成邮件到 reports/email-preview.eml
 ```
 
-## 自定义配置
-- `config/zotero.yaml`：Zotero API 参数（`user_id` 可写 `$ {ZOTERO_USER_ID}`，将由 `.env`/Secrets 注入）。
-- `config/sources.yaml`：统一公共候选池 API、各数据源开关、分类、窗口大小（默认 30 天）。
-- `config/embedding.yaml`：语义编码器。默认走 **OpenAI 兼容的远程 API**
-  （SiliconFlow `Qwen/Qwen3-Embedding-8B`，取 1024 维），与本机 ZotPilot 同一个编码器，
-  因此两边的"相似度"是同一把尺子。CI 因此**不需要下载任何模型**，
-  `sentence-transformers` 和它背后约 2GB 的 torch 也从依赖里去掉了。
-  需要一个 secret：`EMBEDDING_API_KEY`。
-  想离线跑就把 `provider` 改成 `local` 并自行 `pip install sentence-transformers`；
-  远程 key 缺失时会自动降级到 `local_fallback_model`，不会整轮失败。
+密钥放仓库根目录的 `.env`（已 gitignore）：
 
-  **为什么不直接复用 ZotPilot / OneFind / zotero-mcp 已有的向量索引**：
-  1. 每周要打分的一千多篇新论文**不在任何本地索引里**，无论如何都需要一个编码器；
-  2. 那些索引是 chunk 级全文索引（ZotPilot 平均 89 chunk/篇），为"定位正文证据段落"设计，
-     而这里需要的是"一篇一个向量"的兴趣画像；用全文 chunk 向量去比候选的标题摘要向量会失真；
-  3. 三个工具三个模型，384/1024/… 维向量之间没有可比性；
-  4. 本流程跑在 GitHub runner 上，访问不到本机路径。
-  能复用、也确实复用了的是**编码器本身**。
+```
+ZOTERO_API_KEY=...
+ZOTERO_USER_ID=...
+EMBEDDING_API_KEY=...
+```
 
-- 库内向量按 `(模型签名, Zotero item version)` 缓存在 `data/profile.sqlite`：
-  换模型全量重算，改一篇只重算一篇，稳态每周只编码新增的几篇 + 当周候选。
-- `config/scoring.yaml`：权重、阈值与饱和参数。**每个打分分量都被压到 [0, 1]**，权重和为 1，
-  因此总分也在 [0, 1]，`must_read` / `consider` 阈值跨轮次可比。
-  `research_priorities` 首个命中的规则生效，因此系数必须自上而下递减——
-  `python -m src.check_config` 会检查这一点。
+嵌入走远程 API，因此**不需要装 `sentence-transformers` 和 torch**。
+只有把 `config/embedding.yaml` 的 `provider` 改成 `local` 时才需要。
+
+---
+
+## 配置文件
+
+| 文件 | 内容 |
+|---|---|
+| `config/zotero.yaml` | Web API 参数；`local.data_dir` 指向本地 Zotero 数据目录 |
+| `config/embedding.yaml` | 编码器。默认 OpenAI 兼容远程 API，1024 维；含离线回退设置 |
+| `config/scoring.yaml` | 权重、阈值、饱和参数、研究优先级规则、期刊白名单 |
+| `config/sources.yaml` | 检索关键词、追踪期刊、时间窗口（30 天）、分页与限速 |
+| `config/research.yaml` | 7 个研究方向画像、语义查询、多样性与反馈参数 |
+| `config/authors.yaml` | 重点关注作者（OpenAlex ID） |
+| `config/citations.yaml` | 引文追踪种子论文 |
+| `config/network.yaml` | API 预算上限与缓存时长 |
+
+`research_priorities` 是**首个命中生效**，所以系数必须自上而下递减；
+`python -m src.check_config` 会检查这一点和权重求和，CI 每次提交都跑。
+
+---
 
 ## 阈值标定
-换模型后相似度分布会变，跑一轮后在运行日志里查看：
+
+换编码器后相似度分布会变，需要按实测重标。每轮运行日志会打印：
 
 ```text
-Score distribution over N ranked works: p50=... p75=... p90=... p99=... max=...
-Label counts: {'must_read': .., 'consider': .., 'ignore': ..}
+Score distribution over 1029 ranked works: p50=0.533 p75=0.623 p90=0.681 p99=0.767 max=0.798
+Label counts: {'must_read': 68, 'consider': 716, 'ignore': 245}
 ```
 
-若 `must_read` 长期为 0 或过多，按 p90/p99 调整 `config/scoring.yaml` 的 `thresholds`。
+`must_read` 长期为 0 或过多时，参照 p90/p99 调 `config/scoring.yaml` 的 `thresholds`。
+
+---
+
+## 与上游的差异
+
+| 方面 | 上游 | 本仓库 |
+|---|---|---|
+| 触发 | `push` + 定时 | 仅定时 + 手动（push 触发会导致每次提交都发一封"周报"并污染推送历史） |
+| 打分 | 各分量量纲不一，引用项无上界 | 全部压到 [0, 1]，引用在 50 次饱和；时效改连续衰减 |
+| 画像来源 | Zotero Web API | 本地 `zotero.sqlite` 全库（API 只能看到 12%） |
+| 编码器 | 本地 `all-MiniLM-L6-v2` | 远程 API，CI 不下载模型，依赖去掉 torch |
+| 向量缓存 | 每轮全库重算 | 按 `(模型签名, item version)` 缓存，只重算变动项 |
+| 去重 | `token_set_ratio`，子集标题被误判为重复 | `token_sort_ratio` + 长度守卫，抑制记录提到 INFO |
+| 邮件 | 正文是链接，报告在附件 | 报告即正文（`multipart/alternative`），带线程化和重试 |
+| 推送历史 | 90 天过期的 CI artifact | 提交进仓库 |
+| 历史报告 | 每次部署被覆盖 | 入库并提供 `archive.html` |
+| 收件人 | 硬编码在 workflow | Secret |
+| 测试 | 19 个 | 111 个，含缺陷回归用例 |
+
+---
 
 ## 常见问题
-- **缓存过旧**：候选列表默认缓存 12 小时，可删除 `data/cache/candidate_cache.json` 强制刷新。
-- **未找到热门期刊补抓**：确保已运行过 `profile --full` 生成 `data/profile.json`。
-- **推荐为空**：先看报告顶部的漏斗（抓取 → 主题通过 → 去重后 → 推送）定位是哪一步卡住；
-  再检查窗口天数、预印本比例限制，或调节 `--top` 与 `thresholds`。
-- **本地报错找不到时区**：Windows 需要 `tzdata`（已列入 `requirements.txt`）；
+
+- **推荐为空或太少**：先看报告顶部的漏斗（抓取 → 主题通过 → 去重后 → 推送）定位卡在哪步，
+  再检查时间窗口、预印本比例上限，或调 `thresholds`。
+- **推荐跑偏**：多半是画像太旧或覆盖不全，刷新一次 bundle。
+- **缓存过旧**：删 `data/cache/candidate_cache.json` 强制刷新。
+- **本地报错找不到时区**：Windows 需要 `tzdata`（已在 `requirements.txt`）；
   缺失时会退回固定 +08:00，不影响出图。
+- **换了模型后 CI 报签名不匹配**：说明 release 里的画像还是旧模型建的，
+  本地重跑 `profile --local --bundle` 再上传。
+
+---
+
+## 相关文档
+
+- [打分模型](docs/scoring-model.md)
+- [引文发现](docs/citation-discovery.md)
+- [研究助手功能](docs/research-assistant.md)
+- [可靠检索与分问题推荐](docs/reliable-discovery.md)
+- [作者追踪](docs/author-tracking.md)
+- [主题监测](docs/topic-monitoring.md)
+
+全流程只使用标题、摘要和引文元数据，**不获取正文**。
 
 ## 许可证
-本项目采用 [MIT License](LICENSE)。
+
+[MIT License](LICENSE)，与上游一致。
