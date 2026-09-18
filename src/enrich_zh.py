@@ -51,8 +51,14 @@ def _key(title: str, abstract: Optional[str]) -> str:
     return hashlib.sha256(raw.encode("utf-8")).hexdigest()[:16]
 
 
-def _parse(content: str, expected: int) -> List[dict]:
-    """Pull the rows out of a chat reply that may be fenced, chatty or wrapped."""
+def _parse(content: str) -> List[dict]:
+    """Pull whatever rows the reply contains; the caller matches them by index.
+
+    An earlier version demanded exactly one row per input and discarded the whole
+    batch otherwise. A single dropped row then cost eight papers their Chinese
+    title, TLDR and abstract -- which is what happened on 2026-09-19, where one
+    batch returned 7 of 8 and 8 of 27 papers ended up English-only.
+    """
     text = re.sub(r"^```(?:json)?\s*|\s*```$", "", content.strip(), flags=re.S)
     # Some models prepend reasoning; take the outermost JSON value.
     for opener, closer in (("{", "}"), ("[", "]")):
@@ -64,10 +70,8 @@ def _parse(content: str, expected: int) -> List[dict]:
         except ValueError:
             continue
         rows = parsed.get("items") if isinstance(parsed, dict) else parsed
-        if isinstance(rows, list) and len(rows) == expected:
+        if isinstance(rows, list) and rows:
             return rows
-        raise ValueError(
-            f"expected {expected} rows, got {len(rows) if isinstance(rows, list) else '?'}")
     raise ValueError("no JSON payload in reply")
 
 
@@ -120,7 +124,7 @@ class ChineseEnricher:
             timeout=self.config.timeout_seconds,
         )
         content = response.json()["choices"][0]["message"]["content"]
-        return _parse(content, len(batch))
+        return _parse(content)
 
     def enrich(self, works: Sequence) -> None:
         """Fill work.extra['title_zh'] and work.extra['tldr_zh'] for every work."""
@@ -143,18 +147,32 @@ class ChineseEnricher:
             for start in range(0, len(pending), size):
                 chunk = pending[start : start + size]
                 try:
-                    for row, out in zip(chunk, self._post(chunk)):
-                        self.cache[row["key"]] = {
-                            "title_zh": str(out.get("title_zh") or "").strip(),
-                            "tldr": str(out.get("tldr") or "").strip(),
-                            "abstract_zh": str(out.get("abstract_zh") or "").strip(),
-                        }
-                        self._dirty = True
+                    rows = self._post(chunk)
                 except Exception as exc:  # best effort; never break the digest
                     logger.warning("Chinese enrichment batch failed (%d papers): %s",
                                    len(chunk), exc)
-                else:
-                    logger.info("  enriched %d/%d", min(start + size, len(pending)), len(pending))
+                    continue
+                # Match on the index the model echoes back rather than on position,
+                # so a batch that returns fewer rows costs only the rows it dropped.
+                done = 0
+                for index, out in enumerate(rows):
+                    try:
+                        slot = int(out.get("i", index))
+                    except (TypeError, ValueError):
+                        slot = index
+                    if not 0 <= slot < len(chunk):
+                        continue
+                    self.cache[chunk[slot]["key"]] = {
+                        "title_zh": str(out.get("title_zh") or "").strip(),
+                        "tldr": str(out.get("tldr") or "").strip(),
+                        "abstract_zh": str(out.get("abstract_zh") or "").strip(),
+                    }
+                    self._dirty = True
+                    done += 1
+                if done < len(chunk):
+                    logger.warning("Batch returned %d of %d; %d papers stay English-only",
+                                   done, len(chunk), len(chunk) - done)
+                logger.info("  enriched %d/%d", min(start + size, len(pending)), len(pending))
             self.save()
 
         for work in works:
