@@ -47,6 +47,13 @@ whitelist_authors: []
 #
 # ORDER MATTERS: rules are evaluated top to bottom and the first match decides the
 # multiplier, so the most specific and highest-value rule must come first.
+#
+# 跨金属方法参考 is ×1.0, the same as TC4 核心研究, on the owner's instruction: a paper on
+# another metal that follows the same chain -- temperature / strain rate / stress state ->
+# plasticity, ductile fracture, damage evolution -> constitutive calibration -> user material
+# subroutine -> ballistic validation -- is worth reading just as much. Only the material
+# system differs, so the parameters cannot be copied; the value does not differ. The two
+# rules stay separate so the report can still label which is which.
 # "外围方法参考" is last precisely because it used to sit at the top and demote core
 # work by 30% whenever the title happened to mention a peripheral keyword, e.g.
 # "Ductile fracture of coated Ti-6Al-4V under dynamic loading" matched "coating"
@@ -62,12 +69,12 @@ research_priorities:
   # One category, two alternative matching routes: identification/numerics method
   # papers, and constitutive/fracture work on other metals.
   - name: "跨金属方法参考"
-    multiplier: 0.95
+    multiplier: 1.0
     required_groups:
       - ["LS-OPT", "inverse identification", "inverse parameter identification", "parameter identification", "parameter calibration", "parameter inversion", "inverse calibration", "inverse modeling", "inverse modelling", "finite element model updating", "parameter identifiability", "parameter sensitivity", "uncertainty quantification", "Bayesian calibration", "multi-objective calibration", "post-necking", "hardening extrapolation", "inverse finite element identification", "full-field identification", "virtual fields method", "integrated digital image correlation", "Bridgman correction", "FEMU", "VFM", "mesh dependency", "mesh dependence", "mesh objectivity", "damage regularization", "damage regularisation", "characteristic length", "fracture energy", "nonlocal damage", "element size sensitivity", "element deletion", "model validation", "cross-validation", "return mapping", "stress integration", "consistent tangent", "user-defined material", "VUMAT", "UMAT", "UMAT41", "MAT_224", "反演", "参数标定", "数字图像相关", "颈缩后", "有限元更新", "网格客观性", "损伤正则化"]
       - *mechanics
   - name: "跨金属方法参考"
-    multiplier: 0.95
+    multiplier: 1.0
     required_groups:
       - ["aluminum", "aluminium", "magnesium", "steel", "copper", "nickel", "Inconel", "metal", "alloy"]
       - ["constitutive", "ductile fracture", "fracture criterion", "damage evolution", "stress triaxiality", "Lode", "flow stress", "hardening", "Gurson", "GTN", "MMC", "GISSMO", "Johnson-Cook"]

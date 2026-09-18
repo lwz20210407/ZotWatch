@@ -1,0 +1,13 @@
+# Chinese titles shown under the English paper title.
+#
+# Best-effort: a failed or disabled translation simply leaves the English title,
+# it never breaks the digest. Results are cached in data/title-translations.json
+# keyed by a hash of the source title, so a paper only ever costs one call.
+enabled: true
+base_url: https://api.siliconflow.cn/v1
+model_name: Qwen/Qwen3-8B
+# Reuses the embedding key; set a different variable here to separate them.
+api_key_env: EMBEDDING_API_KEY
+# Each item returns a full translated abstract, so keep batches small.
+batch_size: 8
+timeout_seconds: 180

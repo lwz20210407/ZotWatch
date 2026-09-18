@@ -10,46 +10,138 @@ feedback_repository: lwz20210407/ZotWatch
 version_batch_size: 10
 proposal_min_papers: 2
 proposal_limit: 10
+
+# 方向划分依据本人 2026-09-19 给出的博士课题定义：
+#
+#   以 LPBF/SLM 制备的 TC4（Ti-6Al-4V）为主要对象，研究温度、应变率和复杂应力状态下的
+#   塑性变形、延性断裂与损伤演化，建立并标定本构/失效模型，最终通过 LS-DYNA/Abaqus
+#   用户材料子程序实现和冲击侵彻试验验证。
+#
+# 因此方向按这条研究链分段，而不是按文库聚类的自然形状分——聚类用来取术语（保证与文库
+# 实际用词一致）和核对覆盖，不用来定义方向。
+#
+# 上一版把温度与应变率合并成「温度—应变率耦合」是错的：本人明确指出不耦合的也研究，
+# 且对 4399 篇文库做 k-means 时，高温本构与 SHPB 应变率各自独立成类。两者现已拆开。
+#
+# 陶瓷复合装甲不属于本课题（文库里约 247 篇会把相似度往那边拉，靠 scoring.yaml 的
+# 外围降权抵消），因此不设方向。
+
 facets:
+  # ---------- 材料对象 ----------
+  - id: lpbf_tc4
+    semantic_query: "Laser powder bed fusion Ti-6Al-4V: microstructure, porosity, lack of fusion, build orientation, heat treatment and their effect on mechanical response."
+    name: 增材 TC4 组织与缺陷
+    terms: [LPBF, SLM, selective laser melting, laser powder bed fusion, PBF-LB/M, additively manufactured,
+            build orientation, lack of fusion, porosity, prior beta grains, alpha prime martensite,
+            crystallographic texture, hot isostatic pressing, heat treatment, EBSD,
+            增材, 激光粉末床熔融, 织构, 孔隙, 热处理]
+    use: 可作为制备工艺、缺陷形貌与组织对力学响应影响的机制线索
+    verify: 核对制备参数、热处理状态、孔隙形貌与取向，以及是否与你的试样同一工艺窗口
+
+  # ---------- 载荷条件：三个自变量，彼此独立 ----------
+  - id: temperature
+    semantic_query: "Temperature dependence of metal flow stress: elevated and cryogenic temperature, thermal softening, adiabatic heating, hot deformation."
+    name: 温度效应与热软化
+    terms: [elevated temperature, high temperature, cryogenic, low temperature, temperature dependence,
+            thermal softening, thermal activation, hot deformation, adiabatic heating, Taylor-Quinney,
+            thermo-viscoplastic, thermoviscoplastic, 高温, 低温, 热软化, 绝热升温, 温度相关]
+    use: 可作为温度项形式、软化机制与绝热升温修正的建模参考
+    verify: 核对温度区间、加热方式、是否等温、绝热升温是否已修正
+
+  - id: strain_rate
+    semantic_query: "Strain-rate dependent plasticity of metals from quasi-static to high rate: split Hopkinson bar, dynamic tension and compression, rate sensitivity."
+    name: 应变率效应
+    terms: [strain rate, strain-rate dependent, high strain rate, rate sensitivity, quasi-static,
+            split Hopkinson, SHPB, SHTB, Hopkinson bar, dynamic tension, dynamic compression,
+            dynamic torsion, pulse shaping, stress equilibrium, 应变率, 准静态, 霍普金森, 动态拉伸, 动态压缩]
+    use: 可作为率项形式、率敏感性转折和动态试验技术的参考
+    verify: 核对率区间、波形是否平衡、是否与准静态同一试样构型
+
   - id: stress_state
-    semantic_query: "Stress-state dependent metal plasticity, pressure and Lode angle dependent yield surfaces, non-associated flow and anisotropic hardening."
-    name: 应力状态依赖塑性
-    terms: [stress triaxiality, Lode, yield surface, yield criterion, non-associated flow, 应力状态, 屈服面]
-    use: 可作为屈服面、压力/Lode依赖和塑性流动法则的比较线索
-    verify: 核对适用应力状态、各向异性假设、流动法则和TC4标定范围
-  - id: thermorate
-    semantic_query: "Temperature and strain-rate dependent plastic deformation of metals, thermal softening, adiabatic heating and thermoviscoplastic constitutive models."
-    name: 温度—应变率耦合
-    terms: [strain rate, thermal softening, thermoviscoplastic, temperature dependent, Taylor-Quinney, adiabatic shear, 应变率, 热软化]
-    use: 可作为速率、温度和热力耦合项的候选建模思路
-    verify: 核对温度和应变率范围、绝热升温修正、参数耦合与外推误差
-  - id: fracture
-    semantic_query: "Ductile fracture initiation and damage evolution in metals under multiaxial nonproportional loading, stress triaxiality and Lode parameter."
-    name: 延性断裂与损伤演化
-    terms: [ductile fracture, damage evolution, fracture locus, fracture criterion, Gurson, GISSMO, 延性断裂, 损伤演化]
-    use: 可作为断裂起始、损伤累积和失效模式的比较线索
-    verify: 核对负三轴度、非比例路径、加载历史和独立验证试样
-  - id: inverse
-    semantic_query: "Inverse identification of metal constitutive and fracture parameters using finite element simulations, full-field strain measurements and post-necking hardening extrapolation."
-    name: 参数反演与硬化外推
-    terms: [LS-OPT, inverse identification, inverse calibration, parameter identification, post-necking, hardening extrapolation, virtual fields, FEMU, 反演, 颈缩后]
-    use: 可作为全场反演、目标函数和颈缩后硬化外推的流程参考
-    verify: 核对参数可辨识性、测量误差、边界条件、训练与验证数据分离
-  - id: regularization
-    semantic_query: "Mesh objective ductile damage regularization, characteristic length, fracture energy and constitutive integration in explicit finite element metal failure simulations."
-    name: 数值实现与损伤正则化
-    terms: [regularization, regularisation, mesh objectivity, mesh dependence, nonlocal damage, characteristic length, VUMAT, UMAT, return mapping, 正则化, 网格客观性]
-    use: 可作为LS-DYNA/Abaqus实现、网格客观性和积分算法的参考
-    verify: 核对单元类型、特征长度、耗散能、稳定性及网格收敛性
-  - id: impact
-    semantic_query: "Validation of metal plasticity and failure models using high strain rate tests, Taylor impact and ballistic perforation experiments."
-    name: 冲击与结构验证
-    terms: [ballistic, penetration, perforation, Taylor impact, split Hopkinson, SHPB, 冲击, 侵彻]
-    use: 可作为从材料试样走向动态或结构尺度验证的线索
-    verify: 核对弹靶几何、边界条件、速度范围、残余速度和失效形貌
-  - id: microstructure
-    semantic_query: "Laser powder bed fusion Ti-6Al-4V titanium alloys, microstructure texture porosity and build orientation effects on plasticity and ductile fracture."
-    name: 增材组织—缺陷—失效
-    terms: [LPBF, SLM, lack of fusion, porosity, crystal plasticity, build orientation, heat treatment, crystallographic texture, 增材, 织构, 晶体塑性]
-    use: 可作为组织、缺陷及制造方向影响力学响应的机制线索
-    verify: 核对制造路线、热处理、孔隙形貌、取向和组织表征证据
+    semantic_query: "Stress-state dependent metal plasticity: stress triaxiality, Lode angle, yield surfaces, non-associated flow, anisotropy, nonproportional loading."
+    name: 复杂应力状态与屈服准则
+    terms: [stress triaxiality, Lode, Lode angle, yield criterion, yield surface, flow potential,
+            non-associated flow, anisotropic plasticity, negative triaxiality, plane strain, pure shear,
+            biaxial loading, nonproportional loading, combined loading, strain path change,
+            notched specimen, shear compression specimen, hat-shaped specimen,
+            应力三轴度, 罗德, 屈服面, 屈服准则, 非关联, 各向异性, 非比例加载, 缺口试样]
+    use: 可作为屈服面形式、压力/Lode 依赖与试样构型设计的比较线索
+    verify: 核对应力状态覆盖范围、是否含负三轴度、加载路径是否比例
+
+  # ---------- 现象与模型 ----------
+  - id: plasticity_hardening
+    semantic_query: "Strain hardening laws and post-necking extrapolation for metals: Swift, Voce, Hockett-Sherby, Ludwik, Bauschinger effect, evolving anisotropy."
+    name: 塑性变形与硬化律
+    terms: [strain hardening, flow stress, hardening extrapolation, post-necking, saturation hardening,
+            Swift, Voce, Hockett-Sherby, Ludwik, Ludwigson, Bauschinger effect, evolving plasticity,
+            evolutionary anisotropy, viscoplasticity, elastoplastic, Bridgman correction,
+            硬化, 流动应力, 颈缩后, 包辛格]
+    use: 可作为硬化律选型与颈缩后外推方案的参考
+    verify: 核对标定应变范围、外推是否有独立验证、是否混用不同试样
+
+  - id: ductile_fracture
+    semantic_query: "Ductile fracture initiation criteria for metals under multiaxial loading: fracture locus, MMC, Johnson-Cook fracture, failure strain."
+    name: 延性断裂准则
+    terms: [ductile fracture, fracture criterion, fracture locus, failure locus, fracture strain,
+            failure strain, shear fracture, MMC, Mohr-Coulomb, Johnson-Cook fracture, uncoupled fracture,
+            strain localization, 延性断裂, 韧性断裂, 断裂准则, 断裂应变, 剪切断裂]
+    use: 可作为断裂轨迹形式与起裂判据的比较线索
+    verify: 核对标定试样组合、是否覆盖你的应力状态区间、有无独立验证试样
+
+  - id: damage_evolution
+    semantic_query: "Damage evolution and void mechanics in ductile metals: GISSMO, Gurson, GTN, void nucleation growth and coalescence, porous plasticity."
+    name: 损伤演化与孔洞机制
+    terms: [damage evolution, damage accumulation, GISSMO, Gurson, GTN, porous plasticity,
+            void nucleation, void growth, void coalescence, micro-void shape, void shearing,
+            coupled damage, continuum damage mechanics, CDM, 损伤演化, 损伤累积, 孔洞, 形核, 长大, 聚合]
+    use: 可作为损伤累积形式与孔洞机制建模的参考
+    verify: 核对损伤变量定义、是否与塑性耦合、单元尺寸依赖是否处理
+
+  - id: calibration
+    semantic_query: "Inverse identification and calibration of constitutive and fracture parameters using full-field measurement and finite element model updating."
+    name: 参数标定与反演
+    terms: [parameter identification, inverse identification, inverse calibration, parameter calibration,
+            LS-OPT, FEMU, virtual fields, VFM, integrated digital image correlation, DIC, high speed DIC,
+            infrared thermography, parameter optimization, multi-objective optimization,
+            sensitivity analysis, parameter identifiability, uncertainty quantification,
+            surrogate model, data-driven constitutive, physics-informed neural network,
+            参数标定, 反演, 数字图像相关, 灵敏度, 不确定度]
+    use: 可作为全场反演流程、目标函数与可辨识性分析的参考
+    verify: 核对测量误差、边界条件、训练与验证数据是否分离
+
+  # ---------- 实现与验证 ----------
+  - id: umat_implementation
+    semantic_query: "User material subroutine implementation of metal plasticity and damage in explicit finite element codes: UMAT, VUMAT, LS-DYNA, Abaqus, stress integration, mesh objectivity."
+    name: 用户子程序与数值实现
+    terms: [UMAT, VUMAT, UMAT41, user-defined material, LS-DYNA, Abaqus, MAT_224, MAT_ADD_DAMAGE_DIEM,
+            return mapping, stress integration, consistent tangent, objective stress rate,
+            element deletion, element erosion, mesh objectivity, mesh dependence, mesh sensitivity,
+            nonlocal damage, regularization, regularisation, characteristic length, fracture energy,
+            用户材料, 子程序, 应力更新, 网格客观性, 正则化, 单元删除]
+    use: 可作为显式积分算法、正则化方案与子程序实现细节的参考
+    verify: 核对单元类型与尺寸、耗散能、稳定性与网格收敛性
+
+  - id: impact_validation
+    semantic_query: "Validating metal plasticity and failure models against impact and ballistic perforation experiments: residual velocity, ballistic limit, failure mode transition."
+    name: 冲击侵彻与模型验证
+    terms: [ballistic, ballistic limit, penetration, perforation, V50, residual velocity,
+            projectile nose shape, blunt, ogival, petalling, petaling, plugging, spall, spallation,
+            Taylor impact, dynamic fracture toughness, model validation, cross-validation,
+            侵彻, 穿甲, 弹道极限, 剩余速度, 花瓣, 冲塞, 层裂, 模型验证]
+    use: 可作为从材料试样走向结构尺度验证的线索
+    verify: 核对弹靶几何、边界条件、速度区间、残余速度与失效形貌是否同时对上
+
+  # ---------- 其他金属的同链研究 ----------
+  # 不是「降级的借鉴」。本人明确表示：只要同样在做温度/应变率/复杂应力状态下的塑性变形、
+  # 延性断裂与损伤演化，并走到本构标定、用户子程序实现和侵彻验证，那么不是钛合金也同样值得
+  # 读。区别只在材料体系不同、参数不能直接套用，而不在价值高低——因此 scoring.yaml 里它与
+  # TC4 核心研究同为 ×1.0。
+  - id: other_metals
+    semantic_query: "Temperature, strain-rate and stress-state dependent plasticity, ductile fracture and damage evolution of structural metals other than titanium: constitutive calibration, user material subroutines and ballistic validation."
+    name: 其他金属的同链研究
+    terms: [aluminum, aluminium, magnesium, high strength steel, dual phase, advanced high strength steel,
+            DP590, DP780, DP980, QP980, Q345, Q355D, Q460D, EH36, TC128, 5083-O, 6061-T651, 2024-T351,
+            stainless steel, 316L, Inconel, nickel alloy, copper, high-entropy, refractory,
+            structural steel, pipeline steel, armor steel, 铝合金, 镁合金, 双相钢, 高强钢, 不锈钢]
+    use: 研究链一致时与钛合金同等参考价值；建模思路、标定流程与验证方案可直接借鉴
+    verify: 核对材料体系差异与微观机制是否可比；参数量级不可直接套用，需在 TC4 上重新标定

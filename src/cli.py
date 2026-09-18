@@ -23,11 +23,13 @@ from .metadata_enrich import enrich_ranked_works
 from .models import RankedWork
 from .notify_email import notify
 from .push_to_zotero import ZoteroPusher
-from .rss_writer import write_rss
+from .rss_writer import write_rss, site_url
 from .score_rank import WorkRanker
 from .settings import Settings, load_settings
 from .storage import ProfileStorage
 from .report_html import render_html
+from .digest_email import render_digest, render_text
+from .enrich_zh import enrich_chinese
 from .utils import beijing_now
 from .research_features import FeedbackModel, RetrievalWarnings, coverage_report, load_feedback, propose_tracking, save_feedback, collaboration_groups
 from .problem_ranking import diverse_select
@@ -254,6 +256,9 @@ def _run_watch(
     watched = [enriched_by_key[work_key(work)] for work in watched]
     classics = [enriched_by_key[work_key(work)] for work in classics]
     exploration = [enriched_by_key[work_key(work)] for work in exploration]
+    # Chinese title + one-sentence TLDR for everything that will be shown.
+    enrich_chinese(combined, settings.translation, base_dir / "data" / "zh-cache.json")
+
     monitor = VersionMonitor(settings, fetcher.session)
     alerts = monitor.check(combined, history.state) if config.enabled else []
     retrieval_warnings = list(getattr(warning_recorder, "messages", [])) + discovery.warnings
@@ -277,9 +282,37 @@ def _run_watch(
     if report:
         report_date = beijing_now()
         report_name = f"report-{report_date:%Y%m%d}.html"
+        # Issue number = how many digests have been published, this one included.
+        issue_no = len(list((base_dir / "reports").glob("report-*.html"))) + (
+            0 if (base_dir / "reports" / report_name).exists() else 1)
+        profile_names = {key: value.get("name", key) for key, value
+                         in (ranker.profile.get("problem_profiles") or {}).items()}
         render_html(ranked, base_dir / "reports" / report_name, watched_works=watched,
                     classic_works=classics, coverage_warnings=retrieval_warnings + monitor.warnings,
-                    diagnostics=diagnostics, update_works=alerts, exploration_works=exploration)
+                    diagnostics=diagnostics, update_works=alerts, exploration_works=exploration,
+                    problem_names=profile_names,
+                    library_size=f"{ranker.profile.get('item_count', 0)} 篇",
+                    window_days=settings.sources.window_days,
+                    issue_no=issue_no,
+                    feedback_repository=settings.research.feedback_repository,
+                    # How many papers back each research direction in the library:
+                    # this is why the ranking leans the way it does.
+                    library_directions=sorted(
+                        ((v.get("name", k), int(v.get("count", 0)))
+                         for k, v in (ranker.profile.get("problem_profiles") or {}).items()),
+                        key=lambda kv: -kv[1]))
+        # The email is only a reminder pointing here; it carries a short preview.
+        digest_args = dict(problem_names=profile_names, issue_no=issue_no)
+        for suffix, text in (
+            ("html", render_digest(ranked, report_url=site_url(),
+                                   feed_url=site_url() + "feed.xml",
+                                   extras={"重点作者新作": watched, "经典文献补漏": classics,
+                                           "跨圈方法发现": exploration, "版本与更正提醒": alerts},
+                                   **digest_args)),
+            ("txt", render_text(ranked, report_url=site_url(), **digest_args)),
+        ):
+            (base_dir / "reports" / f"digest-{report_date:%Y%m%d}.{suffix}").write_text(
+                text, encoding="utf-8")
         (base_dir / "reports" / "research-diagnostics.json").write_text(
             json.dumps(diagnostics, ensure_ascii=False, indent=2), encoding="utf-8")
         for name, works in (("baseline", baseline), ("candidate", ranked)):

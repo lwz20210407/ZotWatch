@@ -141,7 +141,9 @@ class TopicTests(unittest.TestCase):
 
         examples = [
             ("TC4 ductile fracture", "TC4核心研究", 1.0),
-            ("Steel LS-OPT constitutive model calibration", "跨金属方法参考", 0.95),
+            # Same value as TC4 core work: another metal on the same research chain is
+            # worth reading just as much, only the material system differs.
+            ("Steel LS-OPT constitutive model calibration", "跨金属方法参考", 1.0),
             ("Titanium alloy crystal plasticity", "机制参考", 0.85),
             ("Steel fatigue performance damage", "外围方法参考", 0.70),
         ]

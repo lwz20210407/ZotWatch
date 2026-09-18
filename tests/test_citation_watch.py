@@ -175,10 +175,11 @@ class CitationTests(unittest.TestCase):
             monitor.return_value.warnings = []
             args = dict(rss=True, report=True, top=20, push=False, defer_history=True)
             run_watch(Path(tmp), self.settings, Mock(), **args)
-            report = next(Path(tmp, "reports").glob("*.html"))
+            # report-*.html is the web report; digest-*.html is the short email body.
+            report = next(Path(tmp, "reports").glob("report-*.html"))
             html = report.read_text(encoding="utf-8")
             self.assertIn(old.title, html); self.assertIn(new.title, html)
-            self.assertIn("研究问题覆盖诊断", html)
+            self.assertIn("运行诊断", html)
             self.assertNotIn(weak.title, html); self.assertNotIn(future.title, html)
             history = WatchHistory(Path(tmp, "data", "watch-state"))
             self.assertEqual(len(history.filter([old, new])), 2)

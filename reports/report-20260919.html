@@ -1,0 +1,1803 @@
+
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>文献周刊 第 3 期 · 2026-09-19</title>
+
+<meta name="zotwatch:issue" content="3" />
+<meta name="zotwatch:count" content="22" />
+<meta name="zotwatch:date" content="2026-09-19" />
+<style>
+  :root{
+    --page:#faf9f7; --card:#fff; --ink:#241f1b; --body:#4a423c; --muted:#7c736c;
+    --faint:#a49b93; --line:#e8e5e1; --soft:#f3f1ed;
+    --accent:#ea7317; --accent-d:#c85c08; --accent-soft:#fdf1e3;
+    --must:#b3341f; --must-bg:#fceee9;
+    --radius:16px;
+    --shadow:0 10px 15px -3px rgba(0,0,0,.08),0 4px 6px -4px rgba(0,0,0,.05);
+    --font:"Outfit",system-ui,-apple-system,"Segoe UI","PingFang SC","Microsoft YaHei",
+           "Helvetica Neue",Arial,sans-serif;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--page);color:var(--ink);font:400 16px/1.6 var(--font);
+    -webkit-font-smoothing:antialiased}
+  a{color:inherit}
+  .ico{flex:none;vertical-align:-2px;color:var(--faint)}
+
+  /* Fill the viewport instead of stranding a fixed 1180px column in the middle of
+     a wide monitor, but cap it so text lines stay readable. */
+  /* Three columns: filters left, the paper column in the middle at a readable
+     width, data cards right. A single centred column stranded most of a wide
+     monitor as empty margin. */
+  .shell{width:100%;max-width:1780px;margin:0 auto;padding:28px clamp(14px,2vw,34px) 80px;
+    display:grid;grid-template-columns:250px minmax(0,1fr) 292px;
+    gap:clamp(16px,1.5vw,26px);align-items:start}
+  .cards{display:grid;grid-template-columns:1fr;gap:16px;align-content:start}
+  @media (max-width:1400px){
+    .shell{grid-template-columns:240px minmax(0,1fr)}
+    aside.right{grid-column:1/-1;display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px;
+      position:static;max-height:none;overflow:visible}
+  }
+
+  /* ---------------- sidebar ---------------- */
+  aside{position:sticky;top:22px;max-height:calc(100vh - 44px);
+    display:flex;flex-direction:column;gap:14px;
+    overflow-y:auto;overscroll-behavior:contain;padding-right:5px;margin-right:-5px}
+  aside::-webkit-scrollbar{width:7px}
+  aside::-webkit-scrollbar-thumb{background:var(--line);border-radius:4px}
+  aside::-webkit-scrollbar-thumb:hover{background:#d5d0ca}
+  aside{scrollbar-width:thin;scrollbar-color:var(--line) transparent}
+  .panel{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+    box-shadow:var(--shadow);padding:17px 18px}
+  .panel h3{margin:0 0 12px;font-size:13.5px;font-weight:600;color:var(--ink);
+    display:flex;align-items:center;gap:7px}
+  .kv{display:flex;justify-content:space-between;align-items:baseline;
+    padding:5px 0;font-size:13.5px;color:var(--muted)}
+  .kv b{font-size:17px;font-weight:600;color:var(--ink)}
+  .fitem{display:flex;justify-content:space-between;align-items:center;gap:8px;
+    width:100%;padding:7px 10px;margin:2px 0;border:0;border-radius:9px;background:transparent;
+    font:inherit;font-size:13.5px;color:var(--body);text-align:left;cursor:pointer;
+    transition:background .12s,color .12s}
+  .fitem:hover{background:var(--soft)}
+  .fitem[aria-pressed="true"]{background:var(--accent-soft);color:var(--accent-d);font-weight:600}
+  .fitem span:first-child{display:flex;align-items:center;gap:8px;min-width:0}
+  .dot{width:8px;height:8px;border-radius:50%;flex:none}
+  .fitem span:last-child{font-size:12px;color:var(--faint);font-variant-numeric:tabular-nums}
+  .fitem[aria-pressed="true"] span:last-child{color:var(--accent-d)}
+  .sw{display:flex;align-items:center;justify-content:space-between;gap:10px;
+    font-size:13.5px;color:var(--body);cursor:pointer}
+  .sw input{position:absolute;opacity:0;pointer-events:none}
+  .sw i{flex:none;width:38px;height:22px;border-radius:999px;background:var(--line);
+    position:relative;transition:background .15s}
+  .sw i::after{content:"";position:absolute;top:3px;left:3px;width:16px;height:16px;
+    border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.2);transition:transform .15s}
+  .sw input:checked+i{background:var(--accent)}
+  .sw input:checked+i::after{transform:translateX(16px)}
+
+  /* ---------------- main ---------------- */
+  /* Masthead, built like a periodical's: a wordmark, a bilingual title lockup,
+     an issue line and a standfirst. "文献周报" alone was four characters floating
+     at the top of a page this wide. */
+  .mast{margin:0 0 26px;padding-bottom:24px;border-bottom:1px solid var(--line);
+    position:relative;text-align:center}
+  .mast::after{content:"";position:absolute;left:50%;transform:translateX(-50%);
+    bottom:-1px;width:96px;height:3px;border-radius:2px;background:var(--accent)}
+
+  .brand{display:flex;align-items:center;justify-content:center;gap:11px;flex-wrap:wrap}
+  .mark{font-size:13px;font-weight:700;letter-spacing:.02em;color:var(--accent);
+    padding:3px 10px;border:1.5px solid var(--accent);border-radius:7px}
+  .brand-sep{width:22px;height:1px;background:var(--line)}
+  .brand-note{font-size:12.5px;color:var(--faint)}
+
+  .lockup{display:flex;flex-direction:column;align-items:center;gap:10px;margin-top:18px}
+  h1{margin:0;font-size:clamp(27px,3vw,40px);line-height:1.15;font-weight:700;
+    letter-spacing:.03em;color:var(--ink)}
+  .latin{font-size:clamp(11px,.85vw,13px);font-weight:600;letter-spacing:.26em;
+    text-transform:uppercase;color:var(--faint);white-space:nowrap}
+
+  .issue{margin-top:14px;font-size:14px;color:var(--body);font-weight:500}
+  .issue .no{color:var(--accent-d);font-weight:650}
+  .issue .sep{margin:0 9px;color:var(--faint);font-weight:400}
+
+  .lede{margin:13px auto 0;max-width:58ch;font-size:14.5px;line-height:1.85;
+    color:var(--muted)}
+  .lede b{color:var(--ink);font-weight:650}
+
+  h2{margin:34px 0 12px;font-size:15px;font-weight:600;color:var(--ink);
+    display:flex;align-items:center;gap:9px}
+  h2 em{font-style:normal;font-size:12.5px;font-weight:500;color:var(--faint)}
+  .note{margin:-6px 0 14px;font-size:13px;line-height:1.7;color:var(--faint)}
+
+  /* ---------------- card ---------------- */
+  article{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+    border-left:4px solid var(--hue,var(--line));
+    box-shadow:var(--shadow);padding:22px clamp(18px,1.6vw,28px);margin:0;
+    display:flex;flex-direction:column;break-inside:avoid}
+  article .foot{margin-top:auto}
+  article[hidden]{display:none}
+  .badges{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-bottom:11px}
+  .rank{font-size:12px;font-weight:700;color:var(--faint);font-variant-numeric:tabular-nums}
+  .pill{display:inline-block;padding:3px 10px;border-radius:7px;font-size:11.5px;
+    font-weight:600;line-height:1.55;white-space:nowrap}
+  .p-must{color:var(--must);background:var(--must-bg)}
+  .p-dir{color:var(--accent-d);background:var(--accent-soft)}
+
+  .title{display:block;font-size:18px;font-weight:600;line-height:1.375;color:var(--ink);
+    text-decoration:none}
+  .title:hover{color:var(--accent-d);text-decoration:underline;text-underline-offset:3px}
+  .title .yr{color:var(--faint);font-weight:400}
+  .title-zh{margin-top:7px;font-size:16px;line-height:1.5;color:var(--body);font-weight:500}
+
+  .line{display:flex;align-items:flex-start;gap:8px;margin-top:9px;
+    font-size:14px;line-height:1.55;color:var(--muted)}
+  .line em{font-style:italic}
+
+  .tldr{margin:14px 0 0;padding:12px 15px;background:var(--hue-soft,var(--accent-soft));
+    border-left:3px solid var(--hue,var(--accent));border-radius:0 10px 10px 0;
+    font-size:15px;line-height:1.7;color:#33291f}
+
+  .abs{margin-top:14px;font-size:16px;line-height:1.5;color:var(--body)}
+  .abs .lead::before{content:"摘要：";color:var(--muted)}
+  .abs .rest{display:none}
+  .abs.open .rest{display:inline}
+  .absbar{display:flex;align-items:center;gap:17px;margin-top:9px}
+  .more,.alt{background:none;border:0;padding:0;cursor:pointer;font:inherit;
+    display:inline-flex;align-items:center;gap:5px}
+  .more{font-size:14px;color:var(--accent)}
+  .more::before{content:"⌄";font-size:15px;line-height:1}
+  .more.open::before{content:"⌃"}
+  .alt{font-size:13px;color:var(--muted);gap:6px}
+  .alt::before{content:"译";font-size:10.5px;font-weight:700;border:1px solid currentColor;
+    border-radius:3px;padding:0 3.5px;line-height:1.4}
+  .more:hover,.alt:hover{color:var(--accent-d)}
+  .abs.zh{color:var(--body);font-size:15px;border-left:2px solid var(--hue,var(--line));
+    padding-left:13px;margin-top:11px}
+
+  /* method-transfer note: project-specific, no public search engine has it */
+  .transfer{margin-top:12px;padding:10px 13px;background:var(--soft);border-radius:10px;
+    font-size:13px;line-height:1.7;color:var(--muted)}
+  .transfer b{color:var(--ink);font-weight:600;margin-right:6px}
+
+  /* why this paper is here -- the thing a public search engine cannot show */
+  .why{display:flex;align-items:flex-start;gap:7px;margin-top:13px;font-size:13.5px;
+    line-height:1.6;
+    color:var(--hue,var(--accent-d));background:var(--hue-soft,var(--accent-soft));
+    border-radius:9px;padding:8px 12px}
+  .why .ico{color:var(--hue,var(--accent))}
+
+  .foot{display:flex;flex-wrap:wrap;align-items:center;gap:14px;margin-top:16px;
+    padding-top:14px;border-top:1px solid var(--line);font-size:13px;color:var(--muted)}
+  .foot a{color:var(--muted);text-decoration:none}
+  .foot a:hover{color:var(--accent-d)}
+  .foot .m{display:inline-flex;align-items:center;gap:6px}
+  .foot .m b{font-weight:600;color:var(--ink);font-variant-numeric:tabular-nums}
+  .bar{display:inline-block;width:52px;height:5px;border-radius:3px;background:var(--line);
+    overflow:hidden;margin-left:2px}
+  .bar i{display:block;height:100%;background:var(--hue,var(--accent));border-radius:3px}
+
+  .rate{margin-left:auto;display:flex;gap:7px}
+  .rb{padding:5px 12px;border:1px solid var(--line);border-radius:8px;
+    font-size:12.5px;color:var(--muted);text-decoration:none;transition:.12s;background:var(--card)}
+  .rb:hover{border-color:var(--accent);color:var(--accent-d);background:var(--accent-soft)}
+  .rb-1:hover{border-color:#2f8f4e;color:#246b3b;background:#eaf6ee}
+  .rb-2:hover{border-color:#b3341f;color:var(--must);background:var(--must-bg)}
+
+  /* ---------------- right rail ---------------- */
+  aside.right{top:22px}
+  .hint{font-size:11.5px;line-height:1.65;color:var(--faint);margin:-5px 0 10px}
+  .toc{display:flex;flex-direction:column;gap:1px;margin:-4px -6px 0}
+  .toc a{display:flex;align-items:baseline;gap:7px;padding:7px 8px;border-radius:8px;
+    font-size:12.5px;line-height:1.5;color:var(--body);text-decoration:none;
+    transition:background .12s}
+  .toc a:hover{background:var(--soft);color:var(--ink)}
+  .toc .dot{flex:none;align-self:center}
+  .toc .n{flex:none;font-size:11px;font-weight:600;color:var(--faint);
+    font-variant-numeric:tabular-nums}
+  .toc .tt{flex:1;min-width:0;overflow:hidden;display:-webkit-box;
+    -webkit-line-clamp:2;-webkit-box-orient:vertical}
+  .toc em{flex:none;font-style:normal;font-size:10px;font-weight:600;color:var(--must);
+    background:var(--must-bg);border-radius:4px;padding:1px 5px}
+  .brow.off{opacity:.42}
+  .row a.rt{color:var(--accent-d);text-decoration:none}
+  .row a.rt:hover{text-decoration:underline}
+  .sub-h{font-size:12.5px;font-weight:600;color:var(--ink);margin:0 0 7px}
+  .cands{display:flex;flex-direction:column;gap:11px}
+  .cand{padding:10px 12px;background:var(--soft);border-radius:10px}
+  .cand-h{display:flex;align-items:baseline;gap:7px;flex-wrap:wrap}
+  .cand-h .nm{font-size:13px;font-weight:600;color:var(--ink)}
+  .cand-h .new{font-style:normal;font-size:10px;font-weight:600;color:#246b3b;
+    background:#eaf6ee;border-radius:4px;padding:1px 5px}
+  .cand-h b{margin-left:auto;font-size:12px;font-weight:600;color:var(--muted);
+    font-variant-numeric:tabular-nums}
+  .aff{margin-top:3px;font-size:11.5px;color:var(--faint);overflow-wrap:anywhere}
+  .cand-p{margin-top:6px;display:flex;flex-direction:column;gap:4px}
+  .cand-p a{font-size:11.5px;line-height:1.55;color:var(--muted);text-decoration:none;
+    overflow-wrap:anywhere;display:block}
+  .cand-p a:hover{color:var(--accent-d)}
+  .cand-p a::before{content:"· "}
+  .add{display:inline-block;margin-top:8px;font-size:11.5px;color:var(--accent-d);
+    text-decoration:none;font-weight:600}
+  .add:hover{text-decoration:underline}
+  .issues{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:1px}
+  .issues a{display:flex;align-items:baseline;gap:8px;padding:7px 8px;margin:0 -6px;
+    border-radius:8px;text-decoration:none;font-size:12.5px;transition:background .12s}
+  .issues a:hover{background:var(--soft)}
+  .issues .no{flex:none;font-weight:600;color:var(--ink)}
+  .issues .when{flex:1;min-width:0;color:var(--faint)}
+  .issues .cnt{flex:none;color:var(--muted);font-variant-numeric:tabular-nums}
+  .links{display:flex;gap:14px;margin-top:13px;padding-top:11px;
+    border-top:1px solid var(--line);font-size:12.5px}
+  .links a{color:var(--accent-d);text-decoration:none}
+  .links a:hover{text-decoration:underline}
+  article{scroll-margin-top:22px}
+  .rows{display:flex;flex-direction:column;gap:9px}
+  /* Titles and journal names wrap instead of being cut with an ellipsis; a
+     clipped title is not enough to recognise the paper it refers to. */
+  .row{display:flex;align-items:flex-start;gap:9px;font-size:12.5px;line-height:1.6;
+    color:var(--muted)}
+  .row .rt{flex:1;min-width:0;overflow-wrap:anywhere}
+  .row .dot{display:inline-block;margin-right:7px;vertical-align:1px}
+  .row b{flex:none;font-weight:600;color:var(--ink);font-variant-numeric:tabular-nums}
+  .bars{display:flex;flex-direction:column;gap:9px;margin-top:2px}
+  .brow{font-size:12.5px;color:var(--muted)}
+  .brow .t{display:flex;justify-content:space-between;gap:8px;margin-bottom:4px}
+  .brow .t b{color:var(--ink);font-weight:600;font-variant-numeric:tabular-nums}
+  .track{height:6px;border-radius:4px;background:var(--soft);overflow:hidden}
+  .track i{display:block;height:100%;border-radius:4px}
+  .funnel{display:flex;flex-direction:column;gap:7px;margin-top:2px}
+  .fstep{font-size:12.5px;color:var(--muted)}
+  .fstep .t{display:flex;justify-content:space-between;margin-bottom:3px}
+  .fstep .t b{color:var(--ink);font-weight:600;font-variant-numeric:tabular-nums}
+  .fbar{height:22px;border-radius:6px;background:var(--accent-soft);position:relative}
+  .fbar i{position:absolute;inset:0 auto 0 0;border-radius:6px;background:var(--accent);opacity:.82}
+
+  details.diag{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+    box-shadow:var(--shadow);padding:18px 22px}
+  details.diag summary{cursor:pointer;list-style:none;font-size:14px;color:var(--muted)}
+  details.diag summary::-webkit-details-marker{display:none}
+  details.diag summary::before{content:"⌄ ";color:var(--faint)}
+  details.diag[open] summary::before{content:"⌃ "}
+  table{width:100%;border-collapse:collapse;font-size:13px;margin-top:12px}
+  th,td{padding:8px 10px;text-align:left;border-bottom:1px solid var(--line)}
+  th{color:var(--muted);font-weight:600;font-size:12px}
+  td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
+  .warn{background:var(--accent-soft);color:var(--accent-d);border-radius:9px;
+    padding:10px 13px;font-size:13px;margin:10px 0}
+  .empty{text-align:center;color:var(--faint);padding:40px 0;font-size:15px}
+
+  @media (max-width:900px){
+    .shell{grid-template-columns:1fr;padding:22px 14px 60px;gap:16px}
+    .cards{gap:14px}
+    aside{position:static;max-height:none;overflow:visible;padding-right:0;margin-right:0}
+    aside.left{flex-direction:column}
+    aside.left .panel{min-width:0}
+    aside{position:static;flex-direction:row;overflow-x:auto;padding-bottom:4px}
+    aside .panel{min-width:230px;flex:none}
+    article{padding:19px 17px}
+    h1{font-size:24px}.title{font-size:16.5px}.abs{font-size:15px}
+  }
+</style>
+</head>
+<body>
+<div class="shell">
+
+<aside class="left">
+  <div class="panel">
+    <h3><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="ico"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg> 本期概览</h3>
+    <div class="kv"><span>推送</span><b>22</b></div>
+    <div class="kv"><span>必读</span><b>6</b></div>
+    
+    <div class="kv"><span>抓取候选</span><b>704</b></div>
+    <div class="kv"><span>去重后</span><b>536</b></div>
+    
+  </div>
+
+  
+  <div class="panel" id="dirFilter">
+    <h3><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="ico"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg> 研究方向</h3>
+    <button class="fitem" aria-pressed="true" data-dir=""><span>全部</span><span>22</span></button>
+    
+    
+    <button class="fitem" aria-pressed="false" data-dir="参数反演与硬化外推">
+      <span><i class="dot" style="background:#d9541f"></i>参数反演与硬化外推</span><span>12</span></button>
+    
+    
+    <button class="fitem" aria-pressed="false" data-dir="延性断裂与损伤演化">
+      <span><i class="dot" style="background:#1f6fb5"></i>延性断裂与损伤演化</span><span>4</span></button>
+    
+    
+    <button class="fitem" aria-pressed="false" data-dir="增材组织—缺陷—失效">
+      <span><i class="dot" style="background:#2f8f4e"></i>增材组织—缺陷—失效</span><span>2</span></button>
+    
+    
+    <button class="fitem" aria-pressed="false" data-dir="温度—应变率耦合">
+      <span><i class="dot" style="background:#8a4bb8"></i>温度—应变率耦合</span><span>2</span></button>
+    
+    
+    <button class="fitem" aria-pressed="false" data-dir="冲击与结构验证">
+      <span><i class="dot" style="background:#b3341f"></i>冲击与结构验证</span><span>1</span></button>
+    
+    
+    <button class="fitem" aria-pressed="false" data-dir="应力状态依赖塑性">
+      <span><i class="dot" style="background:#0f8a8a"></i>应力状态依赖塑性</span><span>1</span></button>
+    
+  </div>
+  
+
+  
+  <div class="panel">
+    <h3><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="ico"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg> 快速筛选</h3>
+    <label class="sw"><span>仅看必读</span>
+      <input type="checkbox" id="onlyMust" /><i></i></label>
+  </div>
+  
+
+  <div class="panel">
+    <h3><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="ico"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> 关于本期</h3>
+    <div style="font-size:13px;line-height:1.75;color:var(--muted)">
+      画像来自你的 Zotero 文库 4399 篇。<br />
+      中文标题与一句话摘要由模型生成，仅供快速筛选，<b style="color:var(--ink)">以原文为准</b>。
+    </div>
+  </div>
+</aside>
+
+<main>
+  <header class="mast">
+    <div class="brand">
+      <span class="mark">ZotWatch</span>
+      <span class="brand-sep"></span>
+      <span class="brand-note">基于 Zotero 文库画像的文献追踪</span>
+    </div>
+
+    <div class="lockup">
+      <h1>每周最新文献订阅与追踪</h1>
+      <div class="latin">Weekly&nbsp;Research&nbsp;Digest</div>
+    </div>
+
+    <div class="issue">
+      <span class="no">第 3 期</span><span class="sep">·</span>
+      <span>2026 年 9 月 19 日</span><span class="sep">·</span>
+      <span>00:15 北京时间</span>
+    </div>
+
+    <p class="lede">
+      本期 <b>22</b> 篇，其中 <b>6</b> 篇必读，
+      从近 30 天的 <b>704</b> 篇候选中筛出，
+      按你 Zotero 文库 <b>4399 篇</b> 的兴趣画像排序。
+    </p>
+  </header>
+
+
+
+
+
+
+<div class="cards">
+
+
+
+
+
+<article id="p1" data-dir="参数反演与硬化外推" data-must="1"
+         style="--hue:#d9541f;--hue-soft:#fdeee6">
+  <div class="badges">
+    <span class="rank">01</span>
+    <span class="pill p-must">必读</span>
+    <span class="pill p-dir" style="color:#d9541f;background:#fdeee6">参数反演与硬化外推</span>
+  </div>
+
+  <a class="title" href="https://linkinghub.elsevier.com/retrieve/pii/S0749641926002068" target="_blank" rel="noopener">Neural network-based distortional hardening inferred from experiments via FE-coupled backpropagation: Application to Ti-6Al-4V and third-generation AHSS <span class="yr">(2026-08)</span></a>
+  <div class="title-zh">基于神经网络的畸变硬化模型：通过FE耦合反向传播推断实验结果，应用于Ti-6Al-4V和第三代AHSS</div>
+
+  <div class="line"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="ico"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span>Xueyang Li, Dirk Mohr</span></div>
+  <div class="line"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="ico"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg><span><em>International Journal of Plasticity</em></span></div>
+
+  <div class="tldr">对Ti-6Al-4V和第三代AHSS材料，利用FE耦合反向传播推断神经网络模型，得到材料在冲击下的硬化特性。</div>
+
+  
+
+  
+
+  
+  <div class="why"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="ico"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg><span>最接近库内《Modelling metal plasticity and damage with constitutive artificial neural networks》</span></div>
+
+  <div class="foot">
+    <span class="m rel" title="综合相关度，0–1"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="ico"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>相关度
+      <b>0.70</b>
+      <span class="bar"><i style="width:70%"></i></span></span>
+    <span class="m">被引用 <b>0</b></span>
+    <span class="m"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="ico"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg><a href="https://doi.org/https://doi.org/10.1016/j.ijplas.2026.104812"
+       target="_blank" rel="noopener">https://doi.org/10.1016/j.ijplas.2026.104812</a></span>
+    
+    
+    <span class="rate" title="将打开公开 GitHub Issue，需你确认提交，请勿填写私人笔记">
+      <a class="rb rb-1" href="https://github.com/lwz20210407/ZotWatch/issues/new?title=%5BZotWatch+feedback%5D+%E7%9B%B4%E6%8E%A5%E6%9C%89%E7%94%A8+Neural+network-based+distortional+hardening+inferred+from+experiments+via+FE-coupled+backp&amp;body=%3C%21--+zotwatch-feedback-v1+--%3E%0A%60%60%60json%0A%7B%22doi%22%3A+%2210.1016%2Fj.ijplas.2026.104812%22%2C+%22rating%22%3A+%22direct%22%2C+%22facets%22%3A+%5B%5D%7D%0A%60%60%60%0A%E5%85%AC%E5%BC%80%E5%8F%8D%E9%A6%88%EF%BC%8C%E8%AF%B7%E5%8B%BF%E5%A1%AB%E5%86%99%E7%A7%81%E4%BA%BA%E7%AC%94%E8%AE%B0%E3%80%82" target="_blank" rel="noopener">有用</a><a class="rb rb-2" href="https://github.com/lwz20210407/ZotWatch/issues/new?title=%5BZotWatch+feedback%5D+%E4%B8%8D%E7%9B%B8%E5%85%B3+Neural+network-based+distortional+hardening+inferred+from+experiments+via+FE-coupled+backp&amp;body=%3C%21--+zotwatch-feedback-v1+--%3E%0A%60%60%60json%0A%7B%22doi%22%3A+%2210.1016%2Fj.ijplas.2026.104812%22%2C+%22rating%22%3A+%22irrelevant%22%2C+%22facets%22%3A+%5B%5D%7D%0A%60%60%60%0A%E5%85%AC%E5%BC%80%E5%8F%8D%E9%A6%88%EF%BC%8C%E8%AF%B7%E5%8B%BF%E5%A1%AB%E5%86%99%E7%A7%81%E4%BA%BA%E7%AC%94%E8%AE%B0%E3%80%82" target="_blank" rel="noopener">无用</a><a class="rb rb-3" href="https://github.com/lwz20210407/ZotWatch/issues/new?title=%5BZotWatch+feedback%5D+%E7%A8%8D%E5%90%8E%E7%9C%8B+Neural+network-based+distortional+hardening+inferred+from+experiments+via+FE-coupled+backp&amp;body=%3C%21--+zotwatch-feedback-v1+--%3E%0A%60%60%60json%0A%7B%22doi%22%3A+%2210.1016%2Fj.ijplas.2026.104812%22%2C+%22rating%22%3A+%22later%22%2C+%22facets%22%3A+%5B%5D%7D%0A%60%60%60%0A%E5%85%AC%E5%BC%80%E5%8F%8D%E9%A6%88%EF%BC%8C%E8%AF%B7%E5%8B%BF%E5%A1%AB%E5%86%99%E7%A7%81%E4%BA%BA%E7%AC%94%E8%AE%B0%E3%80%82" target="_blank" rel="noopener">稍后读</a>
+    </span>
+    
+  </div>
+</article>
+
+
+
+
+
+
+<article id="p2" data-dir="延性断裂与损伤演化" data-must="0"
+         style="--hue:#1f6fb5;--hue-soft:#e9f2fb">
+  <div class="badges">
+    <span class="rank">02</span>
+    
+    <span class="pill p-dir" style="color:#1f6fb5;background:#e9f2fb">延性断裂与损伤演化</span>
+  </div>
+
+  <a class="title" href="https://linkinghub.elsevier.com/retrieve/pii/S0167844226004970" target="_blank" rel="noopener">Constraint-dependent CTOD resistance and triaxiality-based damage initiation relationships of API X52 pipeline steel using XFEM analysis of SENT, SENB, and CT specimens <span class="yr">(2026-09)</span></a>
+  <div class="title-zh">基于三轴度的约束依赖CTOD抗力和损伤起始关系：使用XFEM分析SENT、SENB和CT试样研究API X52管线钢</div>
+
+  <div class="line"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="ico"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span>Mohammad Kheirkhah Gildeh, Amirhossein Iranmehr, Ali Imanpour, Nader Yoosef-Ghodsi, Samer Adeeb</span></div>
+  <div class="line"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="ico"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg><span><em>Theoretical and Applied Fracture Mechanics</em></span></div>
+
+  <div class="tldr">对API X52管线钢，通过XFEM分析SENT、SENB和CT试样，建立约束依赖的CTOD抗力和基于三轴度的损伤起始关系。</div>
+
+  
+
+  
+
+  
+  <div class="why"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="ico"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg><span>最接近库内《Effect of stress triaxiality and lode angle on ductile fracture》</span></div>
+
+  <div class="foot">
+    <span class="m rel" title="综合相关度，0–1"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="ico"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>相关度
+      <b>0.66</b>
+      <span class="bar"><i style="width:66%"></i></span></span>
+    <span class="m">被引用 <b>0</b></span>
+    <span class="m"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="ico"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg><a href="https://doi.org/https://doi.org/10.1016/j.tafmec.2026.105931"
+       target="_blank" rel="noopener">https://doi.org/10.1016/j.tafmec.2026.105931</a></span>
+    
+    
+    <span class="rate" title="将打开公开 GitHub Issue，需你确认提交，请勿填写私人笔记">
+      <a class="rb rb-1" href="https://github.com/lwz20210407/ZotWatch/issues/new?title=%5BZotWatch+feedback%5D+%E7%9B%B4%E6%8E%A5%E6%9C%89%E7%94%A8+Constraint-dependent+CTOD+resistance+and+triaxiality-based+damage+initiation+relationships&amp;body=%3C%21--+zotwatch-feedback-v1+--%3E%0A%60%60%60json%0A%7B%22doi%22%3A+%2210.1016%2Fj.tafmec.2026.105931%22%2C+%22rating%22%3A+%22direct%22%2C+%22facets%22%3A+%5B%5D%7D%0A%60%60%60%0A%E5%85%AC%E5%BC%80%E5%8F%8D%E9%A6%88%EF%BC%8C%E8%AF%B7%E5%8B%BF%E5%A1%AB%E5%86%99%E7%A7%81%E4%BA%BA%E7%AC%94%E8%AE%B0%E3%80%82" target="_blank" rel="noopener">有用</a><a class="rb rb-2" href="https://github.com/lwz20210407/ZotWatch/issues/new?title=%5BZotWatch+feedback%5D+%E4%B8%8D%E7%9B%B8%E5%85%B3+Constraint-dependent+CTOD+resistance+and+triaxiality-based+damage+initiation+relationships&amp;body=%3C%21--+zotwatch-feedback-v1+--%3E%0A%60%60%60json%0A%7B%22doi%22%3A+%2210.1016%2Fj.tafmec.2026.105931%22%2C+%22rating%22%3A+%22irrelevant%22%2C+%22facets%22%3A+%5B%5D%7D%0A%60%60%60%0A%E5%85%AC%E5%BC%80%E5%8F%8D%E9%A6%88%EF%BC%8C%E8%AF%B7%E5%8B%BF%E5%A1%AB%E5%86%99%E7%A7%81%E4%BA%BA%E7%AC%94%E8%AE%B0%E3%80%82" target="_blank" rel="noopener">无用</a><a class="rb rb-3" href="https://github.com/lwz20210407/ZotWatch/issues/new?title=%5BZotWatch+feedback%5D+%E7%A8%8D%E5%90%8E%E7%9C%8B+Constraint-dependent+CTOD+resistance+and+triaxiality-based+damage+initiation+relationships&amp;body=%3C%21--+zotwatch-feedback-v1+--%3E%0A%60%60%60json%0A%7B%22doi%22%3A+%2210.1016%2Fj.tafmec.2026.105931%22%2C+%22rating%22%3A+%22later%22%2C+%22facets%22%3A+%5B%5D%7D%0A%60%60%60%0A%E5%85%AC%E5%BC%80%E5%8F%8D%E9%A6%88%EF%BC%8C%E8%AF%B7%E5%8B%BF%E5%A1%AB%E5%86%99%E7%A7%81%E4%BA%BA%E7%AC%94%E8%AE%B0%E3%80%82" target="_blank" rel="noopener">稍后读</a>
+    </span>
+    
+  </div>
+</article>
+
+
+
+
+
+
+<article id="p3" data-dir="增材组织—缺陷—失效" data-must="0"
+         style="--hue:#2f8f4e;--hue-soft:#e9f6ee">
+  <div class="badges">
+    <span class="rank">03</span>
+    
+    <span class="pill p-dir" style="color:#2f8f4e;background:#e9f6ee">增材组织—缺陷—失效</span>
+  </div>
+
+  <a class="title" href="https://linkinghub.elsevier.com/retrieve/pii/S0925838826049327" target="_blank" rel="noopener">Transition from brittle to ductile fracture in an additively manufactured Al-Mg2Si-Si alloy via tailoring microstructural characteristics through annealing treatment <span class="yr">(2026-09)</span></a>
+  <div class="title-zh">通过退火处理调控微观结构特征实现Al-Mg2Si-Si合金从脆性到延性断裂的转变</div>
+
+  <div class="line"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="ico"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span>Tao Wen, Jianying Wang, Mengzhen Zhu, Anjing Wang, Siqi Wang, Shouxun Ji, Zhilin Liu, Hailin Yang</span></div>
+  <div class="line"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="ico"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg><span><em>Journal of Alloys and Compounds</em></span></div>
+
+  <div class="tldr">对Al-Mg2Si-Si合金，通过退火处理调控微观结构，实现从脆性到延性的断裂行为转变。</div>
+
+  
+
+  
+  <div class="transfer"><b>方法迁移说明卡 · 延性断裂与损伤演化</b>可作为断裂起始、损伤累积和失效模式的比较线索（规则推断，非已验证迁移）<br />
+    <span>迁移前核对：核对负三轴度、非比例路径、加载历史和独立验证试样</span></div>
+  
+
+  
+  <div class="why"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="ico"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg><span>最接近库内《The true origin of ductile fracture in aluminum alloys》</span></div>
+
+  <div class="foot">
+    <span class="m rel" title="综合相关度，0–1"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="ico"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>相关度
+      <b>0.66</b>
+      <span class="bar"><i style="width:66%"></i></span></span>
+    <span class="m">被引用 <b>0</b></span>
+    <span class="m"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="ico"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg><a href="https://doi.org/10.1016/j.jallcom.2026.190863"
+       target="_blank" rel="noopener">10.1016/j.jallcom.2026.190863</a></span>
+    
+    
+    <span class="rate" title="将打开公开 GitHub Issue，需你确认提交，请勿填写私人笔记">
+      <a class="rb rb-1" href="https://github.com/lwz20210407/ZotWatch/issues/new?title=%5BZotWatch+feedback%5D+%E7%9B%B4%E6%8E%A5%E6%9C%89%E7%94%A8+Transition+from+brittle+to+ductile+fracture+in+an+additively+manufactured+Al-Mg2Si-Si+allo&amp;body=%3C%21--+zotwatch-feedback-v1+--%3E%0A%60%60%60json%0A%7B%22doi%22%3A+%2210.1016%2Fj.jallcom.2026.190863%22%2C+%22rating%22%3A+%22direct%22%2C+%22facets%22%3A+%5B%22fracture%22%5D%7D%0A%60%60%60%0A%E5%85%AC%E5%BC%80%E5%8F%8D%E9%A6%88%EF%BC%8C%E8%AF%B7%E5%8B%BF%E5%A1%AB%E5%86%99%E7%A7%81%E4%BA%BA%E7%AC%94%E8%AE%B0%E3%80%82" target="_blank" rel="noopener">有用</a><a class="rb rb-2" href="https://github.com/lwz20210407/ZotWatch/issues/new?title=%5BZotWatch+feedback%5D+%E4%B8%8D%E7%9B%B8%E5%85%B3+Transition+from+brittle+to+ductile+fracture+in+an+additively+manufactured+Al-Mg2Si-Si+allo&amp;body=%3C%21--+zotwatch-feedback-v1+--%3E%0A%60%60%60json%0A%7B%22doi%22%3A+%2210.1016%2Fj.jallcom.2026.190863%22%2C+%22rating%22%3A+%22irrelevant%22%2C+%22facets%22%3A+%5B%22fracture%22%5D%7D%0A%60%60%60%0A%E5%85%AC%E5%BC%80%E5%8F%8D%E9%A6%88%EF%BC%8C%E8%AF%B7%E5%8B%BF%E5%A1%AB%E5%86%99%E7%A7%81%E4%BA%BA%E7%AC%94%E8%AE%B0%E3%80%82" target="_blank" rel="noopener">无用</a><a class="rb rb-3" href="https://github.com/lwz20210407/ZotWatch/issues/new?title=%5BZotWatch+feedback%5D+%E7%A8%8D%E5%90%8E%E7%9C%8B+Transition+from+brittle+to+ductile+fracture+in+an+additively+manufactured+Al-Mg2Si-Si+allo&amp;body=%3C%21--+zotwatch-feedback-v1+--%3E%0A%60%60%60json%0A%7B%22doi%22%3A+%2210.1016%2Fj.jallcom.2026.190863%22%2C+%22rating%22%3A+%22later%22%2C+%22facets%22%3A+%5B%22fracture%22%5D%7D%0A%60%60%60%0A%E5%85%AC%E5%BC%80%E5%8F%8D%E9%A6%88%EF%BC%8C%E8%AF%B7%E5%8B%BF%E5%A1%AB%E5%86%99%E7%A7%81%E4%BA%BA%E7%AC%94%E8%AE%B0%E3%80%82" target="_blank" rel="noopener">稍后读</a>
+    </span>
+    
+  </div>
+</article>
+
+
+
+
+
+
+<article id="p4" data-dir="参数反演与硬化外推" data-must="0"
+         style="--hue:#d9541f;--hue-soft:#fdeee6">
+  <div class="badges">
+    <span class="rank">04</span>
+    
+    <span class="pill p-dir" style="color:#d9541f;background:#fdeee6">参数反演与硬化外推</span>
+  </div>
+
+  <a class="title" href="https://link.springer.com/article/10.1007/s11665-026-14936-2" target="_blank" rel="noopener">Temperature-Dependent Calibration and Validation of a Shear-Modified GTN Model for Warm Forming Limits of DP590 Steel <span class="yr">(2026-09-09)</span></a>
+  <div class="title-zh">温度依赖的剪切修正GTN模型校准与验证：用于DP590钢温成形极限</div>
+
+  <div class="line"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="ico"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span>Wei Wei, Zigang Shi</span></div>
+  <div class="line"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="ico"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg><span><em>Journal of Materials Engineering and Performance</em></span></div>
+
+  <div class="tldr">对DP590钢，通过温度依赖的剪切修正GTN模型校准与验证，得到其在温成形条件下的力学响应。</div>
+
+  
+
+  
+  <div class="transfer"><b>方法迁移说明卡 · 温度—应变率耦合</b>可作为速率、温度和热力耦合项的候选建模思路（规则推断，非已验证迁移）<br />
+    <span>迁移前核对：核对温度和应变率范围、绝热升温修正、参数耦合与外推误差</span></div>
+  
+
+  
+  <div class="why"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="ico"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg><span>最接近库内《Calibration of plasticity and failure models for AHSS sheets》</span></div>
+
+  <div class="foot">
+    <span class="m rel" title="综合相关度，0–1"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="ico"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>相关度
+      <b>0.66</b>
+      <span class="bar"><i style="width:66%"></i></span></span>
+    <span class="m">被引用 <b>0</b></span>
+    <span class="m"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="ico"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg><a href="https://doi.org/10.1007/s11665-026-14936-2"
+       target="_blank" rel="noopener">10.1007/s11665-026-14936-2</a></span>
+    
+    
+    <span class="rate" title="将打开公开 GitHub Issue，需你确认提交，请勿填写私人笔记">
+      <a class="rb rb-1" href="https://github.com/lwz20210407/ZotWatch/issues/new?title=%5BZotWatch+feedback%5D+%E7%9B%B4%E6%8E%A5%E6%9C%89%E7%94%A8+Temperature-Dependent+Calibration+and+Validation+of+a+Shear-Modified+GTN+Model+for+Warm+Fo&amp;body=%3C%21--+zotwatch-feedback-v1+--%3E%0A%60%60%60json%0A%7B%22doi%22%3A+%2210.1007%2Fs11665-026-14936-2%22%2C+%22rating%22%3A+%22direct%22%2C+%22facets%22%3A+%5B%22thermorate%22%5D%7D%0A%60%60%60%0A%E5%85%AC%E5%BC%80%E5%8F%8D%E9%A6%88%EF%BC%8C%E8%AF%B7%E5%8B%BF%E5%A1%AB%E5%86%99%E7%A7%81%E4%BA%BA%E7%AC%94%E8%AE%B0%E3%80%82" target="_blank" rel="noopener">有用</a><a class="rb rb-2" href="https://github.com/lwz20210407/ZotWatch/issues/new?title=%5BZotWatch+feedback%5D+%E4%B8%8D%E7%9B%B8%E5%85%B3+Temperature-Dependent+Calibration+and+Validation+of+a+Shear-Modified+GTN+Model+for+Warm+Fo&amp;body=%3C%21--+zotwatch-feedback-v1+--%3E%0A%60%60%60json%0A%7B%22doi%22%3A+%2210.1007%2Fs11665-026-14936-2%22%2C+%22rating%22%3A+%22irrelevant%22%2C+%22facets%22%3A+%5B%22thermorate%22%5D%7D%0A%60%60%60%0A%E5%85%AC%E5%BC%80%E5%8F%8D%E9%A6%88%EF%BC%8C%E8%AF%B7%E5%8B%BF%E5%A1%AB%E5%86%99%E7%A7%81%E4%BA%BA%E7%AC%94%E8%AE%B0%E3%80%82" target="_blank" rel="noopener">无用</a><a class="rb rb-3" href="https://github.com/lwz20210407/ZotWatch/issues/new?title=%5BZotWatch+feedback%5D+%E7%A8%8D%E5%90%8E%E7%9C%8B+Temperature-Dependent+Calibration+and+Validation+of+a+Shear-Modified+GTN+Model+for+Warm+Fo&amp;body=%3C%21--+zotwatch-feedback-v1+--%3E%0A%60%60%60json%0A%7B%22doi%22%3A+%2210.1007%2Fs11665-026-14936-2%22%2C+%22rating%22%3A+%22later%22%2C+%22facets%22%3A+%5B%22thermorate%22%5D%7D%0A%60%60%60%0A%E5%85%AC%E5%BC%80%E5%8F%8D%E9%A6%88%EF%BC%8C%E8%AF%B7%E5%8B%BF%E5%A1%AB%E5%86%99%E7%A7%81%E4%BA%BA%E7%AC%94%E8%AE%B0%E3%80%82" target="_blank" rel="noopener">稍后读</a>
+    </span>
+    
+  </div>
+</article>
+
+
+
+
+
+
+<article id="p5" data-dir="温度—应变率耦合" data-must="0"
+         style="--hue:#8a4bb8;--hue-soft:#f3ecfa">
+  <div class="badges">
+    <span class="rank">05</span>
+    
+    <span class="pill p-dir" style="color:#8a4bb8;background:#f3ecfa">温度—应变率耦合</span>
+  </div>
+
+  <a class="title" href="https://linkinghub.elsevier.com/retrieve/pii/S135964542600635X" target="_blank" rel="noopener">Grain-size-dependent dynamic mechanical response and plastic deformation of the FeCoCrMnNi high-entropy alloy during high-strain-rate impact <span class="yr">(2026-09)</span></a>
+  <div class="title-zh">晶粒尺寸依赖的高应变率冲击下FeCoCrMnNi高熵合金的动态力学响应与塑性变形</div>
+
+  <div class="line"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="ico"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span>Xu Zhang, Hanyang Zhang, Chao Wang, Jiwang Yan, Hu Huang</span></div>
+  <div class="line"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="ico"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg><span><em>Acta Materialia</em></span></div>
+
+  <div class="tldr">对FeCoCrMnNi高熵合金，研究其在高应变率冲击下的晶粒尺寸依赖的动态力学响应与塑性变形行为。</div>
+
+  
+
+  
+  <div class="transfer"><b>方法迁移说明卡 · 温度—应变率耦合</b>可作为速率、温度和热力耦合项的候选建模思路（规则推断，非已验证迁移）<br />
+    <span>迁移前核对：核对温度和应变率范围、绝热升温修正、参数耦合与外推误差</span></div>
+  
+
+  
+  <div class="why"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="ico"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg><span>最接近库内《Effects of strain rate and low temperature on dynamic behaviors of additively manufactured CoCrFeMnNi high-entropy alloys》</span></div>
+
+  <div class="foot">
+    <span class="m rel" title="综合相关度，0–1"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="ico"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>相关度
+      <b>0.65</b>
+      <span class="bar"><i style="width:65%"></i></span></span>
+    <span class="m">被引用 <b>0</b></span>
+    <span class="m"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="ico"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg><a href="https://doi.org/10.1016/j.actamat.2026.122534"
+       target="_blank" rel="noopener">10.1016/j.actamat.2026.122534</a></span>
+    
+    
+    <span class="rate" title="将打开公开 GitHub Issue，需你确认提交，请勿填写私人笔记">
+      <a class="rb rb-1" href="https://github.com/lwz20210407/ZotWatch/issues/new?title=%5BZotWatch+feedback%5D+%E7%9B%B4%E6%8E%A5%E6%9C%89%E7%94%A8+Grain-size-dependent+dynamic+mechanical+response+and+plastic+deformation+of+the+FeCoCrMnNi&amp;body=%3C%21--+zotwatch-feedback-v1+--%3E%0A%60%60%60json%0A%7B%22doi%22%3A+%2210.1016%2Fj.actamat.2026.122534%22%2C+%22rating%22%3A+%22direct%22%2C+%22facets%22%3A+%5B%22thermorate%22%5D%7D%0A%60%60%60%0A%E5%85%AC%E5%BC%80%E5%8F%8D%E9%A6%88%EF%BC%8C%E8%AF%B7%E5%8B%BF%E5%A1%AB%E5%86%99%E7%A7%81%E4%BA%BA%E7%AC%94%E8%AE%B0%E3%80%82" target="_blank" rel="noopener">有用</a><a class="rb rb-2" href="https://github.com/lwz20210407/ZotWatch/issues/new?title=%5BZotWatch+feedback%5D+%E4%B8%8D%E7%9B%B8%E5%85%B3+Grain-size-dependent+dynamic+mechanical+response+and+plastic+deformation+of+the+FeCoCrMnNi&amp;body=%3C%21--+zotwatch-feedback-v1+--%3E%0A%60%60%60json%0A%7B%22doi%22%3A+%2210.1016%2Fj.actamat.2026.122534%22%2C+%22rating%22%3A+%22irrelevant%22%2C+%22facets%22%3A+%5B%22thermorate%22%5D%7D%0A%60%60%60%0A%E5%85%AC%E5%BC%80%E5%8F%8D%E9%A6%88%EF%BC%8C%E8%AF%B7%E5%8B%BF%E5%A1%AB%E5%86%99%E7%A7%81%E4%BA%BA%E7%AC%94%E8%AE%B0%E3%80%82" target="_blank" rel="noopener">无用</a><a class="rb rb-3" href="https://github.com/lwz20210407/ZotWatch/issues/new?title=%5BZotWatch+feedback%5D+%E7%A8%8D%E5%90%8E%E7%9C%8B+Grain-size-dependent+dynamic+mechanical+response+and+plastic+deformation+of+the+FeCoCrMnNi&amp;body=%3C%21--+zotwatch-feedback-v1+--%3E%0A%60%60%60json%0A%7B%22doi%22%3A+%2210.1016%2Fj.actamat.2026.122534%22%2C+%22rating%22%3A+%22later%22%2C+%22facets%22%3A+%5B%22thermorate%22%5D%7D%0A%60%60%60%0A%E5%85%AC%E5%BC%80%E5%8F%8D%E9%A6%88%EF%BC%8C%E8%AF%B7%E5%8B%BF%E5%A1%AB%E5%86%99%E7%A7%81%E4%BA%BA%E7%AC%94%E8%AE%B0%E3%80%82" target="_blank" rel="noopener">稍后读</a>
+    </span>
+    
+  </div>
+</article>
+
+
+
+
+
+
+<article id="p6" data-dir="增材组织—缺陷—失效" data-must="0"
+         style="--hue:#2f8f4e;--hue-soft:#e9f6ee">
+  <div class="badges">
+    <span class="rank">06</span>
+    
+    <span class="pill p-dir" style="color:#2f8f4e;background:#e9f6ee">增材组织—缺陷—失效</span>
+  </div>
+
+  <a class="title" href="https://linkinghub.elsevier.com/retrieve/pii/S1359645426005987" target="_blank" rel="noopener">Achieving superior strength-ductility synergy in additively manufactured austenitic steel through residual stress-driven nanotwin growth <span class="yr">(2026-09)</span></a>
+  <div class="title-zh">通过残余应力驱动纳米孪晶生长实现增材制造奥氏体钢的优异强度-延性协同</div>
+
+  <div class="line"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="ico"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span>Xingda Tian, Zhen Yu, Aiying Chen, Zhiyi Ding, Yunxiu Chao, Ying Li, Yong Liu</span></div>
+  <div class="line"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="ico"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg><span><em>Acta Materialia</em></span></div>
+
+  <div class="tldr">对增材制造奥氏体钢，通过残余应力驱动纳米孪晶生长，实现强度与延性的协同提升。</div>
+
+  
+
+  
+
+  
+  <div class="why"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="ico"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg><span>最接近库内《Evolution of Microstructure, Residual Stress, and Tensile Properties of Additively Manufactured Stainless Steel Under Heat Treatments》</span></div>
+
+  <div class="foot">
+    <span class="m rel" title="综合相关度，0–1"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="ico"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>相关度
+      <b>0.65</b>
+      <span class="bar"><i style="width:65%"></i></span></span>
+    <span class="m">被引用 <b>1</b></span>
+    <span class="m"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="ico"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg><a href="https://doi.org/10.1016/j.actamat.2026.122497"
+       target="_blank" rel="noopener">10.1016/j.actamat.2026.122497</a></span>
+    
+    
+    <span class="rate" title="将打开公开 GitHub Issue，需你确认提交，请勿填写私人笔记">
+      <a class="rb rb-1" href="https://github.com/lwz20210407/ZotWatch/issues/new?title=%5BZotWatch+feedback%5D+%E7%9B%B4%E6%8E%A5%E6%9C%89%E7%94%A8+Achieving+superior+strength-ductility+synergy+in+additively+manufactured+austenitic+steel+&amp;body=%3C%21--+zotwatch-feedback-v1+--%3E%0A%60%60%60json%0A%7B%22doi%22%3A+%2210.1016%2Fj.actamat.2026.122497%22%2C+%22rating%22%3A+%22direct%22%2C+%22facets%22%3A+%5B%5D%7D%0A%60%60%60%0A%E5%85%AC%E5%BC%80%E5%8F%8D%E9%A6%88%EF%BC%8C%E8%AF%B7%E5%8B%BF%E5%A1%AB%E5%86%99%E7%A7%81%E4%BA%BA%E7%AC%94%E8%AE%B0%E3%80%82" target="_blank" rel="noopener">有用</a><a class="rb rb-2" href="https://github.com/lwz20210407/ZotWatch/issues/new?title=%5BZotWatch+feedback%5D+%E4%B8%8D%E7%9B%B8%E5%85%B3+Achieving+superior+strength-ductility+synergy+in+additively+manufactured+austenitic+steel+&amp;body=%3C%21--+zotwatch-feedback-v1+--%3E%0A%60%60%60json%0A%7B%22doi%22%3A+%2210.1016%2Fj.actamat.2026.122497%22%2C+%22rating%22%3A+%22irrelevant%22%2C+%22facets%22%3A+%5B%5D%7D%0A%60%60%60%0A%E5%85%AC%E5%BC%80%E5%8F%8D%E9%A6%88%EF%BC%8C%E8%AF%B7%E5%8B%BF%E5%A1%AB%E5%86%99%E7%A7%81%E4%BA%BA%E7%AC%94%E8%AE%B0%E3%80%82" target="_blank" rel="noopener">无用</a><a class="rb rb-3" href="https://github.com/lwz20210407/ZotWatch/issues/new?title=%5BZotWatch+feedback%5D+%E7%A8%8D%E5%90%8E%E7%9C%8B+Achieving+superior+strength-ductility+synergy+in+additively+manufactured+austenitic+steel+&amp;body=%3C%21--+zotwatch-feedback-v1+--%3E%0A%60%60%60json%0A%7B%22doi%22%3A+%2210.1016%2Fj.actamat.2026.122497%22%2C+%22rating%22%3A+%22later%22%2C+%22facets%22%3A+%5B%5D%7D%0A%60%60%60%0A%E5%85%AC%E5%BC%80%E5%8F%8D%E9%A6%88%EF%BC%8C%E8%AF%B7%E5%8B%BF%E5%A1%AB%E5%86%99%E7%A7%81%E4%BA%BA%E7%AC%94%E8%AE%B0%E3%80%82" target="_blank" rel="noopener">稍后读</a>
+    </span>
+    
+  </div>
+</article>
+
+
+
+
+
+
+<article id="p7" data-dir="参数反演与硬化外推" data-must="0"
+         style="--hue:#d9541f;--hue-soft:#fdeee6">
+  <div class="badges">
+    <span class="rank">07</span>
+    
+    <span class="pill p-dir" style="color:#d9541f;background:#fdeee6">参数反演与硬化外推</span>
+  </div>
+
+  <a class="title" href="https://linkinghub.elsevier.com/retrieve/pii/S0749641926002159" target="_blank" rel="noopener">Cyclic plasticity constitutive modeling and microstructural mechanisms of AISI 304 stainless steel under random amplitude non-proportional loading <span class="yr">(2026-09)</span></a>
+  <div class="title-zh">AISI 304不锈钢在随机幅值非比例载荷下的循环塑性本构建模与微观结构机制</div>
+
+  <div class="line"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="ico"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span>Le Xu, Yu-Chen Wang, Run-zi Wang, Yipu Xu, Ji Wang, Xian-Cheng Zhang, Shan-Tung Tu, Takamoto Itoh</span></div>
+  <div class="line"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="ico"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg><span><em>International Journal of Plasticity</em></span></div>
+
+  <div class="tldr">对AISI 304不锈钢，研究其在随机幅值非比例载荷下的循环塑性行为，建立包含动态塑性应变记忆面的本构模型。</div>
+
+  
+  <div class="abs"><span class="lead">In practical engineering applications, key structural components are routinely subjected to complex non-proportional variable amplitude loading spectra that severely degrade the material’s fatigue life compared to the simple uniaxial conditions. The additional material response arising from the stochastic random loading significantly challenges the predictive efficacy of current cyclic plasticity constitutive model.</span><span class="rest"> To address this critical gap, the present study systematically investigates the cyclic deformation behaviors of AISI 304 stainless steel under constant amplitude, two-stage amplitude, and random amplitude fatigue loading conditions. A robust cyclic plasticity constitutive model is established, incorporating a dynamic plastic strain memory surface linked directly to evolving additional hardening response. Three non-proportional path parameters, comprising a newly proposed instantaneous factor and two classic history-dependent factors, are successfully integrated into a finite element analysis framework. The performance and predictive fidelity of each path factor are comprehensively quantified against experimental datasets. The newly proposed instantaneous path factor delivers the optimal predictive capacity, providing a precise boundary that closely tracks the multiaxial stress responses. Conversely, the history-dependent path factor proposed by Tanaka tends to be overly conservative by slightly overestimating the stress response, while the path factor proposed by Itoh et al. remains unconservative and underestimates the boundary. Furthermore, systematic transmission electron microscopy (TEM) observations reveal a clear physical correlation between macroscopic transient responses and their microstructural drivers. Loading paths with high non-proportionality culminate in the formation of refined dislocation cells or labyrinth substructures that act as formidable barriers to plastic flow. In contrast, the low non-proportionality path primarily exhibits oriented dislocation walls governed by a planar slip mechanism.</span></div>
+  <div class="absbar">
+    <button class="more" type="button">显示更多</button>
+    <button class="alt" type="button">翻译</button>
+  </div>
+  <div class="abs zh" hidden>在实际工程应用中，关键结构部件通常承受复杂的非比例随机幅值载荷谱，这种载荷显著降低了材料的疲劳寿命，相较于简单单轴载荷条件。由随机载荷引起的额外材料响应显著挑战了现有循环塑性本构模型的预测能力。为解决这一关键问题，本研究系统地研究了AISI 304不锈钢在恒幅载荷、两阶段幅值载荷和随机幅值疲劳载荷条件下的循环变形行为。建立了一个稳健的循环塑性本构模型，该模型包含一个与额外硬化响应演变直接关联的动态塑性应变记忆面。三个非比例路径参数，包括一个新提出的瞬时因子和两个经典的历史依赖因子，成功整合到有限元分析框架中。每个路径因子的性能和预测精度均通过实验数据集进行量化评估。新提出的瞬时路径因子展现出最佳的预测能力，提供了一个精确的边界，能够紧密跟踪多轴应力响应。相反，Tanaka提出的基于历史的路径因子略微高估了应力响应，表现出过于保守的特性；而Itoh等人提出的路径因子则过于不保守，低估了边界。此外，系统性的透射电子显微镜（TEM）观察揭示了宏观瞬态响应与微观结构驱动因素之间的明确物理关联。具有高非比例性的载荷路径最终导致形成精细的位错胞或迷宫亚结构，这些结构作为塑性流动的 formidable 障碍。相比之下，低非比例路径主要表现出 orie</div>
+  
+
+  
+
+  
+  <div class="why"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="ico"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg><span>最接近库内《Identification of mechanical responses of steel sheets under non-proportional loadings using dislocation-density based crystal plasticity model》</span></div>
+
+  <div class="foot">
+    <span class="m rel" title="综合相关度，0–1"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="ico"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>相关度
+      <b>0.65</b>
+      <span class="bar"><i style="width:65%"></i></span></span>
+    <span class="m">被引用 <b>0</b></span>
+    <span class="m"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="ico"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg><a href="https://doi.org/10.1016/j.ijplas.2026.104821"
+       target="_blank" rel="noopener">10.1016/j.ijplas.2026.104821</a></span>
+    
+    
+    <span class="rate" title="将打开公开 GitHub Issue，需你确认提交，请勿填写私人笔记">
+      <a class="rb rb-1" href="https://github.com/lwz20210407/ZotWatch/issues/new?title=%5BZotWatch+feedback%5D+%E7%9B%B4%E6%8E%A5%E6%9C%89%E7%94%A8+Cyclic+plasticity+constitutive+modeling+and+microstructural+mechanisms+of+AISI+304+stainle&amp;body=%3C%21--+zotwatch-feedback-v1+--%3E%0A%60%60%60json%0A%7B%22doi%22%3A+%2210.1016%2Fj.ijplas.2026.104821%22%2C+%22rating%22%3A+%22direct%22%2C+%22facets%22%3A+%5B%5D%7D%0A%60%60%60%0A%E5%85%AC%E5%BC%80%E5%8F%8D%E9%A6%88%EF%BC%8C%E8%AF%B7%E5%8B%BF%E5%A1%AB%E5%86%99%E7%A7%81%E4%BA%BA%E7%AC%94%E8%AE%B0%E3%80%82" target="_blank" rel="noopener">有用</a><a class="rb rb-2" href="https://github.com/lwz20210407/ZotWatch/issues/new?title=%5BZotWatch+feedback%5D+%E4%B8%8D%E7%9B%B8%E5%85%B3+Cyclic+plasticity+constitutive+modeling+and+microstructural+mechanisms+of+AISI+304+stainle&amp;body=%3C%21--+zotwatch-feedback-v1+--%3E%0A%60%60%60json%0A%7B%22doi%22%3A+%2210.1016%2Fj.ijplas.2026.104821%22%2C+%22rating%22%3A+%22irrelevant%22%2C+%22facets%22%3A+%5B%5D%7D%0A%60%60%60%0A%E5%85%AC%E5%BC%80%E5%8F%8D%E9%A6%88%EF%BC%8C%E8%AF%B7%E5%8B%BF%E5%A1%AB%E5%86%99%E7%A7%81%E4%BA%BA%E7%AC%94%E8%AE%B0%E3%80%82" target="_blank" rel="noopener">无用</a><a class="rb rb-3" href="https://github.com/lwz20210407/ZotWatch/issues/new?title=%5BZotWatch+feedback%5D+%E7%A8%8D%E5%90%8E%E7%9C%8B+Cyclic+plasticity+constitutive+modeling+and+microstructural+mechanisms+of+AISI+304+stainle&amp;body=%3C%21--+zotwatch-feedback-v1+--%3E%0A%60%60%60json%0A%7B%22doi%22%3A+%2210.1016%2Fj.ijplas.2026.104821%22%2C+%22rating%22%3A+%22later%22%2C+%22facets%22%3A+%5B%5D%7D%0A%60%60%60%0A%E5%85%AC%E5%BC%80%E5%8F%8D%E9%A6%88%EF%BC%8C%E8%AF%B7%E5%8B%BF%E5%A1%AB%E5%86%99%E7%A7%81%E4%BA%BA%E7%AC%94%E8%AE%B0%E3%80%82" target="_blank" rel="noopener">稍后读</a>
+    </span>
+    
+  </div>
+</article>
+
+
+
+
+
+
+<article id="p8" data-dir="延性断裂与损伤演化" data-must="0"
+         style="--hue:#1f6fb5;--hue-soft:#e9f2fb">
+  <div class="badges">
+    <span class="rank">08</span>
+    
+    <span class="pill p-dir" style="color:#1f6fb5;background:#e9f2fb">延性断裂与损伤演化</span>
+  </div>
+
+  <a class="title" href="https://linkinghub.elsevier.com/retrieve/pii/S1350630726008939" target="_blank" rel="noopener">Ductile fracture toughness evaluation using mini-DCT specimens: Three case studies on industrially relevant steels <span class="yr">(2026-09)</span></a>
+  <div class="title-zh">使用微型DCT试样评估延性断裂韧性：三种工业相关钢材的案例研究</div>
+
+  <div class="line"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="ico"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span>P. Fernández-Pisón, L.M. Santana, A. Parrot, J. Furtado, P-J. Marchais, J. Besson, Y. Madi</span></div>
+  <div class="line"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="ico"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg><span><em>Engineering Failure Analysis</em></span></div>
+
+  <div class="tldr">对工业相关钢材，使用微型DCT试样评估延性断裂韧性，分析不同材料的断裂行为。</div>
+
+  
+
+  
+  <div class="transfer"><b>方法迁移说明卡 · 延性断裂与损伤演化</b>可作为断裂起始、损伤累积和失效模式的比较线索（规则推断，非已验证迁移）<br />
+    <span>迁移前核对：核对负三轴度、非比例路径、加载历史和独立验证试样</span></div>
+  
+
+  
+  <div class="why"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="ico"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg><span>最接近库内《Criteria for ductile fracture and their applications》</span></div>
+
+  <div class="foot">
+    <span class="m rel" title="综合相关度，0–1"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="ico"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>相关度
+      <b>0.65</b>
+      <span class="bar"><i style="width:65%"></i></span></span>
+    <span class="m">被引用 <b>0</b></span>
+    <span class="m"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="ico"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg><a href="https://doi.org/10.1016/j.engfailanal.2026.111418"
+       target="_blank" rel="noopener">10.1016/j.engfailanal.2026.111418</a></span>
+    
+    
+    <span class="rate" title="将打开公开 GitHub Issue，需你确认提交，请勿填写私人笔记">
+      <a class="rb rb-1" href="https://github.com/lwz20210407/ZotWatch/issues/new?title=%5BZotWatch+feedback%5D+%E7%9B%B4%E6%8E%A5%E6%9C%89%E7%94%A8+Ductile+fracture+toughness+evaluation+using+mini-DCT+specimens%3A+Three+case+studies+on+indu&amp;body=%3C%21--+zotwatch-feedback-v1+--%3E%0A%60%60%60json%0A%7B%22doi%22%3A+%2210.1016%2Fj.engfailanal.2026.111418%22%2C+%22rating%22%3A+%22direct%22%2C+%22facets%22%3A+%5B%22fracture%22%5D%7D%0A%60%60%60%0A%E5%85%AC%E5%BC%80%E5%8F%8D%E9%A6%88%EF%BC%8C%E8%AF%B7%E5%8B%BF%E5%A1%AB%E5%86%99%E7%A7%81%E4%BA%BA%E7%AC%94%E8%AE%B0%E3%80%82" target="_blank" rel="noopener">有用</a><a class="rb rb-2" href="https://github.com/lwz20210407/ZotWatch/issues/new?title=%5BZotWatch+feedback%5D+%E4%B8%8D%E7%9B%B8%E5%85%B3+Ductile+fracture+toughness+evaluation+using+mini-DCT+specimens%3A+Three+case+studies+on+indu&amp;body=%3C%21--+zotwatch-feedback-v1+--%3E%0A%60%60%60json%0A%7B%22doi%22%3A+%2210.1016%2Fj.engfailanal.2026.111418%22%2C+%22rating%22%3A+%22irrelevant%22%2C+%22facets%22%3A+%5B%22fracture%22%5D%7D%0A%60%60%60%0A%E5%85%AC%E5%BC%80%E5%8F%8D%E9%A6%88%EF%BC%8C%E8%AF%B7%E5%8B%BF%E5%A1%AB%E5%86%99%E7%A7%81%E4%BA%BA%E7%AC%94%E8%AE%B0%E3%80%82" target="_blank" rel="noopener">无用</a><a class="rb rb-3" href="https://github.com/lwz20210407/ZotWatch/issues/new?title=%5BZotWatch+feedback%5D+%E7%A8%8D%E5%90%8E%E7%9C%8B+Ductile+fracture+toughness+evaluation+using+mini-DCT+specimens%3A+Three+case+studies+on+indu&amp;body=%3C%21--+zotwatch-feedback-v1+--%3E%0A%60%60%60json%0A%7B%22doi%22%3A+%2210.1016%2Fj.engfailanal.2026.111418%22%2C+%22rating%22%3A+%22later%22%2C+%22facets%22%3A+%5B%22fracture%22%5D%7D%0A%60%60%60%0A%E5%85%AC%E5%BC%80%E5%8F%8D%E9%A6%88%EF%BC%8C%E8%AF%B7%E5%8B%BF%E5%A1%AB%E5%86%99%E7%A7%81%E4%BA%BA%E7%AC%94%E8%AE%B0%E3%80%82" target="_blank" rel="noopener">稍后读</a>
+    </span>
+    
+  </div>
+</article>
+</div>
+<div class="empty" id="noMatch" hidden>该方向本期没有推荐。</div>
+
+
+
+<h2>重点作者新作 <em>7 篇</em></h2>
+<p class="note">已通过主题筛选，按发表时间排列；不代表都达到优先阅读阈值。</p>
+<div class="cards">
+
+
+
+
+
+<article id="p0" data-dir="参数反演与硬化外推" data-must="0"
+         style="--hue:#d9541f;--hue-soft:#fdeee6">
+  <div class="badges">
+    
+    
+    <span class="pill p-dir" style="color:#d9541f;background:#fdeee6">参数反演与硬化外推</span>
+  </div>
+
+  <a class="title" href="https://linkinghub.elsevier.com/retrieve/pii/S0045782526006341" target="_blank" rel="noopener">Predicting stress hotspots in crystal plasticity with Fourier neural operator surrogates <span class="yr">(2026-09-13)</span></a>
+  <div class="title-zh">利用傅里叶神经算子代理模型预测晶体塑性中的应力热点</div>
+
+  <div class="line"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="ico"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span>Ajaikrishna Ramalingam, Niklas Fehlemann, Sebastian Münstermann</span></div>
+  <div class="line"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="ico"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg><span><em>Computer Methods in Applied Mechanics and Engineering</em></span></div>
+
+  <div class="tldr">对晶体材料，用傅里叶神经算子方法预测应力热点，得到高精度的局部应力分布结果。</div>
+
+  
+
+  
+  <div class="transfer"><b>方法迁移说明卡 · 增材组织—缺陷—失效</b>可作为组织、缺陷及制造方向影响力学响应的机制线索（规则推断，非已验证迁移）<br />
+    <span>迁移前核对：核对制造路线、热处理、孔隙形貌、取向和组织表征证据</span></div>
+  
+
+  
+  <div class="why"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="ico"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg><span>最接近库内《Modelling metal plasticity and damage with constitutive artificial neural networks》</span></div>
+
+  <div class="foot">
+    <span class="m rel" title="综合相关度，0–1"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="ico"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>相关度
+      <b>0.65</b>
+      <span class="bar"><i style="width:65%"></i></span></span>
+    <span class="m">被引用 <b>0</b></span>
+    <span class="m"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="ico"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg><a href="https://doi.org/https://doi.org/10.1016/j.cma.2026.119361"
+       target="_blank" rel="noopener">https://doi.org/10.1016/j.cma.2026.119361</a></span>
+    
+    
+    <span class="rate" title="将打开公开 GitHub Issue，需你确认提交，请勿填写私人笔记">
+      <a class="rb rb-1" href="https://github.com/lwz20210407/ZotWatch/issues/new?title=%5BZotWatch+feedback%5D+%E7%9B%B4%E6%8E%A5%E6%9C%89%E7%94%A8+Predicting+stress+hotspots+in+crystal+plasticity+with+Fourier+neural+operator+surrogates&amp;body=%3C%21--+zotwatch-feedback-v1+--%3E%0A%60%60%60json%0A%7B%22doi%22%3A+%2210.1016%2Fj.cma.2026.119361%22%2C+%22rating%22%3A+%22direct%22%2C+%22facets%22%3A+%5B%22microstructure%22%5D%7D%0A%60%60%60%0A%E5%85%AC%E5%BC%80%E5%8F%8D%E9%A6%88%EF%BC%8C%E8%AF%B7%E5%8B%BF%E5%A1%AB%E5%86%99%E7%A7%81%E4%BA%BA%E7%AC%94%E8%AE%B0%E3%80%82" target="_blank" rel="noopener">有用</a><a class="rb rb-2" href="https://github.com/lwz20210407/ZotWatch/issues/new?title=%5BZotWatch+feedback%5D+%E4%B8%8D%E7%9B%B8%E5%85%B3+Predicting+stress+hotspots+in+crystal+plasticity+with+Fourier+neural+operator+surrogates&amp;body=%3C%21--+zotwatch-feedback-v1+--%3E%0A%60%60%60json%0A%7B%22doi%22%3A+%2210.1016%2Fj.cma.2026.119361%22%2C+%22rating%22%3A+%22irrelevant%22%2C+%22facets%22%3A+%5B%22microstructure%22%5D%7D%0A%60%60%60%0A%E5%85%AC%E5%BC%80%E5%8F%8D%E9%A6%88%EF%BC%8C%E8%AF%B7%E5%8B%BF%E5%A1%AB%E5%86%99%E7%A7%81%E4%BA%BA%E7%AC%94%E8%AE%B0%E3%80%82" target="_blank" rel="noopener">无用</a><a class="rb rb-3" href="https://github.com/lwz20210407/ZotWatch/issues/new?title=%5BZotWatch+feedback%5D+%E7%A8%8D%E5%90%8E%E7%9C%8B+Predicting+stress+hotspots+in+crystal+plasticity+with+Fourier+neural+operator+surrogates&amp;body=%3C%21--+zotwatch-feedback-v1+--%3E%0A%60%60%60json%0A%7B%22doi%22%3A+%2210.1016%2Fj.cma.2026.119361%22%2C+%22rating%22%3A+%22later%22%2C+%22facets%22%3A+%5B%22microstructure%22%5D%7D%0A%60%60%60%0A%E5%85%AC%E5%BC%80%E5%8F%8D%E9%A6%88%EF%BC%8C%E8%AF%B7%E5%8B%BF%E5%A1%AB%E5%86%99%E7%A7%81%E4%BA%BA%E7%AC%94%E8%AE%B0%E3%80%82" target="_blank" rel="noopener">稍后读</a>
+    </span>
+    
+  </div>
+</article>
+
+
+
+
+
+
+<article id="p0" data-dir="冲击与结构验证" data-must="0"
+         style="--hue:#b3341f;--hue-soft:#fceee9">
+  <div class="badges">
+    
+    
+    <span class="pill p-dir" style="color:#b3341f;background:#fceee9">冲击与结构验证</span>
+  </div>
+
+  <a class="title" href="https://advanced.onlinelibrary.wiley.com/doi/10.1002/adfm.78282" target="_blank" rel="noopener">On Damage Degree and Evolution of Mechanical and Electromagnetic Properties for SiC f /Si 3 N 4 Composites in Rain Erosion Process <span class="yr">(2026-09-09)</span></a>
+  <div class="title-zh">SiC f /Si 3 N 4 复合材料在雨蚀过程中的损伤程度及力学与电磁性能演化研究</div>
+
+  <div class="line"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="ico"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span>Haodong Wang, Weilong Liu, Nuo Chen, Fahao Xiang, Yuxin Lu, Jimei Xue, Hanjun Wei, Caidi Ji 等 10 人</span></div>
+  <div class="line"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="ico"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg><span><em>Advanced Functional Materials</em></span></div>
+
+  <div class="tldr">对SiC f /Si 3 N 4复合材料，用高速水射流模拟雨蚀，得到损伤分阶段演化及电磁性能提升结果。</div>
+
+  
+  <div class="abs"><span class="lead">ABSTRACT This study comprehensively investigates the damage evolution and property degradation of SiC f /Si 3 N 4 composites subjected to high‐speed waterjet impacts simulating rain erosion. The composites are fabricated by CVI using SiC fiber fabric preform with BN interface and Si 3 N 4 matrix. A single‐jet device generates stable waterjets (≈350 m/s, ≈4.9 mm diameter) to induce controlled erosion damage. Results</span><span class="rest"> demonstrate a staged progression of erosion damage: initial localized fiber bundle fracture and matrix cracking (0%–25% depth) is followed by pit widening via water‐wedging and delamination (25%–75% depth), culminating in penetration with a stabilized damage area (&gt;75% depth). Tensile strength decreases by 47.5% after full penetration, with AE analysis indicating a transition from synergistic fiber‐matrix failure to a fiber‐dominated quasi‐brittle fracture mechanism due to interfacial weakening and matrix damage. Conversely, electromagnetic analysis shows that the erosion‐induced damage, including pits, cracks, and increased porosity, improved impedance matching. This leads to a significant enhancement in wave‐absorbing performance, with the minimum reflection loss decreasing from −5.96 dB for undamaged material to below −7 dB for fully eroded specimen across the X‐band. This work elucidates the dual influences of rain erosion on the mechanical and electromagnetic functionality of SiC f /Si 3 N 4 composites, providing critical insights for aerospace applications.)</span></div>
+  <div class="absbar">
+    <button class="more" type="button">显示更多</button>
+    <button class="alt" type="button">翻译</button>
+  </div>
+  <div class="abs zh" hidden>摘要 本研究全面探讨了SiC f /Si 3 N 4复合材料在高速水射流冲击下的损伤演化和性能退化。复合材料通过CVI工艺制备，使用SiC纤维织物预制体、BN界面和Si 3 N 4基体。单喷嘴装置产生稳定的水射流（≈350 m/s，≈4.9 mm直径），以诱导可控的侵蚀损伤。结果表明侵蚀损伤呈现分阶段演化：初始阶段为局部纤维束断裂和基体开裂（0%–25%深度），随后为水楔作用导致的坑扩大和分层（25%–75%深度），最终形成穿透并稳定损伤区域（&gt;75%深度）。拉伸强度在完全穿透后下降47.5%，AE分析表明由于界面弱化和基体损伤，失效机制从协同纤维-基体失效转变为纤维主导的准脆性断裂。相反，电磁分析显示侵蚀引起的损伤，包括坑、裂纹和孔隙率增加，改善了阻抗匹配。这导致波吸收性能显著增强，在X波段，最小反射损耗从未受损材料的−5.96 dB降至完全侵蚀试样的−7 dB以下。本工作阐明了雨蚀对SiC f /Si 3 N 4复合材料力学和电磁功能的双重影响，为航空航天应用提供了关键见解。</div>
+  
+
+  
+  <div class="transfer"><b>方法迁移说明卡 · 延性断裂与损伤演化</b>可作为断裂起始、损伤累积和失效模式的比较线索（规则推断，非已验证迁移）<br />
+    <span>迁移前核对：核对负三轴度、非比例路径、加载历史和独立验证试样</span></div>
+  
+  <div class="transfer"><b>方法迁移说明卡 · 冲击与结构验证</b>可作为从材料试样走向动态或结构尺度验证的线索（规则推断，非已验证迁移）<br />
+    <span>迁移前核对：核对弹靶几何、边界条件、速度范围、残余速度和失效形貌</span></div>
+  
+
+  
+  <div class="why"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="ico"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg><span>最接近库内《SiC陶瓷/UHMWPE纤维复合结构抗12.7 mm穿甲燃烧弹试验与仿真》</span></div>
+
+  <div class="foot">
+    <span class="m rel" title="综合相关度，0–1"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="ico"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>相关度
+      <b>0.55</b>
+      <span class="bar"><i style="width:55%"></i></span></span>
+    <span class="m">被引用 <b>0</b></span>
+    <span class="m"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="ico"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg><a href="https://doi.org/https://doi.org/10.1002/adfm.78282"
+       target="_blank" rel="noopener">https://doi.org/10.1002/adfm.78282</a></span>
+    
+    
+    <span class="rate" title="将打开公开 GitHub Issue，需你确认提交，请勿填写私人笔记">
+      <a class="rb rb-1" href="https://github.com/lwz20210407/ZotWatch/issues/new?title=%5BZotWatch+feedback%5D+%E7%9B%B4%E6%8E%A5%E6%9C%89%E7%94%A8+On+Damage+Degree+and+Evolution+of+Mechanical+and+Electromagnetic+Properties+for+SiC+f+%2FSi+&amp;body=%3C%21--+zotwatch-feedback-v1+--%3E%0A%60%60%60json%0A%7B%22doi%22%3A+%2210.1002%2Fadfm.78282%22%2C+%22rating%22%3A+%22direct%22%2C+%22facets%22%3A+%5B%22fracture%22%2C+%22impact%22%2C+%22microstructure%22%5D%7D%0A%60%60%60%0A%E5%85%AC%E5%BC%80%E5%8F%8D%E9%A6%88%EF%BC%8C%E8%AF%B7%E5%8B%BF%E5%A1%AB%E5%86%99%E7%A7%81%E4%BA%BA%E7%AC%94%E8%AE%B0%E3%80%82" target="_blank" rel="noopener">有用</a><a class="rb rb-2" href="https://github.com/lwz20210407/ZotWatch/issues/new?title=%5BZotWatch+feedback%5D+%E4%B8%8D%E7%9B%B8%E5%85%B3+On+Damage+Degree+and+Evolution+of+Mechanical+and+Electromagnetic+Properties+for+SiC+f+%2FSi+&amp;body=%3C%21--+zotwatch-feedback-v1+--%3E%0A%60%60%60json%0A%7B%22doi%22%3A+%2210.1002%2Fadfm.78282%22%2C+%22rating%22%3A+%22irrelevant%22%2C+%22facets%22%3A+%5B%22fracture%22%2C+%22impact%22%2C+%22microstructure%22%5D%7D%0A%60%60%60%0A%E5%85%AC%E5%BC%80%E5%8F%8D%E9%A6%88%EF%BC%8C%E8%AF%B7%E5%8B%BF%E5%A1%AB%E5%86%99%E7%A7%81%E4%BA%BA%E7%AC%94%E8%AE%B0%E3%80%82" target="_blank" rel="noopener">无用</a><a class="rb rb-3" href="https://github.com/lwz20210407/ZotWatch/issues/new?title=%5BZotWatch+feedback%5D+%E7%A8%8D%E5%90%8E%E7%9C%8B+On+Damage+Degree+and+Evolution+of+Mechanical+and+Electromagnetic+Properties+for+SiC+f+%2FSi+&amp;body=%3C%21--+zotwatch-feedback-v1+--%3E%0A%60%60%60json%0A%7B%22doi%22%3A+%2210.1002%2Fadfm.78282%22%2C+%22rating%22%3A+%22later%22%2C+%22facets%22%3A+%5B%22fracture%22%2C+%22impact%22%2C+%22microstructure%22%5D%7D%0A%60%60%60%0A%E5%85%AC%E5%BC%80%E5%8F%8D%E9%A6%88%EF%BC%8C%E8%AF%B7%E5%8B%BF%E5%A1%AB%E5%86%99%E7%A7%81%E4%BA%BA%E7%AC%94%E8%AE%B0%E3%80%82" target="_blank" rel="noopener">稍后读</a>
+    </span>
+    
+  </div>
+</article>
+
+
+
+
+
+
+<article id="p0" data-dir="应力状态依赖塑性" data-must="0"
+         style="--hue:#0f8a8a;--hue-soft:#e6f6f6">
+  <div class="badges">
+    
+    
+    <span class="pill p-dir" style="color:#0f8a8a;background:#e6f6f6">应力状态依赖塑性</span>
+  </div>
+
+  <a class="title" href="https://linkinghub.elsevier.com/retrieve/pii/S0749641926002160" target="_blank" rel="noopener">Surface-induced energy amplification in polycrystalline plasticity: A grain-scale origin of the load-dependent surface-interior fatigue failure transition <span class="yr">(2026-09)</span></a>
+  <div class="title-zh">多晶塑性中的表面诱导能量放大：载荷依赖的表面-内部疲劳失效转变的晶粒尺度起源</div>
+
+  <div class="line"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="ico"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span>Jinchao Pan, Yuanyuan Zhang, Dianyin Hu, Miaodong Zhao, Yanshan Lou, Rusong Chen, Xiangrui Yu, Rongqiao Wang 等 11 人</span></div>
+  <div class="line"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="ico"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg><span><em>International Journal of Plasticity</em></span></div>
+
+  <div class="tldr">对多晶材料，用表面诱导能量放大方法研究疲劳失效，得到载荷依赖的表面-内部失效转变机制。</div>
+
+  
+
+  
+
+  
+  <div class="why"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="ico"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg><span>最接近库内《The effect of statistically heterogeneous void nucleation on metal failure in shear》</span></div>
+
+  <div class="foot">
+    <span class="m rel" title="综合相关度，0–1"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="ico"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>相关度
+      <b>0.63</b>
+      <span class="bar"><i style="width:63%"></i></span></span>
+    <span class="m">被引用 <b>0</b></span>
+    <span class="m"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="ico"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg><a href="https://doi.org/https://doi.org/10.1016/j.ijplas.2026.104822"
+       target="_blank" rel="noopener">https://doi.org/10.1016/j.ijplas.2026.104822</a></span>
+    
+    
+    <span class="rate" title="将打开公开 GitHub Issue，需你确认提交，请勿填写私人笔记">
+      <a class="rb rb-1" href="https://github.com/lwz20210407/ZotWatch/issues/new?title=%5BZotWatch+feedback%5D+%E7%9B%B4%E6%8E%A5%E6%9C%89%E7%94%A8+Surface-induced+energy+amplification+in+polycrystalline+plasticity%3A+A+grain-scale+origin+o&amp;body=%3C%21--+zotwatch-feedback-v1+--%3E%0A%60%60%60json%0A%7B%22doi%22%3A+%2210.1016%2Fj.ijplas.2026.104822%22%2C+%22rating%22%3A+%22direct%22%2C+%22facets%22%3A+%5B%5D%7D%0A%60%60%60%0A%E5%85%AC%E5%BC%80%E5%8F%8D%E9%A6%88%EF%BC%8C%E8%AF%B7%E5%8B%BF%E5%A1%AB%E5%86%99%E7%A7%81%E4%BA%BA%E7%AC%94%E8%AE%B0%E3%80%82" target="_blank" rel="noopener">有用</a><a class="rb rb-2" href="https://github.com/lwz20210407/ZotWatch/issues/new?title=%5BZotWatch+feedback%5D+%E4%B8%8D%E7%9B%B8%E5%85%B3+Surface-induced+energy+amplification+in+polycrystalline+plasticity%3A+A+grain-scale+origin+o&amp;body=%3C%21--+zotwatch-feedback-v1+--%3E%0A%60%60%60json%0A%7B%22doi%22%3A+%2210.1016%2Fj.ijplas.2026.104822%22%2C+%22rating%22%3A+%22irrelevant%22%2C+%22facets%22%3A+%5B%5D%7D%0A%60%60%60%0A%E5%85%AC%E5%BC%80%E5%8F%8D%E9%A6%88%EF%BC%8C%E8%AF%B7%E5%8B%BF%E5%A1%AB%E5%86%99%E7%A7%81%E4%BA%BA%E7%AC%94%E8%AE%B0%E3%80%82" target="_blank" rel="noopener">无用</a><a class="rb rb-3" href="https://github.com/lwz20210407/ZotWatch/issues/new?title=%5BZotWatch+feedback%5D+%E7%A8%8D%E5%90%8E%E7%9C%8B+Surface-induced+energy+amplification+in+polycrystalline+plasticity%3A+A+grain-scale+origin+o&amp;body=%3C%21--+zotwatch-feedback-v1+--%3E%0A%60%60%60json%0A%7B%22doi%22%3A+%2210.1016%2Fj.ijplas.2026.104822%22%2C+%22rating%22%3A+%22later%22%2C+%22facets%22%3A+%5B%5D%7D%0A%60%60%60%0A%E5%85%AC%E5%BC%80%E5%8F%8D%E9%A6%88%EF%BC%8C%E8%AF%B7%E5%8B%BF%E5%A1%AB%E5%86%99%E7%A7%81%E4%BA%BA%E7%AC%94%E8%AE%B0%E3%80%82" target="_blank" rel="noopener">稍后读</a>
+    </span>
+    
+  </div>
+</article>
+
+
+
+
+
+
+<article id="p0" data-dir="参数反演与硬化外推" data-must="1"
+         style="--hue:#d9541f;--hue-soft:#fdeee6">
+  <div class="badges">
+    
+    <span class="pill p-must">必读</span>
+    <span class="pill p-dir" style="color:#d9541f;background:#fdeee6">参数反演与硬化外推</span>
+  </div>
+
+  <a class="title" href="https://linkinghub.elsevier.com/retrieve/pii/S0749641926002068" target="_blank" rel="noopener">Neural network-based distortional hardening inferred from experiments via FE-coupled backpropagation: Application to Ti-6Al-4V and third-generation AHSS <span class="yr">(2026-08)</span></a>
+  <div class="title-zh">基于神经网络的畸变硬化模型：通过FE耦合反向传播推断实验结果，应用于Ti-6Al-4V和第三代AHSS</div>
+
+  <div class="line"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="ico"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span>Xueyang Li, Dirk Mohr</span></div>
+  <div class="line"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="ico"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg><span><em>International Journal of Plasticity</em></span></div>
+
+  <div class="tldr">对Ti-6Al-4V和第三代AHSS材料，利用FE耦合反向传播推断神经网络模型，得到材料在冲击下的硬化特性。</div>
+
+  
+
+  
+
+  
+  <div class="why"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="ico"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg><span>最接近库内《Modelling metal plasticity and damage with constitutive artificial neural networks》</span></div>
+
+  <div class="foot">
+    <span class="m rel" title="综合相关度，0–1"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="ico"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>相关度
+      <b>0.70</b>
+      <span class="bar"><i style="width:70%"></i></span></span>
+    <span class="m">被引用 <b>0</b></span>
+    <span class="m"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="ico"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg><a href="https://doi.org/https://doi.org/10.1016/j.ijplas.2026.104812"
+       target="_blank" rel="noopener">https://doi.org/10.1016/j.ijplas.2026.104812</a></span>
+    
+    
+    <span class="rate" title="将打开公开 GitHub Issue，需你确认提交，请勿填写私人笔记">
+      <a class="rb rb-1" href="https://github.com/lwz20210407/ZotWatch/issues/new?title=%5BZotWatch+feedback%5D+%E7%9B%B4%E6%8E%A5%E6%9C%89%E7%94%A8+Neural+network-based+distortional+hardening+inferred+from+experiments+via+FE-coupled+backp&amp;body=%3C%21--+zotwatch-feedback-v1+--%3E%0A%60%60%60json%0A%7B%22doi%22%3A+%2210.1016%2Fj.ijplas.2026.104812%22%2C+%22rating%22%3A+%22direct%22%2C+%22facets%22%3A+%5B%5D%7D%0A%60%60%60%0A%E5%85%AC%E5%BC%80%E5%8F%8D%E9%A6%88%EF%BC%8C%E8%AF%B7%E5%8B%BF%E5%A1%AB%E5%86%99%E7%A7%81%E4%BA%BA%E7%AC%94%E8%AE%B0%E3%80%82" target="_blank" rel="noopener">有用</a><a class="rb rb-2" href="https://github.com/lwz20210407/ZotWatch/issues/new?title=%5BZotWatch+feedback%5D+%E4%B8%8D%E7%9B%B8%E5%85%B3+Neural+network-based+distortional+hardening+inferred+from+experiments+via+FE-coupled+backp&amp;body=%3C%21--+zotwatch-feedback-v1+--%3E%0A%60%60%60json%0A%7B%22doi%22%3A+%2210.1016%2Fj.ijplas.2026.104812%22%2C+%22rating%22%3A+%22irrelevant%22%2C+%22facets%22%3A+%5B%5D%7D%0A%60%60%60%0A%E5%85%AC%E5%BC%80%E5%8F%8D%E9%A6%88%EF%BC%8C%E8%AF%B7%E5%8B%BF%E5%A1%AB%E5%86%99%E7%A7%81%E4%BA%BA%E7%AC%94%E8%AE%B0%E3%80%82" target="_blank" rel="noopener">无用</a><a class="rb rb-3" href="https://github.com/lwz20210407/ZotWatch/issues/new?title=%5BZotWatch+feedback%5D+%E7%A8%8D%E5%90%8E%E7%9C%8B+Neural+network-based+distortional+hardening+inferred+from+experiments+via+FE-coupled+backp&amp;body=%3C%21--+zotwatch-feedback-v1+--%3E%0A%60%60%60json%0A%7B%22doi%22%3A+%2210.1016%2Fj.ijplas.2026.104812%22%2C+%22rating%22%3A+%22later%22%2C+%22facets%22%3A+%5B%5D%7D%0A%60%60%60%0A%E5%85%AC%E5%BC%80%E5%8F%8D%E9%A6%88%EF%BC%8C%E8%AF%B7%E5%8B%BF%E5%A1%AB%E5%86%99%E7%A7%81%E4%BA%BA%E7%AC%94%E8%AE%B0%E3%80%82" target="_blank" rel="noopener">稍后读</a>
+    </span>
+    
+  </div>
+</article>
+
+
+
+
+
+
+<article id="p0" data-dir="参数反演与硬化外推" data-must="0"
+         style="--hue:#d9541f;--hue-soft:#fdeee6">
+  <div class="badges">
+    
+    
+    <span class="pill p-dir" style="color:#d9541f;background:#fdeee6">参数反演与硬化外推</span>
+  </div>
+
+  <a class="title" href="https://linkinghub.elsevier.com/retrieve/pii/S0263822326008056" target="_blank" rel="noopener">A neural network-based constitutive model for fiber-reinforced ceramic matrix composites <span class="yr">(2026-08)</span></a>
+  <div class="title-zh">基于神经网络的纤维增强陶瓷基复合材料本构模型</div>
+
+  <div class="line"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="ico"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span>宏光 斉, Yong Ma, Xiaochuan Niu, Shu Guo, Tao Suo, Yuli Chen</span></div>
+  <div class="line"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="ico"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg><span><em>Composite Structures</em></span></div>
+
+  <div class="tldr">对纤维增强陶瓷基复合材料，用神经网络方法建立本构模型，得到高精度的力学响应预测结果。</div>
+
+  
+
+  
+
+  
+  <div class="why"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="ico"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg><span>最接近库内《Modelling metal plasticity and damage with constitutive artificial neural networks》</span></div>
+
+  <div class="foot">
+    <span class="m rel" title="综合相关度，0–1"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="ico"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>相关度
+      <b>0.44</b>
+      <span class="bar"><i style="width:44%"></i></span></span>
+    <span class="m">被引用 <b>0</b></span>
+    <span class="m"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="ico"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg><a href="https://doi.org/https://doi.org/10.1016/j.compstruct.2026.120840"
+       target="_blank" rel="noopener">https://doi.org/10.1016/j.compstruct.2026.120840</a></span>
+    
+    
+    <span class="rate" title="将打开公开 GitHub Issue，需你确认提交，请勿填写私人笔记">
+      <a class="rb rb-1" href="https://github.com/lwz20210407/ZotWatch/issues/new?title=%5BZotWatch+feedback%5D+%E7%9B%B4%E6%8E%A5%E6%9C%89%E7%94%A8+A+neural+network-based+constitutive+model+for+fiber-reinforced+ceramic+matrix+composites&amp;body=%3C%21--+zotwatch-feedback-v1+--%3E%0A%60%60%60json%0A%7B%22doi%22%3A+%2210.1016%2Fj.compstruct.2026.120840%22%2C+%22rating%22%3A+%22direct%22%2C+%22facets%22%3A+%5B%5D%7D%0A%60%60%60%0A%E5%85%AC%E5%BC%80%E5%8F%8D%E9%A6%88%EF%BC%8C%E8%AF%B7%E5%8B%BF%E5%A1%AB%E5%86%99%E7%A7%81%E4%BA%BA%E7%AC%94%E8%AE%B0%E3%80%82" target="_blank" rel="noopener">有用</a><a class="rb rb-2" href="https://github.com/lwz20210407/ZotWatch/issues/new?title=%5BZotWatch+feedback%5D+%E4%B8%8D%E7%9B%B8%E5%85%B3+A+neural+network-based+constitutive+model+for+fiber-reinforced+ceramic+matrix+composites&amp;body=%3C%21--+zotwatch-feedback-v1+--%3E%0A%60%60%60json%0A%7B%22doi%22%3A+%2210.1016%2Fj.compstruct.2026.120840%22%2C+%22rating%22%3A+%22irrelevant%22%2C+%22facets%22%3A+%5B%5D%7D%0A%60%60%60%0A%E5%85%AC%E5%BC%80%E5%8F%8D%E9%A6%88%EF%BC%8C%E8%AF%B7%E5%8B%BF%E5%A1%AB%E5%86%99%E7%A7%81%E4%BA%BA%E7%AC%94%E8%AE%B0%E3%80%82" target="_blank" rel="noopener">无用</a><a class="rb rb-3" href="https://github.com/lwz20210407/ZotWatch/issues/new?title=%5BZotWatch+feedback%5D+%E7%A8%8D%E5%90%8E%E7%9C%8B+A+neural+network-based+constitutive+model+for+fiber-reinforced+ceramic+matrix+composites&amp;body=%3C%21--+zotwatch-feedback-v1+--%3E%0A%60%60%60json%0A%7B%22doi%22%3A+%2210.1016%2Fj.compstruct.2026.120840%22%2C+%22rating%22%3A+%22later%22%2C+%22facets%22%3A+%5B%5D%7D%0A%60%60%60%0A%E5%85%AC%E5%BC%80%E5%8F%8D%E9%A6%88%EF%BC%8C%E8%AF%B7%E5%8B%BF%E5%A1%AB%E5%86%99%E7%A7%81%E4%BA%BA%E7%AC%94%E8%AE%B0%E3%80%82" target="_blank" rel="noopener">稍后读</a>
+    </span>
+    
+  </div>
+</article>
+
+
+
+
+
+
+<article id="p0" data-dir="参数反演与硬化外推" data-must="0"
+         style="--hue:#d9541f;--hue-soft:#fdeee6">
+  <div class="badges">
+    
+    
+    <span class="pill p-dir" style="color:#d9541f;background:#fdeee6">参数反演与硬化外推</span>
+  </div>
+
+  <a class="title" href="https://linkinghub.elsevier.com/retrieve/pii/S0924013626002839" target="_blank" rel="noopener">Applying a new generalized anisotropic distortional hardening model to analyse the springback behaviour of 1.8 GPa sheet metal in cold roll forming <span class="yr">(2026-08-22)</span></a>
+  <div class="title-zh">应用新的广义各向异性畸变硬化模型分析冷辊成型中1.8 GPa薄板的回弹行为</div>
+
+  <div class="line"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="ico"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span>Chen Zhang, Ji He, Xianhong Han, Yong Sun, Ruhong Zhou, Jun Chen, Qi Hu</span></div>
+  <div class="line"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="ico"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg><span><em>Journal of Materials Processing Technology</em></span></div>
+
+  <div class="tldr">对薄板材料，用广义各向异性畸变硬化模型分析冷辊成型回弹行为，得到回弹规律和影响因素。</div>
+
+  
+
+  
+
+  
+  <div class="why"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="ico"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg><span>最接近库内《Anisotropic hardening and non-associated flow in proportional loading of sheet metals》</span></div>
+
+  <div class="foot">
+    <span class="m rel" title="综合相关度，0–1"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="ico"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>相关度
+      <b>0.65</b>
+      <span class="bar"><i style="width:65%"></i></span></span>
+    <span class="m">被引用 <b>0</b></span>
+    <span class="m"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="ico"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg><a href="https://doi.org/https://doi.org/10.1016/j.jmatprotec.2026.119478"
+       target="_blank" rel="noopener">https://doi.org/10.1016/j.jmatprotec.2026.119478</a></span>
+    
+    
+    <span class="rate" title="将打开公开 GitHub Issue，需你确认提交，请勿填写私人笔记">
+      <a class="rb rb-1" href="https://github.com/lwz20210407/ZotWatch/issues/new?title=%5BZotWatch+feedback%5D+%E7%9B%B4%E6%8E%A5%E6%9C%89%E7%94%A8+Applying+a+new+generalized+anisotropic+distortional+hardening+model+to+analyse+the+springb&amp;body=%3C%21--+zotwatch-feedback-v1+--%3E%0A%60%60%60json%0A%7B%22doi%22%3A+%2210.1016%2Fj.jmatprotec.2026.119478%22%2C+%22rating%22%3A+%22direct%22%2C+%22facets%22%3A+%5B%5D%7D%0A%60%60%60%0A%E5%85%AC%E5%BC%80%E5%8F%8D%E9%A6%88%EF%BC%8C%E8%AF%B7%E5%8B%BF%E5%A1%AB%E5%86%99%E7%A7%81%E4%BA%BA%E7%AC%94%E8%AE%B0%E3%80%82" target="_blank" rel="noopener">有用</a><a class="rb rb-2" href="https://github.com/lwz20210407/ZotWatch/issues/new?title=%5BZotWatch+feedback%5D+%E4%B8%8D%E7%9B%B8%E5%85%B3+Applying+a+new+generalized+anisotropic+distortional+hardening+model+to+analyse+the+springb&amp;body=%3C%21--+zotwatch-feedback-v1+--%3E%0A%60%60%60json%0A%7B%22doi%22%3A+%2210.1016%2Fj.jmatprotec.2026.119478%22%2C+%22rating%22%3A+%22irrelevant%22%2C+%22facets%22%3A+%5B%5D%7D%0A%60%60%60%0A%E5%85%AC%E5%BC%80%E5%8F%8D%E9%A6%88%EF%BC%8C%E8%AF%B7%E5%8B%BF%E5%A1%AB%E5%86%99%E7%A7%81%E4%BA%BA%E7%AC%94%E8%AE%B0%E3%80%82" target="_blank" rel="noopener">无用</a><a class="rb rb-3" href="https://github.com/lwz20210407/ZotWatch/issues/new?title=%5BZotWatch+feedback%5D+%E7%A8%8D%E5%90%8E%E7%9C%8B+Applying+a+new+generalized+anisotropic+distortional+hardening+model+to+analyse+the+springb&amp;body=%3C%21--+zotwatch-feedback-v1+--%3E%0A%60%60%60json%0A%7B%22doi%22%3A+%2210.1016%2Fj.jmatprotec.2026.119478%22%2C+%22rating%22%3A+%22later%22%2C+%22facets%22%3A+%5B%5D%7D%0A%60%60%60%0A%E5%85%AC%E5%BC%80%E5%8F%8D%E9%A6%88%EF%BC%8C%E8%AF%B7%E5%8B%BF%E5%A1%AB%E5%86%99%E7%A7%81%E4%BA%BA%E7%AC%94%E8%AE%B0%E3%80%82" target="_blank" rel="noopener">稍后读</a>
+    </span>
+    
+  </div>
+</article>
+
+
+
+
+
+
+<article id="p0" data-dir="温度—应变率耦合" data-must="0"
+         style="--hue:#8a4bb8;--hue-soft:#f3ecfa">
+  <div class="badges">
+    
+    
+    <span class="pill p-dir" style="color:#8a4bb8;background:#f3ecfa">温度—应变率耦合</span>
+  </div>
+
+  <a class="title" href="https://linkinghub.elsevier.com/retrieve/pii/S1526612526007619" target="_blank" rel="noopener">Temperature-dependent damage evolution and product performance of hot-stamped parts <span class="yr">(2026-08-20)</span></a>
+  <div class="title-zh">高温成形零件的温度依赖损伤演化及产品性能研究</div>
+
+  <div class="line"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="ico"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span>Philipp Lennemann, Yannis P. Korkolis, A. Erman Tekkaya</span></div>
+  <div class="line"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="ico"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg><span><em>Journal of Manufacturing Processes</em></span></div>
+
+  <div class="tldr">对高温成形零件，研究温度依赖的损伤演化及产品性能变化，得到温度对性能影响的定量关系。</div>
+
+  
+
+  
+  <div class="transfer"><b>方法迁移说明卡 · 温度—应变率耦合</b>可作为速率、温度和热力耦合项的候选建模思路（规则推断，非已验证迁移）<br />
+    <span>迁移前核对：核对温度和应变率范围、绝热升温修正、参数耦合与外推误差</span></div>
+  
+  <div class="transfer"><b>方法迁移说明卡 · 延性断裂与损伤演化</b>可作为断裂起始、损伤累积和失效模式的比较线索（规则推断，非已验证迁移）<br />
+    <span>迁移前核对：核对负三轴度、非比例路径、加载历史和独立验证试样</span></div>
+  
+
+  
+  <div class="why"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="ico"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg><span>最接近库内《Fracture prediction and correlation of AlSi hot stamped steels with different models in LS-DYNA®》</span></div>
+
+  <div class="foot">
+    <span class="m rel" title="综合相关度，0–1"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="ico"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>相关度
+      <b>0.65</b>
+      <span class="bar"><i style="width:65%"></i></span></span>
+    <span class="m">被引用 <b>0</b></span>
+    <span class="m"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="ico"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg><a href="https://doi.org/https://doi.org/10.1016/j.jmapro.2026.08.011"
+       target="_blank" rel="noopener">https://doi.org/10.1016/j.jmapro.2026.08.011</a></span>
+    
+    
+    <span class="rate" title="将打开公开 GitHub Issue，需你确认提交，请勿填写私人笔记">
+      <a class="rb rb-1" href="https://github.com/lwz20210407/ZotWatch/issues/new?title=%5BZotWatch+feedback%5D+%E7%9B%B4%E6%8E%A5%E6%9C%89%E7%94%A8+Temperature-dependent+damage+evolution+and+product+performance+of+hot-stamped+parts&amp;body=%3C%21--+zotwatch-feedback-v1+--%3E%0A%60%60%60json%0A%7B%22doi%22%3A+%2210.1016%2Fj.jmapro.2026.08.011%22%2C+%22rating%22%3A+%22direct%22%2C+%22facets%22%3A+%5B%22thermorate%22%2C+%22fracture%22%5D%7D%0A%60%60%60%0A%E5%85%AC%E5%BC%80%E5%8F%8D%E9%A6%88%EF%BC%8C%E8%AF%B7%E5%8B%BF%E5%A1%AB%E5%86%99%E7%A7%81%E4%BA%BA%E7%AC%94%E8%AE%B0%E3%80%82" target="_blank" rel="noopener">有用</a><a class="rb rb-2" href="https://github.com/lwz20210407/ZotWatch/issues/new?title=%5BZotWatch+feedback%5D+%E4%B8%8D%E7%9B%B8%E5%85%B3+Temperature-dependent+damage+evolution+and+product+performance+of+hot-stamped+parts&amp;body=%3C%21--+zotwatch-feedback-v1+--%3E%0A%60%60%60json%0A%7B%22doi%22%3A+%2210.1016%2Fj.jmapro.2026.08.011%22%2C+%22rating%22%3A+%22irrelevant%22%2C+%22facets%22%3A+%5B%22thermorate%22%2C+%22fracture%22%5D%7D%0A%60%60%60%0A%E5%85%AC%E5%BC%80%E5%8F%8D%E9%A6%88%EF%BC%8C%E8%AF%B7%E5%8B%BF%E5%A1%AB%E5%86%99%E7%A7%81%E4%BA%BA%E7%AC%94%E8%AE%B0%E3%80%82" target="_blank" rel="noopener">无用</a><a class="rb rb-3" href="https://github.com/lwz20210407/ZotWatch/issues/new?title=%5BZotWatch+feedback%5D+%E7%A8%8D%E5%90%8E%E7%9C%8B+Temperature-dependent+damage+evolution+and+product+performance+of+hot-stamped+parts&amp;body=%3C%21--+zotwatch-feedback-v1+--%3E%0A%60%60%60json%0A%7B%22doi%22%3A+%2210.1016%2Fj.jmapro.2026.08.011%22%2C+%22rating%22%3A+%22later%22%2C+%22facets%22%3A+%5B%22thermorate%22%2C+%22fracture%22%5D%7D%0A%60%60%60%0A%E5%85%AC%E5%BC%80%E5%8F%8D%E9%A6%88%EF%BC%8C%E8%AF%B7%E5%8B%BF%E5%A1%AB%E5%86%99%E7%A7%81%E4%BA%BA%E7%AC%94%E8%AE%B0%E3%80%82" target="_blank" rel="noopener">稍后读</a>
+    </span>
+    
+  </div>
+</article>
+</div>
+
+
+
+<h2>经典文献补漏 <em>5 篇</em></h2>
+<p class="note">来自重点论文或本轮高相关论文的参考文献，不受近期窗口限制。“经典”是栏目名，不等于已人工认定为奠基性论文。</p>
+<div class="cards">
+
+
+
+
+
+<article id="p0" data-dir="参数反演与硬化外推" data-must="1"
+         style="--hue:#d9541f;--hue-soft:#fdeee6">
+  <div class="badges">
+    
+    <span class="pill p-must">必读</span>
+    <span class="pill p-dir" style="color:#d9541f;background:#fdeee6">参数反演与硬化外推</span>
+  </div>
+
+  <a class="title" href="https://linkinghub.elsevier.com/retrieve/pii/S0749641906001124" target="_blank" rel="noopener">Advances in experiments on metal sheets and tubes in support of constitutive modeling and forming simulations <span class="yr">(2006-10-28)</span></a>
+  <div class="title-zh">金属板管实验进展：支持本构建模和成形模拟</div>
+
+  <div class="line"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="ico"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span>T. Kuwabara</span></div>
+  <div class="line"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="ico"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg><span><em>International Journal of Plasticity</em></span></div>
+
+  <div class="tldr">对金属板管，进行实验研究以支持本构建模和成形模拟，得到材料行为的实验数据和参数。</div>
+
+  
+
+  
+
+  
+  <div class="why"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="ico"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg><span>最接近库内《Calibration of plasticity and failure models for AHSS sheets》</span></div>
+
+  <div class="foot">
+    <span class="m rel" title="综合相关度，0–1"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="ico"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>相关度
+      <b>0.74</b>
+      <span class="bar"><i style="width:74%"></i></span></span>
+    <span class="m">被引用 <b>351</b></span>
+    <span class="m"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="ico"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg><a href="https://doi.org/https://doi.org/10.1016/j.ijplas.2006.06.003"
+       target="_blank" rel="noopener">https://doi.org/10.1016/j.ijplas.2006.06.003</a></span>
+    
+    
+    <span class="rate" title="将打开公开 GitHub Issue，需你确认提交，请勿填写私人笔记">
+      <a class="rb rb-1" href="https://github.com/lwz20210407/ZotWatch/issues/new?title=%5BZotWatch+feedback%5D+%E7%9B%B4%E6%8E%A5%E6%9C%89%E7%94%A8+Advances+in+experiments+on+metal+sheets+and+tubes+in+support+of+constitutive+modeling+and+&amp;body=%3C%21--+zotwatch-feedback-v1+--%3E%0A%60%60%60json%0A%7B%22doi%22%3A+%2210.1016%2Fj.ijplas.2006.06.003%22%2C+%22rating%22%3A+%22direct%22%2C+%22facets%22%3A+%5B%5D%7D%0A%60%60%60%0A%E5%85%AC%E5%BC%80%E5%8F%8D%E9%A6%88%EF%BC%8C%E8%AF%B7%E5%8B%BF%E5%A1%AB%E5%86%99%E7%A7%81%E4%BA%BA%E7%AC%94%E8%AE%B0%E3%80%82" target="_blank" rel="noopener">有用</a><a class="rb rb-2" href="https://github.com/lwz20210407/ZotWatch/issues/new?title=%5BZotWatch+feedback%5D+%E4%B8%8D%E7%9B%B8%E5%85%B3+Advances+in+experiments+on+metal+sheets+and+tubes+in+support+of+constitutive+modeling+and+&amp;body=%3C%21--+zotwatch-feedback-v1+--%3E%0A%60%60%60json%0A%7B%22doi%22%3A+%2210.1016%2Fj.ijplas.2006.06.003%22%2C+%22rating%22%3A+%22irrelevant%22%2C+%22facets%22%3A+%5B%5D%7D%0A%60%60%60%0A%E5%85%AC%E5%BC%80%E5%8F%8D%E9%A6%88%EF%BC%8C%E8%AF%B7%E5%8B%BF%E5%A1%AB%E5%86%99%E7%A7%81%E4%BA%BA%E7%AC%94%E8%AE%B0%E3%80%82" target="_blank" rel="noopener">无用</a><a class="rb rb-3" href="https://github.com/lwz20210407/ZotWatch/issues/new?title=%5BZotWatch+feedback%5D+%E7%A8%8D%E5%90%8E%E7%9C%8B+Advances+in+experiments+on+metal+sheets+and+tubes+in+support+of+constitutive+modeling+and+&amp;body=%3C%21--+zotwatch-feedback-v1+--%3E%0A%60%60%60json%0A%7B%22doi%22%3A+%2210.1016%2Fj.ijplas.2006.06.003%22%2C+%22rating%22%3A+%22later%22%2C+%22facets%22%3A+%5B%5D%7D%0A%60%60%60%0A%E5%85%AC%E5%BC%80%E5%8F%8D%E9%A6%88%EF%BC%8C%E8%AF%B7%E5%8B%BF%E5%A1%AB%E5%86%99%E7%A7%81%E4%BA%BA%E7%AC%94%E8%AE%B0%E3%80%82" target="_blank" rel="noopener">稍后读</a>
+    </span>
+    
+  </div>
+</article>
+
+
+
+
+
+
+<article id="p0" data-dir="参数反演与硬化外推" data-must="1"
+         style="--hue:#d9541f;--hue-soft:#fdeee6">
+  <div class="badges">
+    
+    <span class="pill p-must">必读</span>
+    <span class="pill p-dir" style="color:#d9541f;background:#fdeee6">参数反演与硬化外推</span>
+  </div>
+
+  <a class="title" href="https://linkinghub.elsevier.com/retrieve/pii/S0749641924000731" target="_blank" rel="noopener">A physically-based mixed hardening model for the prediction of the ductility limits of thin metal sheets using a CPFE approach <span class="yr">(2024-03-21)</span></a>
+  <div class="title-zh">基于CPFE方法的薄金属板延性极限物理本构混合硬化模型</div>
+
+  <div class="line"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="ico"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span>Sai Zhou, Mohamed Ben Bettaieb, Farid Abed‐Meraim</span></div>
+  <div class="line"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="ico"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg><span><em>International Journal of Plasticity</em></span></div>
+
+  <div class="tldr">对薄金属板，用物理本构混合硬化模型预测延性极限，得到基于晶体塑性有限元的延性失效准则。</div>
+
+  
+
+  
+
+  
+  <div class="why"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="ico"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg><span>最接近库内《Calibration of plasticity and failure models for AHSS sheets》</span></div>
+
+  <div class="foot">
+    <span class="m rel" title="综合相关度，0–1"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="ico"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>相关度
+      <b>0.72</b>
+      <span class="bar"><i style="width:72%"></i></span></span>
+    <span class="m">被引用 <b>40</b></span>
+    <span class="m"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="ico"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg><a href="https://doi.org/https://doi.org/10.1016/j.ijplas.2024.103946"
+       target="_blank" rel="noopener">https://doi.org/10.1016/j.ijplas.2024.103946</a></span>
+    
+    
+    <span class="rate" title="将打开公开 GitHub Issue，需你确认提交，请勿填写私人笔记">
+      <a class="rb rb-1" href="https://github.com/lwz20210407/ZotWatch/issues/new?title=%5BZotWatch+feedback%5D+%E7%9B%B4%E6%8E%A5%E6%9C%89%E7%94%A8+A+physically-based+mixed+hardening+model+for+the+prediction+of+the+ductility+limits+of+thi&amp;body=%3C%21--+zotwatch-feedback-v1+--%3E%0A%60%60%60json%0A%7B%22doi%22%3A+%2210.1016%2Fj.ijplas.2024.103946%22%2C+%22rating%22%3A+%22direct%22%2C+%22facets%22%3A+%5B%5D%7D%0A%60%60%60%0A%E5%85%AC%E5%BC%80%E5%8F%8D%E9%A6%88%EF%BC%8C%E8%AF%B7%E5%8B%BF%E5%A1%AB%E5%86%99%E7%A7%81%E4%BA%BA%E7%AC%94%E8%AE%B0%E3%80%82" target="_blank" rel="noopener">有用</a><a class="rb rb-2" href="https://github.com/lwz20210407/ZotWatch/issues/new?title=%5BZotWatch+feedback%5D+%E4%B8%8D%E7%9B%B8%E5%85%B3+A+physically-based+mixed+hardening+model+for+the+prediction+of+the+ductility+limits+of+thi&amp;body=%3C%21--+zotwatch-feedback-v1+--%3E%0A%60%60%60json%0A%7B%22doi%22%3A+%2210.1016%2Fj.ijplas.2024.103946%22%2C+%22rating%22%3A+%22irrelevant%22%2C+%22facets%22%3A+%5B%5D%7D%0A%60%60%60%0A%E5%85%AC%E5%BC%80%E5%8F%8D%E9%A6%88%EF%BC%8C%E8%AF%B7%E5%8B%BF%E5%A1%AB%E5%86%99%E7%A7%81%E4%BA%BA%E7%AC%94%E8%AE%B0%E3%80%82" target="_blank" rel="noopener">无用</a><a class="rb rb-3" href="https://github.com/lwz20210407/ZotWatch/issues/new?title=%5BZotWatch+feedback%5D+%E7%A8%8D%E5%90%8E%E7%9C%8B+A+physically-based+mixed+hardening+model+for+the+prediction+of+the+ductility+limits+of+thi&amp;body=%3C%21--+zotwatch-feedback-v1+--%3E%0A%60%60%60json%0A%7B%22doi%22%3A+%2210.1016%2Fj.ijplas.2024.103946%22%2C+%22rating%22%3A+%22later%22%2C+%22facets%22%3A+%5B%5D%7D%0A%60%60%60%0A%E5%85%AC%E5%BC%80%E5%8F%8D%E9%A6%88%EF%BC%8C%E8%AF%B7%E5%8B%BF%E5%A1%AB%E5%86%99%E7%A7%81%E4%BA%BA%E7%AC%94%E8%AE%B0%E3%80%82" target="_blank" rel="noopener">稍后读</a>
+    </span>
+    
+  </div>
+</article>
+
+
+
+
+
+
+<article id="p0" data-dir="参数反演与硬化外推" data-must="1"
+         style="--hue:#d9541f;--hue-soft:#fdeee6">
+  <div class="badges">
+    
+    <span class="pill p-must">必读</span>
+    <span class="pill p-dir" style="color:#d9541f;background:#fdeee6">参数反演与硬化外推</span>
+  </div>
+
+  <a class="title" href="https://linkinghub.elsevier.com/retrieve/pii/S0020740300000023" target="_blank" rel="noopener">Numerical simulation of the localization behavior of hydrostatic-stress-sensitive metals <span class="yr">(2000-11-01)</span></a>
+  <div class="title-zh">水静压力敏感金属局部化行为的数值模拟</div>
+
+  <div class="line"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="ico"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span>Michael Brünig, Simone Berger, H. Obrecht</span></div>
+  <div class="line"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="ico"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg><span><em>International Journal of Mechanical Sciences</em></span></div>
+
+  <div class="tldr">研究水静压力敏感金属的局部化行为，采用数值模拟方法，分析其变形特征和失效机制。</div>
+
+  
+
+  
+
+  
+  <div class="why"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="ico"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg><span>最接近库内《Influence of shock prestraining on the formation of shear localization in 304 stainless steel》</span></div>
+
+  <div class="foot">
+    <span class="m rel" title="综合相关度，0–1"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="ico"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>相关度
+      <b>0.71</b>
+      <span class="bar"><i style="width:71%"></i></span></span>
+    <span class="m">被引用 <b>57</b></span>
+    <span class="m"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="ico"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg><a href="https://doi.org/https://doi.org/10.1016/s0020-7403(00)00002-3"
+       target="_blank" rel="noopener">https://doi.org/10.1016/s0020-7403(00)00002-3</a></span>
+    
+    
+    <span class="rate" title="将打开公开 GitHub Issue，需你确认提交，请勿填写私人笔记">
+      <a class="rb rb-1" href="https://github.com/lwz20210407/ZotWatch/issues/new?title=%5BZotWatch+feedback%5D+%E7%9B%B4%E6%8E%A5%E6%9C%89%E7%94%A8+Numerical+simulation+of+the+localization+behavior+of+hydrostatic-stress-sensitive+metals&amp;body=%3C%21--+zotwatch-feedback-v1+--%3E%0A%60%60%60json%0A%7B%22doi%22%3A+%2210.1016%2Fs0020-7403%2800%2900002-3%22%2C+%22rating%22%3A+%22direct%22%2C+%22facets%22%3A+%5B%5D%7D%0A%60%60%60%0A%E5%85%AC%E5%BC%80%E5%8F%8D%E9%A6%88%EF%BC%8C%E8%AF%B7%E5%8B%BF%E5%A1%AB%E5%86%99%E7%A7%81%E4%BA%BA%E7%AC%94%E8%AE%B0%E3%80%82" target="_blank" rel="noopener">有用</a><a class="rb rb-2" href="https://github.com/lwz20210407/ZotWatch/issues/new?title=%5BZotWatch+feedback%5D+%E4%B8%8D%E7%9B%B8%E5%85%B3+Numerical+simulation+of+the+localization+behavior+of+hydrostatic-stress-sensitive+metals&amp;body=%3C%21--+zotwatch-feedback-v1+--%3E%0A%60%60%60json%0A%7B%22doi%22%3A+%2210.1016%2Fs0020-7403%2800%2900002-3%22%2C+%22rating%22%3A+%22irrelevant%22%2C+%22facets%22%3A+%5B%5D%7D%0A%60%60%60%0A%E5%85%AC%E5%BC%80%E5%8F%8D%E9%A6%88%EF%BC%8C%E8%AF%B7%E5%8B%BF%E5%A1%AB%E5%86%99%E7%A7%81%E4%BA%BA%E7%AC%94%E8%AE%B0%E3%80%82" target="_blank" rel="noopener">无用</a><a class="rb rb-3" href="https://github.com/lwz20210407/ZotWatch/issues/new?title=%5BZotWatch+feedback%5D+%E7%A8%8D%E5%90%8E%E7%9C%8B+Numerical+simulation+of+the+localization+behavior+of+hydrostatic-stress-sensitive+metals&amp;body=%3C%21--+zotwatch-feedback-v1+--%3E%0A%60%60%60json%0A%7B%22doi%22%3A+%2210.1016%2Fs0020-7403%2800%2900002-3%22%2C+%22rating%22%3A+%22later%22%2C+%22facets%22%3A+%5B%5D%7D%0A%60%60%60%0A%E5%85%AC%E5%BC%80%E5%8F%8D%E9%A6%88%EF%BC%8C%E8%AF%B7%E5%8B%BF%E5%A1%AB%E5%86%99%E7%A7%81%E4%BA%BA%E7%AC%94%E8%AE%B0%E3%80%82" target="_blank" rel="noopener">稍后读</a>
+    </span>
+    
+  </div>
+</article>
+
+
+
+
+
+
+<article id="p0" data-dir="延性断裂与损伤演化" data-must="1"
+         style="--hue:#1f6fb5;--hue-soft:#e9f2fb">
+  <div class="badges">
+    
+    <span class="pill p-must">必读</span>
+    <span class="pill p-dir" style="color:#1f6fb5;background:#e9f2fb">延性断裂与损伤演化</span>
+  </div>
+
+  <a class="title" href="https://linkinghub.elsevier.com/retrieve/pii/S0749641911000866" target="_blank" rel="noopener">A finite strain, finite band method for modeling ductile fracture <span class="yr">(2011-06-25)</span></a>
+  <div class="title-zh">用于模拟延性断裂的有限应变、有限带方法</div>
+
+  <div class="line"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="ico"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span>Alfredo E. Huespe, A. Needleman, J. Oliver, Pablo J. Sánchez</span></div>
+  <div class="line"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="ico"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg><span><em>International Journal of Plasticity</em></span></div>
+
+  <div class="tldr">提出有限应变和有限带方法，用于模拟延性断裂过程，提高模型的精度和适用性。</div>
+
+  
+
+  
+  <div class="transfer"><b>方法迁移说明卡 · 延性断裂与损伤演化</b>可作为断裂起始、损伤累积和失效模式的比较线索（规则推断，非已验证迁移）<br />
+    <span>迁移前核对：核对负三轴度、非比例路径、加载历史和独立验证试样</span></div>
+  
+
+  
+  <div class="why"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="ico"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg><span>最接近库内《Numerical Modeling of Ductile Fracture》</span></div>
+
+  <div class="foot">
+    <span class="m rel" title="综合相关度，0–1"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="ico"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>相关度
+      <b>0.70</b>
+      <span class="bar"><i style="width:70%"></i></span></span>
+    <span class="m">被引用 <b>55</b></span>
+    <span class="m"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="ico"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg><a href="https://doi.org/https://doi.org/10.1016/j.ijplas.2011.05.010"
+       target="_blank" rel="noopener">https://doi.org/10.1016/j.ijplas.2011.05.010</a></span>
+    
+    
+    <span class="rate" title="将打开公开 GitHub Issue，需你确认提交，请勿填写私人笔记">
+      <a class="rb rb-1" href="https://github.com/lwz20210407/ZotWatch/issues/new?title=%5BZotWatch+feedback%5D+%E7%9B%B4%E6%8E%A5%E6%9C%89%E7%94%A8+A+finite+strain%2C+finite+band+method+for+modeling+ductile+fracture&amp;body=%3C%21--+zotwatch-feedback-v1+--%3E%0A%60%60%60json%0A%7B%22doi%22%3A+%2210.1016%2Fj.ijplas.2011.05.010%22%2C+%22rating%22%3A+%22direct%22%2C+%22facets%22%3A+%5B%22fracture%22%5D%7D%0A%60%60%60%0A%E5%85%AC%E5%BC%80%E5%8F%8D%E9%A6%88%EF%BC%8C%E8%AF%B7%E5%8B%BF%E5%A1%AB%E5%86%99%E7%A7%81%E4%BA%BA%E7%AC%94%E8%AE%B0%E3%80%82" target="_blank" rel="noopener">有用</a><a class="rb rb-2" href="https://github.com/lwz20210407/ZotWatch/issues/new?title=%5BZotWatch+feedback%5D+%E4%B8%8D%E7%9B%B8%E5%85%B3+A+finite+strain%2C+finite+band+method+for+modeling+ductile+fracture&amp;body=%3C%21--+zotwatch-feedback-v1+--%3E%0A%60%60%60json%0A%7B%22doi%22%3A+%2210.1016%2Fj.ijplas.2011.05.010%22%2C+%22rating%22%3A+%22irrelevant%22%2C+%22facets%22%3A+%5B%22fracture%22%5D%7D%0A%60%60%60%0A%E5%85%AC%E5%BC%80%E5%8F%8D%E9%A6%88%EF%BC%8C%E8%AF%B7%E5%8B%BF%E5%A1%AB%E5%86%99%E7%A7%81%E4%BA%BA%E7%AC%94%E8%AE%B0%E3%80%82" target="_blank" rel="noopener">无用</a><a class="rb rb-3" href="https://github.com/lwz20210407/ZotWatch/issues/new?title=%5BZotWatch+feedback%5D+%E7%A8%8D%E5%90%8E%E7%9C%8B+A+finite+strain%2C+finite+band+method+for+modeling+ductile+fracture&amp;body=%3C%21--+zotwatch-feedback-v1+--%3E%0A%60%60%60json%0A%7B%22doi%22%3A+%2210.1016%2Fj.ijplas.2011.05.010%22%2C+%22rating%22%3A+%22later%22%2C+%22facets%22%3A+%5B%22fracture%22%5D%7D%0A%60%60%60%0A%E5%85%AC%E5%BC%80%E5%8F%8D%E9%A6%88%EF%BC%8C%E8%AF%B7%E5%8B%BF%E5%A1%AB%E5%86%99%E7%A7%81%E4%BA%BA%E7%AC%94%E8%AE%B0%E3%80%82" target="_blank" rel="noopener">稍后读</a>
+    </span>
+    
+  </div>
+</article>
+
+
+
+
+
+
+<article id="p0" data-dir="参数反演与硬化外推" data-must="0"
+         style="--hue:#d9541f;--hue-soft:#fdeee6">
+  <div class="badges">
+    
+    
+    <span class="pill p-dir" style="color:#d9541f;background:#fdeee6">参数反演与硬化外推</span>
+  </div>
+
+  <a class="title" href="https://linkinghub.elsevier.com/retrieve/pii/S0167663622001582" target="_blank" rel="noopener">Characterization of kinematic and distortional hardening by cyclic twin-bridge shear tests for sheet metal with inverse engineering approach <span class="yr">(2022-06-07)</span></a>
+  <div class="title-zh">通过循环双桥剪切试验逆向工程表征薄板金属的运动硬化和畸变硬化</div>
+
+  <div class="line"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="ico"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span>Chong Zhang, Saijun Zhang, Yanshan Lou</span></div>
+  <div class="line"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="ico"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg><span><em>Mechanics of Materials</em></span></div>
+
+  <div class="tldr">利用循环双桥剪切试验和逆向工程方法，表征薄板金属的运动硬化和畸变硬化行为。</div>
+
+  
+
+  
+
+  
+  <div class="why"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="ico"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg><span>最接近库内《Anisotropic hardening and non-associated flow in proportional loading of sheet metals》</span></div>
+
+  <div class="foot">
+    <span class="m rel" title="综合相关度，0–1"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="ico"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>相关度
+      <b>0.69</b>
+      <span class="bar"><i style="width:69%"></i></span></span>
+    <span class="m">被引用 <b>12</b></span>
+    <span class="m"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="ico"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg><a href="https://doi.org/https://doi.org/10.1016/j.mechmat.2022.104387"
+       target="_blank" rel="noopener">https://doi.org/10.1016/j.mechmat.2022.104387</a></span>
+    
+    
+    <span class="rate" title="将打开公开 GitHub Issue，需你确认提交，请勿填写私人笔记">
+      <a class="rb rb-1" href="https://github.com/lwz20210407/ZotWatch/issues/new?title=%5BZotWatch+feedback%5D+%E7%9B%B4%E6%8E%A5%E6%9C%89%E7%94%A8+Characterization+of+kinematic+and+distortional+hardening+by+cyclic+twin-bridge+shear+tests&amp;body=%3C%21--+zotwatch-feedback-v1+--%3E%0A%60%60%60json%0A%7B%22doi%22%3A+%2210.1016%2Fj.mechmat.2022.104387%22%2C+%22rating%22%3A+%22direct%22%2C+%22facets%22%3A+%5B%5D%7D%0A%60%60%60%0A%E5%85%AC%E5%BC%80%E5%8F%8D%E9%A6%88%EF%BC%8C%E8%AF%B7%E5%8B%BF%E5%A1%AB%E5%86%99%E7%A7%81%E4%BA%BA%E7%AC%94%E8%AE%B0%E3%80%82" target="_blank" rel="noopener">有用</a><a class="rb rb-2" href="https://github.com/lwz20210407/ZotWatch/issues/new?title=%5BZotWatch+feedback%5D+%E4%B8%8D%E7%9B%B8%E5%85%B3+Characterization+of+kinematic+and+distortional+hardening+by+cyclic+twin-bridge+shear+tests&amp;body=%3C%21--+zotwatch-feedback-v1+--%3E%0A%60%60%60json%0A%7B%22doi%22%3A+%2210.1016%2Fj.mechmat.2022.104387%22%2C+%22rating%22%3A+%22irrelevant%22%2C+%22facets%22%3A+%5B%5D%7D%0A%60%60%60%0A%E5%85%AC%E5%BC%80%E5%8F%8D%E9%A6%88%EF%BC%8C%E8%AF%B7%E5%8B%BF%E5%A1%AB%E5%86%99%E7%A7%81%E4%BA%BA%E7%AC%94%E8%AE%B0%E3%80%82" target="_blank" rel="noopener">无用</a><a class="rb rb-3" href="https://github.com/lwz20210407/ZotWatch/issues/new?title=%5BZotWatch+feedback%5D+%E7%A8%8D%E5%90%8E%E7%9C%8B+Characterization+of+kinematic+and+distortional+hardening+by+cyclic+twin-bridge+shear+tests&amp;body=%3C%21--+zotwatch-feedback-v1+--%3E%0A%60%60%60json%0A%7B%22doi%22%3A+%2210.1016%2Fj.mechmat.2022.104387%22%2C+%22rating%22%3A+%22later%22%2C+%22facets%22%3A+%5B%5D%7D%0A%60%60%60%0A%E5%85%AC%E5%BC%80%E5%8F%8D%E9%A6%88%EF%BC%8C%E8%AF%B7%E5%8B%BF%E5%A1%AB%E5%86%99%E7%A7%81%E4%BA%BA%E7%AC%94%E8%AE%B0%E3%80%82" target="_blank" rel="noopener">稍后读</a>
+    </span>
+    
+  </div>
+</article>
+</div>
+
+
+
+<h2>跨圈方法发现 <em>2 篇</em></h2>
+<p class="note">独立语义检索所得，不要求与种子有引文关系；超出近期窗口，不能当作新发表。</p>
+<div class="cards">
+
+
+
+
+
+<article id="p0" data-dir="延性断裂与损伤演化" data-must="0"
+         style="--hue:#1f6fb5;--hue-soft:#e9f2fb">
+  <div class="badges">
+    
+    
+    <span class="pill p-dir" style="color:#1f6fb5;background:#e9f2fb">延性断裂与损伤演化</span>
+  </div>
+
+  <a class="title" href="https://linkinghub.elsevier.com/retrieve/pii/S0924013626000488" target="_blank" rel="noopener">Observation-driven punching simulation using inverse identification of quasi-nonparametric ductile fracture locus <span class="yr">(2026-02-04)</span></a>
+  <div class="title-zh">基于准非参数延性断裂轨迹逆向识别的驱动观察穿孔模拟</div>
+
+  <div class="line"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="ico"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span>Jin Eguchi, Takashi Matsuno, Yasuhiro Kunii, Kazuyuki Shimizu, Yuichi Matsuki, Toyohisa Shinmiya, Eiji Iizuka</span></div>
+  <div class="line"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="ico"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg><span><em>Journal of Materials Processing Technology</em></span></div>
+
+  <div class="tldr">通过逆向识别准非参数延性断裂轨迹，实现驱动观察的穿孔模拟，提高预测准确性。</div>
+
+  
+
+  
+  <div class="transfer"><b>方法迁移说明卡 · 延性断裂与损伤演化</b>可作为断裂起始、损伤累积和失效模式的比较线索（规则推断，非已验证迁移）<br />
+    <span>迁移前核对：核对负三轴度、非比例路径、加载历史和独立验证试样</span></div>
+  
+  <div class="transfer"><b>方法迁移说明卡 · 参数反演与硬化外推</b>可作为全场反演、目标函数和颈缩后硬化外推的流程参考（规则推断，非已验证迁移）<br />
+    <span>迁移前核对：核对参数可辨识性、测量误差、边界条件、训练与验证数据分离</span></div>
+  
+
+  
+  <div class="why"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="ico"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg><span>最接近库内《Ductile fracture in metal forming: Modeling and simulation》</span></div>
+
+  <div class="foot">
+    <span class="m rel" title="综合相关度，0–1"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="ico"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>相关度
+      <b>0.65</b>
+      <span class="bar"><i style="width:65%"></i></span></span>
+    <span class="m">被引用 <b>1</b></span>
+    <span class="m"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="ico"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg><a href="https://doi.org/https://doi.org/10.1016/j.jmatprotec.2026.119243"
+       target="_blank" rel="noopener">https://doi.org/10.1016/j.jmatprotec.2026.119243</a></span>
+    
+    
+    <span class="rate" title="将打开公开 GitHub Issue，需你确认提交，请勿填写私人笔记">
+      <a class="rb rb-1" href="https://github.com/lwz20210407/ZotWatch/issues/new?title=%5BZotWatch+feedback%5D+%E7%9B%B4%E6%8E%A5%E6%9C%89%E7%94%A8+Observation-driven+punching+simulation+using+inverse+identification+of+quasi-nonparametric&amp;body=%3C%21--+zotwatch-feedback-v1+--%3E%0A%60%60%60json%0A%7B%22doi%22%3A+%2210.1016%2Fj.jmatprotec.2026.119243%22%2C+%22rating%22%3A+%22direct%22%2C+%22facets%22%3A+%5B%22fracture%22%2C+%22inverse%22%5D%7D%0A%60%60%60%0A%E5%85%AC%E5%BC%80%E5%8F%8D%E9%A6%88%EF%BC%8C%E8%AF%B7%E5%8B%BF%E5%A1%AB%E5%86%99%E7%A7%81%E4%BA%BA%E7%AC%94%E8%AE%B0%E3%80%82" target="_blank" rel="noopener">有用</a><a class="rb rb-2" href="https://github.com/lwz20210407/ZotWatch/issues/new?title=%5BZotWatch+feedback%5D+%E4%B8%8D%E7%9B%B8%E5%85%B3+Observation-driven+punching+simulation+using+inverse+identification+of+quasi-nonparametric&amp;body=%3C%21--+zotwatch-feedback-v1+--%3E%0A%60%60%60json%0A%7B%22doi%22%3A+%2210.1016%2Fj.jmatprotec.2026.119243%22%2C+%22rating%22%3A+%22irrelevant%22%2C+%22facets%22%3A+%5B%22fracture%22%2C+%22inverse%22%5D%7D%0A%60%60%60%0A%E5%85%AC%E5%BC%80%E5%8F%8D%E9%A6%88%EF%BC%8C%E8%AF%B7%E5%8B%BF%E5%A1%AB%E5%86%99%E7%A7%81%E4%BA%BA%E7%AC%94%E8%AE%B0%E3%80%82" target="_blank" rel="noopener">无用</a><a class="rb rb-3" href="https://github.com/lwz20210407/ZotWatch/issues/new?title=%5BZotWatch+feedback%5D+%E7%A8%8D%E5%90%8E%E7%9C%8B+Observation-driven+punching+simulation+using+inverse+identification+of+quasi-nonparametric&amp;body=%3C%21--+zotwatch-feedback-v1+--%3E%0A%60%60%60json%0A%7B%22doi%22%3A+%2210.1016%2Fj.jmatprotec.2026.119243%22%2C+%22rating%22%3A+%22later%22%2C+%22facets%22%3A+%5B%22fracture%22%2C+%22inverse%22%5D%7D%0A%60%60%60%0A%E5%85%AC%E5%BC%80%E5%8F%8D%E9%A6%88%EF%BC%8C%E8%AF%B7%E5%8B%BF%E5%A1%AB%E5%86%99%E7%A7%81%E4%BA%BA%E7%AC%94%E8%AE%B0%E3%80%82" target="_blank" rel="noopener">稍后读</a>
+    </span>
+    
+  </div>
+</article>
+
+
+
+
+
+
+<article id="p0" data-dir="参数反演与硬化外推" data-must="0"
+         style="--hue:#d9541f;--hue-soft:#fdeee6">
+  <div class="badges">
+    
+    
+    <span class="pill p-dir" style="color:#d9541f;background:#fdeee6">参数反演与硬化外推</span>
+  </div>
+
+  <a class="title" href="https://linkinghub.elsevier.com/retrieve/pii/S0020740326000615" target="_blank" rel="noopener">Sensitivity-analysis guided Bayesian optimization for crystal plasticity parameter identification <span class="yr">(2026-01-05)</span></a>
+  <div class="title-zh">基于敏感性分析的贝叶斯优化用于晶体塑性参数识别</div>
+
+  <div class="line"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="ico"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span>Junyun Pan, Huadong Fu, Kaikai Qiu, Weidong Li, Jianxin Xie</span></div>
+  <div class="line"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="ico"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg><span><em>International Journal of Mechanical Sciences</em></span></div>
+
+  <div class="tldr">采用敏感性分析引导的贝叶斯优化方法，提高晶体塑性参数识别的效率和准确性。</div>
+
+  
+
+  
+  <div class="transfer"><b>方法迁移说明卡 · 参数反演与硬化外推</b>可作为全场反演、目标函数和颈缩后硬化外推的流程参考（规则推断，非已验证迁移）<br />
+    <span>迁移前核对：核对参数可辨识性、测量误差、边界条件、训练与验证数据分离</span></div>
+  
+  <div class="transfer"><b>方法迁移说明卡 · 增材组织—缺陷—失效</b>可作为组织、缺陷及制造方向影响力学响应的机制线索（规则推断，非已验证迁移）<br />
+    <span>迁移前核对：核对制造路线、热处理、孔隙形貌、取向和组织表征证据</span></div>
+  
+
+  
+  <div class="why"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="ico"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg><span>最接近库内《A full-field calibration approach on material parameter identification》</span></div>
+
+  <div class="foot">
+    <span class="m rel" title="综合相关度，0–1"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="ico"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>相关度
+      <b>0.60</b>
+      <span class="bar"><i style="width:60%"></i></span></span>
+    <span class="m">被引用 <b>5</b></span>
+    <span class="m"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="ico"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg><a href="https://doi.org/https://doi.org/10.1016/j.ijmecsci.2026.111205"
+       target="_blank" rel="noopener">https://doi.org/10.1016/j.ijmecsci.2026.111205</a></span>
+    
+    
+    <span class="rate" title="将打开公开 GitHub Issue，需你确认提交，请勿填写私人笔记">
+      <a class="rb rb-1" href="https://github.com/lwz20210407/ZotWatch/issues/new?title=%5BZotWatch+feedback%5D+%E7%9B%B4%E6%8E%A5%E6%9C%89%E7%94%A8+Sensitivity-analysis+guided+Bayesian+optimization+for+crystal+plasticity+parameter+identif&amp;body=%3C%21--+zotwatch-feedback-v1+--%3E%0A%60%60%60json%0A%7B%22doi%22%3A+%2210.1016%2Fj.ijmecsci.2026.111205%22%2C+%22rating%22%3A+%22direct%22%2C+%22facets%22%3A+%5B%22inverse%22%2C+%22microstructure%22%5D%7D%0A%60%60%60%0A%E5%85%AC%E5%BC%80%E5%8F%8D%E9%A6%88%EF%BC%8C%E8%AF%B7%E5%8B%BF%E5%A1%AB%E5%86%99%E7%A7%81%E4%BA%BA%E7%AC%94%E8%AE%B0%E3%80%82" target="_blank" rel="noopener">有用</a><a class="rb rb-2" href="https://github.com/lwz20210407/ZotWatch/issues/new?title=%5BZotWatch+feedback%5D+%E4%B8%8D%E7%9B%B8%E5%85%B3+Sensitivity-analysis+guided+Bayesian+optimization+for+crystal+plasticity+parameter+identif&amp;body=%3C%21--+zotwatch-feedback-v1+--%3E%0A%60%60%60json%0A%7B%22doi%22%3A+%2210.1016%2Fj.ijmecsci.2026.111205%22%2C+%22rating%22%3A+%22irrelevant%22%2C+%22facets%22%3A+%5B%22inverse%22%2C+%22microstructure%22%5D%7D%0A%60%60%60%0A%E5%85%AC%E5%BC%80%E5%8F%8D%E9%A6%88%EF%BC%8C%E8%AF%B7%E5%8B%BF%E5%A1%AB%E5%86%99%E7%A7%81%E4%BA%BA%E7%AC%94%E8%AE%B0%E3%80%82" target="_blank" rel="noopener">无用</a><a class="rb rb-3" href="https://github.com/lwz20210407/ZotWatch/issues/new?title=%5BZotWatch+feedback%5D+%E7%A8%8D%E5%90%8E%E7%9C%8B+Sensitivity-analysis+guided+Bayesian+optimization+for+crystal+plasticity+parameter+identif&amp;body=%3C%21--+zotwatch-feedback-v1+--%3E%0A%60%60%60json%0A%7B%22doi%22%3A+%2210.1016%2Fj.ijmecsci.2026.111205%22%2C+%22rating%22%3A+%22later%22%2C+%22facets%22%3A+%5B%22inverse%22%2C+%22microstructure%22%5D%7D%0A%60%60%60%0A%E5%85%AC%E5%BC%80%E5%8F%8D%E9%A6%88%EF%BC%8C%E8%AF%B7%E5%8B%BF%E5%A1%AB%E5%86%99%E7%A7%81%E4%BA%BA%E7%AC%94%E8%AE%B0%E3%80%82" target="_blank" rel="noopener">稍后读</a>
+    </span>
+    
+  </div>
+</article>
+</div>
+
+
+
+
+
+<h2>运行诊断</h2>
+<details class="diag">
+  <summary>展开本轮运行详情（供排查用，不是推荐内容）</summary>
+  <div class="warn">src.fetch_new: 检索分页/候选数量达到上限</div><div class="warn">src.citation_watch: 检索分页/候选数量达到上限</div><div class="warn">经典补漏候选超过上限：优先共享参考文献，其余按周轮换，非穷尽回溯。</div>
+  
+  <table>
+    <tr><th>研究方向</th><th class="n">抓取</th><th class="n">主题通过</th>
+        <th class="n">去重后</th><th class="n">推送</th><th>状态</th></tr>
+    
+    <tr><td>应力状态依赖塑性</td><td class="n">70</td><td class="n">53</td>
+        <td class="n">27</td><td class="n">0</td>
+        <td>覆盖不完整，不能据此判断无新文献（连续 1 轮无推送）</td></tr>
+    
+    <tr><td>温度—应变率耦合</td><td class="n">147</td><td class="n">134</td>
+        <td class="n">119</td><td class="n">3</td>
+        <td>覆盖不完整，不能据此判断无新文献</td></tr>
+    
+    <tr><td>延性断裂与损伤演化</td><td class="n">128</td><td class="n">109</td>
+        <td class="n">63</td><td class="n">6</td>
+        <td>覆盖不完整，不能据此判断无新文献</td></tr>
+    
+    <tr><td>参数反演与硬化外推</td><td class="n">19</td><td class="n">16</td>
+        <td class="n">14</td><td class="n">2</td>
+        <td>覆盖不完整，不能据此判断无新文献</td></tr>
+    
+    <tr><td>数值实现与损伤正则化</td><td class="n">17</td><td class="n">16</td>
+        <td class="n">13</td><td class="n">0</td>
+        <td>覆盖不完整，不能据此判断无新文献（连续 1 轮无推送）</td></tr>
+    
+    <tr><td>冲击与结构验证</td><td class="n">36</td><td class="n">34</td>
+        <td class="n">33</td><td class="n">1</td>
+        <td>覆盖不完整，不能据此判断无新文献</td></tr>
+    
+    <tr><td>增材组织—缺陷—失效</td><td class="n">287</td><td class="n">270</td>
+        <td class="n">267</td><td class="n">3</td>
+        <td>覆盖不完整，不能据此判断无新文献</td></tr>
+    
+  </table>
+  
+  
+  <p style="font-size:13px;color:var(--muted)"><b>建议新增关注</b>（待确认，尚未自动加入）：
+  George Z. Voyiadjis（3 篇） · Babür Deliktaş（2 篇） · Sodiq Abiodun Kareem（2 篇） · Qingsong Pan（2 篇） · N.R. Tao（2 篇） · Lei Lu（2 篇） · Dierk Raabe（2 篇） · Min Yi（2 篇） · Ronghuang Su（2 篇） · Feipeng Yang（2 篇）</p>
+  
+  
+  <p style="font-size:13px;color:var(--muted)"><b>持续合作组合</b>　仅表示共同署名证据，不推断师生关系或课题组。<br />
+  Julian N. Heidenreich — Dirk Mohr：2 篇<br /></p>
+  
+  
+  <p style="font-size:13px;color:var(--muted)"><b>请求与预算</b>　请求 {&#39;api.openalex.org&#39;: 21, &#39;api.crossref.org&#39;: 20}｜缓存命中 40｜
+  OpenAlex 本地估算余额 0.0177（非账户实时余额）</p>
+  
+</details>
+
+</main>
+
+<aside class="right">
+  
+  
+  <div class="panel">
+    <h3><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="ico"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg> 本期目录</h3>
+    <nav class="toc">
+      
+      
+      <a href="#p1">
+        <i class="dot" style="background:#d9541f"></i>
+        <span class="n">01</span>
+        <span class="tt">基于神经网络的畸变硬化模型：通过FE耦合反向传播推断实验结果，应用于Ti-6Al-4V和第三代AHSS</span>
+        <em>必读</em>
+      </a>
+      
+      
+      <a href="#p2">
+        <i class="dot" style="background:#1f6fb5"></i>
+        <span class="n">02</span>
+        <span class="tt">基于三轴度的约束依赖CTOD抗力和损伤起始关系：使用XFEM分析SENT、SENB和CT试样研究API X52管线钢</span>
+        
+      </a>
+      
+      
+      <a href="#p3">
+        <i class="dot" style="background:#2f8f4e"></i>
+        <span class="n">03</span>
+        <span class="tt">通过退火处理调控微观结构特征实现Al-Mg2Si-Si合金从脆性到延性断裂的转变</span>
+        
+      </a>
+      
+      
+      <a href="#p4">
+        <i class="dot" style="background:#d9541f"></i>
+        <span class="n">04</span>
+        <span class="tt">温度依赖的剪切修正GTN模型校准与验证：用于DP590钢温成形极限</span>
+        
+      </a>
+      
+      
+      <a href="#p5">
+        <i class="dot" style="background:#8a4bb8"></i>
+        <span class="n">05</span>
+        <span class="tt">晶粒尺寸依赖的高应变率冲击下FeCoCrMnNi高熵合金的动态力学响应与塑性变形</span>
+        
+      </a>
+      
+      
+      <a href="#p6">
+        <i class="dot" style="background:#2f8f4e"></i>
+        <span class="n">06</span>
+        <span class="tt">通过残余应力驱动纳米孪晶生长实现增材制造奥氏体钢的优异强度-延性协同</span>
+        
+      </a>
+      
+      
+      <a href="#p7">
+        <i class="dot" style="background:#d9541f"></i>
+        <span class="n">07</span>
+        <span class="tt">AISI 304不锈钢在随机幅值非比例载荷下的循环塑性本构建模与微观结构机制</span>
+        
+      </a>
+      
+      
+      <a href="#p8">
+        <i class="dot" style="background:#1f6fb5"></i>
+        <span class="n">08</span>
+        <span class="tt">使用微型DCT试样评估延性断裂韧性：三种工业相关钢材的案例研究</span>
+        
+      </a>
+      
+    </nav>
+  </div>
+  
+
+  
+  <div class="panel">
+    <h3><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="ico"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg> 本期期刊</h3>
+    <div class="rows">
+      
+      <div class="row"><span class="rt">International Journal of Plasticity</span><b>7</b></div>
+      
+      <div class="row"><span class="rt">Acta Materialia</span><b>2</b></div>
+      
+      <div class="row"><span class="rt">International Journal of Mechanical Sciences</span><b>2</b></div>
+      
+      <div class="row"><span class="rt">Journal of Materials Processing Technology</span><b>2</b></div>
+      
+      <div class="row"><span class="rt">Advanced Functional Materials</span><b>1</b></div>
+      
+    </div>
+  </div>
+  
+
+  
+  <div class="panel">
+    <h3><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="ico"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg> 你的兴趣画像</h3>
+    <div class="hint">推荐是按这个结构排序的。库里某个方向积累得多，本期该方向自然推得多。</div>
+    <div class="bars">
+      
+      
+      <div class="brow">
+        <div class="t"><span>延性断裂与损伤演化</span><b>1209</b></div>
+        <div class="track"><i style="width:100%;background:#1f6fb5"></i></div>
+      </div>
+      
+      
+      <div class="brow">
+        <div class="t"><span>应力状态依赖塑性</span><b>1161</b></div>
+        <div class="track"><i style="width:96%;background:#0f8a8a"></i></div>
+      </div>
+      
+      
+      <div class="brow">
+        <div class="t"><span>温度—应变率耦合</span><b>1092</b></div>
+        <div class="track"><i style="width:90%;background:#8a4bb8"></i></div>
+      </div>
+      
+      
+      <div class="brow">
+        <div class="t"><span>冲击与结构验证</span><b>950</b></div>
+        <div class="track"><i style="width:79%;background:#b3341f"></i></div>
+      </div>
+      
+      
+      <div class="brow">
+        <div class="t"><span>增材组织—缺陷—失效</span><b>382</b></div>
+        <div class="track"><i style="width:32%;background:#2f8f4e"></i></div>
+      </div>
+      
+      
+      <div class="brow off">
+        <div class="t"><span>数值实现与损伤正则化</span><b>157</b></div>
+        <div class="track"><i style="width:13%;background:#2f8f4e"></i></div>
+      </div>
+      
+      
+      <div class="brow">
+        <div class="t"><span>参数反演与硬化外推</span><b>115</b></div>
+        <div class="track"><i style="width:10%;background:#d9541f"></i></div>
+      </div>
+      
+    </div>
+    
+    <div class="hint" style="margin:11px 0 0">
+      灰掉的 1 个方向本期一篇都没有。连续几期为空就该检查检索词了。
+    </div>
+    
+  </div>
+  
+
+  
+  <div class="panel">
+    <h3><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="ico"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> 作者动向</h3>
+
+    
+    <div class="sub-h">本期发文的已关注作者</div>
+    <div class="rows">
+      
+      <div class="row"><span class="rt">Dirk Mohr</span><b>2</b></div>
+      
+      <div class="row"><span class="rt">Tao Suo</span><b>2</b></div>
+      
+      <div class="row"><span class="rt">Yanshan Lou</span><b>2</b></div>
+      
+      <div class="row"><span class="rt">Chong Zhang</span></div>
+      
+      <div class="row"><span class="rt">Michael Brünig</span></div>
+      
+      <div class="row"><span class="rt">Qi Hu</span></div>
+      
+    </div>
+    
+
+    
+    <div class="sub-h" style="margin-top:15px">
+      查漏补缺 · 你还没关注的人</div>
+    <div class="hint">按跨期累积的高相关论文数排出，不会自动加入关注。</div>
+    <div class="cands">
+      
+      <div class="cand">
+        <div class="cand-h">
+          <span class="nm">George Z. Voyiadjis</span>
+          <em class="new">新涌现</em>
+          <b>3 篇</b>
+        </div>
+        
+        <div class="cand-p">
+          <a href="https://doi.org/10.21203/rs.3.rs-10706047/v1" target="_blank" rel="noopener">Federated Scientific Machine Learning Framework for Multi-Scale Inverse Parameter Identification: Application to Nonlocal Strain Gradient Plasticity</a><a href="https://doi.org/10.1061/jenmdt.emeng-9141" target="_blank" rel="noopener">Digital Twin Framework for Characterizing Postnecking Strain Localization in Copper Using DIC-FEM</a>
+        </div>
+        <a class="add" href="https://github.com/lwz20210407/ZotWatch/issues/new?title=%5BZotWatch%5D+%E5%85%B3%E6%B3%A8%E4%BD%9C%E8%80%85+George+Z.+Voyiadjis&amp;body=%E8%AF%B7%E6%8A%8A%E4%BB%A5%E4%B8%8B%E4%BD%9C%E8%80%85%E5%8A%A0%E5%85%A5+config%2Fauthors.yaml%EF%BC%9A%0A%0A-+name%3A+George+Z.+Voyiadjis%0A++openalex_ids%3A+%5BA5081075067%5D%0A++reason%3A+%E6%9C%AC%E6%9C%9F%E6%8E%A8%E8%8D%90%E4%B8%AD%E5%87%BA%E7%8E%B0+3+%E7%AF%87%E9%AB%98%E7%9B%B8%E5%85%B3%E8%AE%BA%E6%96%87%0A" target="_blank" rel="noopener">加入关注 →</a>
+      </div>
+      
+      <div class="cand">
+        <div class="cand-h">
+          <span class="nm">Babür Deliktaş</span>
+          <em class="new">新涌现</em>
+          <b>2 篇</b>
+        </div>
+        
+        <div class="cand-p">
+          <a href="https://doi.org/10.21203/rs.3.rs-10706047/v1" target="_blank" rel="noopener">Federated Scientific Machine Learning Framework for Multi-Scale Inverse Parameter Identification: Application to Nonlocal Strain Gradient Plasticity</a><a href="https://doi.org/10.1016/j.ijplas.2015.06.009" target="_blank" rel="noopener">Coupled porous plasticity – Continuum damage mechanics approaches for modelling temperature driven ductile-to-brittle transition fracture in ferritic steels</a>
+        </div>
+        <a class="add" href="https://github.com/lwz20210407/ZotWatch/issues/new?title=%5BZotWatch%5D+%E5%85%B3%E6%B3%A8%E4%BD%9C%E8%80%85+Bab%C3%BCr+Delikta%C5%9F&amp;body=%E8%AF%B7%E6%8A%8A%E4%BB%A5%E4%B8%8B%E4%BD%9C%E8%80%85%E5%8A%A0%E5%85%A5+config%2Fauthors.yaml%EF%BC%9A%0A%0A-+name%3A+Bab%C3%BCr+Delikta%C5%9F%0A++openalex_ids%3A+%5BA5017142914%5D%0A++reason%3A+%E6%9C%AC%E6%9C%9F%E6%8E%A8%E8%8D%90%E4%B8%AD%E5%87%BA%E7%8E%B0+2+%E7%AF%87%E9%AB%98%E7%9B%B8%E5%85%B3%E8%AE%BA%E6%96%87%0A" target="_blank" rel="noopener">加入关注 →</a>
+      </div>
+      
+      <div class="cand">
+        <div class="cand-h">
+          <span class="nm">Sodiq Abiodun Kareem</span>
+          <em class="new">新涌现</em>
+          <b>2 篇</b>
+        </div>
+        
+        <div class="cand-p">
+          <a href="https://doi.org/10.1016/j.pmatsci.2026.101823" target="_blank" rel="noopener">Direct current thermo-mechanical testing: principles, uncertainty hierarchy, and its role in advanced materials characterisation</a><a href="https://doi.org/10.1016/j.msea.2026.151007" target="_blank" rel="noopener">Strain-rate-driven dynamic recrystallization and hetero-deformation response in a dual-phase HEA at elevated temperatures</a>
+        </div>
+        <a class="add" href="https://github.com/lwz20210407/ZotWatch/issues/new?title=%5BZotWatch%5D+%E5%85%B3%E6%B3%A8%E4%BD%9C%E8%80%85+Sodiq+Abiodun+Kareem&amp;body=%E8%AF%B7%E6%8A%8A%E4%BB%A5%E4%B8%8B%E4%BD%9C%E8%80%85%E5%8A%A0%E5%85%A5+config%2Fauthors.yaml%EF%BC%9A%0A%0A-+name%3A+Sodiq+Abiodun+Kareem%0A++openalex_ids%3A+%5BA5085018974%5D%0A++reason%3A+%E6%9C%AC%E6%9C%9F%E6%8E%A8%E8%8D%90%E4%B8%AD%E5%87%BA%E7%8E%B0+2+%E7%AF%87%E9%AB%98%E7%9B%B8%E5%85%B3%E8%AE%BA%E6%96%87%0A" target="_blank" rel="noopener">加入关注 →</a>
+      </div>
+      
+      <div class="cand">
+        <div class="cand-h">
+          <span class="nm">Qingsong Pan</span>
+          <em class="new">新涌现</em>
+          <b>2 篇</b>
+        </div>
+        
+        <div class="cand-p">
+          <a href="https://doi.org/10.1126/science.adt6666" target="_blank" rel="noopener">Superior resistance to cyclic creep in a gradient structured steel</a><a href="https://doi.org/10.1126/science.adj3974" target="_blank" rel="noopener">Atomic faulting induced exceptional cryogenic strain hardening in gradient cell–structured alloy</a>
+        </div>
+        <a class="add" href="https://github.com/lwz20210407/ZotWatch/issues/new?title=%5BZotWatch%5D+%E5%85%B3%E6%B3%A8%E4%BD%9C%E8%80%85+Qingsong+Pan&amp;body=%E8%AF%B7%E6%8A%8A%E4%BB%A5%E4%B8%8B%E4%BD%9C%E8%80%85%E5%8A%A0%E5%85%A5+config%2Fauthors.yaml%EF%BC%9A%0A%0A-+name%3A+Qingsong+Pan%0A++openalex_ids%3A+%5BA5102814058%5D%0A++reason%3A+%E6%9C%AC%E6%9C%9F%E6%8E%A8%E8%8D%90%E4%B8%AD%E5%87%BA%E7%8E%B0+2+%E7%AF%87%E9%AB%98%E7%9B%B8%E5%85%B3%E8%AE%BA%E6%96%87%0A" target="_blank" rel="noopener">加入关注 →</a>
+      </div>
+      
+      <div class="cand">
+        <div class="cand-h">
+          <span class="nm">N.R. Tao</span>
+          <em class="new">新涌现</em>
+          <b>2 篇</b>
+        </div>
+        
+        <div class="cand-p">
+          <a href="https://doi.org/10.1126/science.adt6666" target="_blank" rel="noopener">Superior resistance to cyclic creep in a gradient structured steel</a><a href="https://doi.org/10.1126/science.adj3974" target="_blank" rel="noopener">Atomic faulting induced exceptional cryogenic strain hardening in gradient cell–structured alloy</a>
+        </div>
+        <a class="add" href="https://github.com/lwz20210407/ZotWatch/issues/new?title=%5BZotWatch%5D+%E5%85%B3%E6%B3%A8%E4%BD%9C%E8%80%85+N.R.+Tao&amp;body=%E8%AF%B7%E6%8A%8A%E4%BB%A5%E4%B8%8B%E4%BD%9C%E8%80%85%E5%8A%A0%E5%85%A5+config%2Fauthors.yaml%EF%BC%9A%0A%0A-+name%3A+N.R.+Tao%0A++openalex_ids%3A+%5BA5110014361%5D%0A++reason%3A+%E6%9C%AC%E6%9C%9F%E6%8E%A8%E8%8D%90%E4%B8%AD%E5%87%BA%E7%8E%B0+2+%E7%AF%87%E9%AB%98%E7%9B%B8%E5%85%B3%E8%AE%BA%E6%96%87%0A" target="_blank" rel="noopener">加入关注 →</a>
+      </div>
+      
+    </div>
+    
+  </div>
+  
+
+  <div class="panel">
+    <h3><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="ico"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> 往期</h3>
+    
+    <div class="hint">每期留档，链接不会因为下一期发布而失效。</div>
+    <ol class="issues">
+      
+      <li><a href="report-20260521.html">
+        <span class="no">2026-05-21</span>
+        <span class="when">5 月 21 日</span>
+        
+      </a></li>
+      
+      <li><a href="report-20260422.html">
+        <span class="no">2026-04-22</span>
+        <span class="when">4 月 22 日</span>
+        
+      </a></li>
+      
+    </ol>
+    
+    <div class="links">
+      <a href="archive.html">全部往期 →</a>
+      <a href="feed.xml">RSS 订阅 →</a>
+    </div>
+  </div>
+</aside>
+
+</div>
+<script>
+document.addEventListener('click', function (e) {
+  var more = e.target.closest('.more');
+  if (more) {
+    var box = more.closest('article').querySelector('.abs:not(.zh)');
+    var open = box.classList.toggle('open');
+    more.classList.toggle('open', open);
+    more.textContent = open ? '收起' : '显示更多';
+    return;
+  }
+  var alt = e.target.closest('.alt');
+  if (alt) {
+    var zh = alt.closest('article').querySelector('.abs.zh');
+    zh.hidden = !zh.hidden;
+    alt.textContent = zh.hidden ? '翻译' : '隐藏译文';
+    return;
+  }
+  var btn = e.target.closest('#dirFilter .fitem');
+  if (!btn) return;
+  document.querySelectorAll('#dirFilter .fitem').forEach(function (b) {
+    b.setAttribute('aria-pressed', String(b === btn));
+  });
+  apply();
+});
+
+function apply() {
+  var active = document.querySelector('#dirFilter .fitem[aria-pressed="true"]');
+  var want = active ? active.dataset.dir : '';
+  var sw = document.getElementById('onlyMust');
+  var mustOnly = sw && sw.checked;
+  var shown = 0;
+  document.querySelectorAll('article[data-dir]').forEach(function (card) {
+    var hit = (!want || card.dataset.dir === want) && (!mustOnly || card.dataset.must === '1');
+    card.hidden = !hit;
+    if (hit) shown++;
+  });
+  var empty = document.getElementById('noMatch');
+  if (empty) empty.hidden = shown > 0;
+}
+var mustSwitch = document.getElementById('onlyMust');
+if (mustSwitch) mustSwitch.addEventListener('change', apply);
+</script>
+</body>
+</html>

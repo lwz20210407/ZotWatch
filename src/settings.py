@@ -152,6 +152,19 @@ class EmbeddingConfig(BaseModel):
         return f"{self.provider}:{self.model_name}:{self.dimensions or 'native'}"
 
 
+class TranslationConfig(BaseModel):
+    """Chinese titles for English papers. Best-effort; failures keep the original."""
+
+    model_config = {"protected_namespaces": ()}
+
+    enabled: bool = True
+    base_url: str = "https://api.siliconflow.cn/v1"
+    model_name: str = "Qwen/Qwen3-8B"
+    api_key_env: str = "EMBEDDING_API_KEY"
+    batch_size: int = Field(20, ge=1, le=60)
+    timeout_seconds: float = Field(90.0, gt=0)
+
+
 class ScoreWeights(BaseModel):
     similarity: float = 0.45
     recency: float = 0.15
@@ -265,6 +278,7 @@ class Settings(BaseModel):
     sources: SourcesConfig
     scoring: ScoringConfig
     embedding: EmbeddingConfig = Field(default_factory=EmbeddingConfig)
+    translation: TranslationConfig = Field(default_factory=TranslationConfig)
     author_watch: AuthorWatchConfig = Field(default_factory=AuthorWatchConfig)
     citation_watch: "CitationWatchConfig" = Field(default_factory=lambda: CitationWatchConfig())
     research: "ResearchConfig" = Field(default_factory=lambda: ResearchConfig())
@@ -373,11 +387,14 @@ def load_settings(base_dir: Path | str) -> Settings:
     network_cfg = _load_yaml(network_path) if network_path.exists() else {}
     embedding_path = base / "config" / "embedding.yaml"
     embedding_cfg = _load_yaml(embedding_path) if embedding_path.exists() else {}
+    translation_path = base / "config" / "translation.yaml"
+    translation_cfg = _load_yaml(translation_path) if translation_path.exists() else {}
     return Settings(
         zotero=ZoteroConfig(**zotero_cfg),
         sources=SourcesConfig(**sources_cfg),
         scoring=ScoringConfig(**scoring_cfg),
         embedding=EmbeddingConfig(**embedding_cfg),
+        translation=TranslationConfig(**translation_cfg),
         author_watch=AuthorWatchConfig(**author_cfg),
         citation_watch=CitationWatchConfig(**citation_cfg),
         research=ResearchConfig(**research_cfg),
@@ -393,4 +410,5 @@ __all__ = [
     "ScoringConfig",
     "ScoreScales",
     "EmbeddingConfig",
+    "TranslationConfig",
 ]

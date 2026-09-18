@@ -88,15 +88,20 @@ def site_urls() -> tuple[str, str, str]:
     return pages, feed, run
 
 
-def latest_report(reports_dir: Path) -> Optional[Path]:
-    """Newest report by filename date.
+def latest_report(reports_dir: Path, prefix: str = "report") -> Optional[Path]:
+    """Newest file by filename date.
 
     Sorting by mtime was unreliable: the workflow copies reports with `cp -r`,
-    which rewrites every mtime to the copy time. Report names carry a YYYYMMDD
-    stamp, so lexicographic order on the name is both correct and deterministic.
+    which rewrites every mtime to the copy time. Names carry a YYYYMMDD stamp, so
+    lexicographic order on the name is both correct and deterministic.
     """
-    reports = sorted(reports_dir.glob("report-*.html"), key=lambda path: path.name)
+    reports = sorted(reports_dir.glob(f"{prefix}-*.html"), key=lambda path: path.name)
     return reports[-1] if reports else None
+
+
+def latest_digest(reports_dir: Path) -> Optional[Path]:
+    """The lean email body, falling back to the full report if absent."""
+    return latest_report(reports_dir, "digest") or latest_report(reports_dir, "report")
 
 
 def _extract_entries(report_html: str, limit: int = PREVIEW_ITEMS) -> List[tuple[str, str]]:
@@ -127,7 +132,7 @@ def build_message(
     entries = _extract_entries(report_html)
 
     msg = EmailMessage()
-    msg["Subject"] = f"Zotero文献每周推送 - {now:%Y-%m-%d}"
+    msg["Subject"] = f"文献周报 {now:%Y-%m-%d}"
     msg["From"] = config.sender
     msg["To"] = ", ".join(config.recipients)
     msg["Date"] = formatdate(now.timestamp(), localtime=True)
@@ -141,21 +146,28 @@ def build_message(
     if pages_url:
         msg["List-Archive"] = f"<{pages_url}>"
 
-    text_lines = [f"Zotero文献每周推送 - {now:%Y-%m-%d %H:%M:%S} 北京时间", ""]
-    if entries:
-        text_lines.append(f"本周 {len(entries)} 条优先阅读：")
-        text_lines.extend(f"{idx}. {title}\n   {url}" for idx, (title, url) in enumerate(entries, start=1))
+    # `watch` renders the plain-text alternative alongside the HTML digest; fall
+    # back to scraping titles out of the body only when that file is missing.
+    text_path = report_path.with_suffix(".txt") if report_path else None
+    if text_path and text_path.exists():
+        text_body = text_path.read_text(encoding="utf-8")
     else:
-        text_lines.append("本轮无通过筛选且尚未推送的文献。")
-    text_lines.extend(
-        ["", f"完整报告：{pages_url or '未配置'}", f"RSS 订阅：{feed_url or '未配置'}"]
-    )
+        lines = [f"文献周报 {now:%Y-%m-%d}", ""]
+        lines += ([f"{i}. {t}\n   {u}" for i, (t, u) in enumerate(entries, 1)]
+                  or ["本轮无通过筛选且尚未推送的文献。"])
+        lines += ["", f"完整周报：{pages_url or '未配置'}", f"RSS：{feed_url or '未配置'}"]
+        text_body = "\n".join(lines)
     if run_url:
-        text_lines.append(f"运行记录：{run_url}")
-    msg.set_content("\n".join(text_lines))
+        text_body += f"\n运行记录：{run_url}"
+    msg.set_content(text_body)
 
     if report_html:
-        msg.add_alternative(_inline_body(report_html, pages_url, feed_url, run_url), subtype="html")
+        # digest-*.html is already a standalone email document; only a legacy
+        # full report needs the link footer appended.
+        body = report_html if "ZOTWATCH" in report_html else _inline_body(
+            report_html, pages_url, feed_url, run_url
+        )
+        msg.add_alternative(body, subtype="html")
     if feed_path and feed_path.exists():
         msg.add_attachment(
             feed_path.read_bytes(), maintype="application", subtype="rss+xml", filename=feed_path.name
@@ -220,7 +232,7 @@ def send(msg: EmailMessage, config: SmtpConfig, *, attempts: int = SEND_ATTEMPTS
 def notify(base_dir: Path, *, dry_run: bool = False) -> Optional[Path]:
     """Build and send the digest. In dry-run mode write the message to disk instead."""
     reports_dir = Path(base_dir) / "reports"
-    report_path = latest_report(reports_dir)
+    report_path = latest_digest(reports_dir)
     feed_path = reports_dir / "feed.xml"
     if report_path is None:
         logger.warning("No report found in %s; sending link-only digest", reports_dir)
