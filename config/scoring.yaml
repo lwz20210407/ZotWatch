@@ -9,12 +9,18 @@ weights:
 
 # Every scoring component is clamped to [0, 1] (see src/score_rank.py), so with the
 # weights above summing to 1.0 the final score is also in [0, 1] and these
-# thresholds are comparable across runs. They were lowered from 0.75/0.50 because
-# the citation term is now saturated instead of unbounded: it used to add up to
-# +0.55 on its own and inflate the raw score.
+# thresholds are comparable across runs.
+#
+# Calibrated on a live run against the full 4399-paper profile:
+#   p50=0.522  p75=0.602  p90=0.655  p99=0.713  max=0.774
+# must_read 0.70 sits just below p99 and selects ~3% (21 of 708), which matches a
+# digest capped at 20 items. consider was raised from 0.45, where it admitted 76%
+# of candidates and so carried almost no information; 0.52 is the median.
+# Re-check these numbers after any change to config/embedding.yaml -- the log line
+# "Score distribution over N ranked works" prints them every run.
 thresholds:
   must_read: 0.70
-  consider: 0.45
+  consider: 0.52
 
 scales:
   # Recency is exp(-ln2 * days / half_life) instead of a step function.
