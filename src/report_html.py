@@ -26,6 +26,7 @@ import logging
 import re
 import zlib
 from pathlib import Path
+from urllib.parse import urlencode
 from typing import List
 
 from jinja2 import Environment, Template
@@ -214,6 +215,27 @@ def past_issues(current: Path, limit: int = 8) -> list:
         })
         if len(rows) >= limit:
             break
+    return rows
+
+
+def author_candidates(diagnostics: dict | None, repository: str = "", limit: int = 5) -> list:
+    """Author proposals, with a prefilled link that requests adding them.
+
+    propose_tracking already accumulates these across issues; they were only ever
+    shown inside the collapsed diagnostics block, where an actionable suggestion
+    is of no use.
+    """
+    rows = [row for row in (diagnostics or {}).get("proposals") or []
+            if row.get("kind") == "作者候选"][:limit]
+    for row in rows:
+        if repository and row.get("id"):
+            body = (f"请把以下作者加入 config/authors.yaml：\n\n"
+                    f"- name: {row.get('name', '')}\n"
+                    f"  openalex_ids: [{row['id']}]\n"
+                    f"  reason: 本期推荐中出现 {row.get('count', 0)} 篇高相关论文\n")
+            row["add_url"] = (f"https://github.com/{repository}/issues/new?"
+                              + urlencode({"title": f"[ZotWatch] 关注作者 {row.get('name', '')}",
+                                           "body": body}))
     return rows
 
 
@@ -489,6 +511,24 @@ _TEMPLATE = """
   .brow.off{opacity:.42}
   .row a.rt{color:var(--accent-d);text-decoration:none}
   .row a.rt:hover{text-decoration:underline}
+  .sub-h{font-size:12.5px;font-weight:600;color:var(--ink);margin:0 0 7px}
+  .cands{display:flex;flex-direction:column;gap:11px}
+  .cand{padding:10px 12px;background:var(--soft);border-radius:10px}
+  .cand-h{display:flex;align-items:baseline;gap:7px;flex-wrap:wrap}
+  .cand-h .nm{font-size:13px;font-weight:600;color:var(--ink)}
+  .cand-h .new{font-style:normal;font-size:10px;font-weight:600;color:#246b3b;
+    background:#eaf6ee;border-radius:4px;padding:1px 5px}
+  .cand-h b{margin-left:auto;font-size:12px;font-weight:600;color:var(--muted);
+    font-variant-numeric:tabular-nums}
+  .aff{margin-top:3px;font-size:11.5px;color:var(--faint);overflow-wrap:anywhere}
+  .cand-p{margin-top:6px;display:flex;flex-direction:column;gap:4px}
+  .cand-p a{font-size:11.5px;line-height:1.55;color:var(--muted);text-decoration:none;
+    overflow-wrap:anywhere;display:block}
+  .cand-p a:hover{color:var(--accent-d)}
+  .cand-p a::before{content:"· "}
+  .add{display:inline-block;margin-top:8px;font-size:11.5px;color:var(--accent-d);
+    text-decoration:none;font-weight:600}
+  .add:hover{text-decoration:underline}
   .issues{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:1px}
   .issues a{display:flex;align-items:baseline;gap:8px;padding:7px 8px;margin:0 -6px;
     border-radius:8px;text-decoration:none;font-size:12.5px;transition:background .12s}
@@ -800,6 +840,43 @@ _TEMPLATE = """
   </div>
   {% endif %}
 
+  {% if watched or author_candidates %}
+  <div class="panel">
+    <h3>{{ icon('user') }} 作者动向</h3>
+
+    {% if watched %}
+    <div class="sub-h">本期发文的已关注作者</div>
+    <div class="rows">
+      {% for name, n in watched %}
+      <div class="row"><span class="rt">{{ name }}</span>{% if n > 1 %}<b>{{ n }}</b>{% endif %}</div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    {% if author_candidates %}
+    <div class="sub-h"{% if watched %} style="margin-top:15px"{% endif %}>
+      查漏补缺 · 你还没关注的人</div>
+    <div class="hint">按跨期累积的高相关论文数排出，不会自动加入关注。</div>
+    <div class="cands">
+      {% for c in author_candidates %}
+      <div class="cand">
+        <div class="cand-h">
+          <span class="nm">{{ c.name }}</span>
+          {% if c.is_new %}<em class="new">新涌现</em>{% endif %}
+          <b>{{ c.count }} 篇</b>
+        </div>
+        {% if c.affiliation %}<div class="aff">{{ c.affiliation }}</div>{% endif %}
+        <div class="cand-p">
+          {% for paper in c.papers[:2] %}<a href="{{ paper.url or '#' }}" target="_blank" rel="noopener">{{ paper.title }}</a>{% endfor %}
+        </div>
+        {% if c.add_url %}<a class="add" href="{{ c.add_url }}" target="_blank" rel="noopener">加入关注 →</a>{% endif %}
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+  </div>
+  {% endif %}
+
   <div class="panel">
     <h3>{{ icon('clock') }} 往期</h3>
     {% if past %}
@@ -885,7 +962,7 @@ def render_html(works: List[RankedWork], output_path: Path | str, *, watched_wor
                 exploration_works: List[RankedWork] | None = None,
                 problem_names: dict | None = None, library_size: str = "",
                 window_days: int = 30, library_directions: list | None = None,
-                issue_no: int = 0) -> Path:
+                issue_no: int = 0, feedback_repository: str = "") -> Path:
     env = Environment(autoescape=True)
     template: Template = env.from_string(_TEMPLATE)
     problem_names = problem_names or {}
@@ -930,6 +1007,8 @@ def render_html(works: List[RankedWork], output_path: Path | str, *, watched_wor
         hue_order=hue_order,
         venues=venue_counts(every),
         past=past_issues(path),
+        watched=watched_hits(every),
+        author_candidates=author_candidates(diagnostics, feedback_repository),
         library_directions=library_directions or [],
         quiet_directions=[n for n, _ in (library_directions or []) if n not in seen],
         rating_buttons=rating_buttons, citations=citations,
@@ -943,4 +1022,5 @@ def render_html(works: List[RankedWork], output_path: Path | str, *, watched_wor
 __all__ = ["render_html", "funnel_totals", "clamp", "split_abstract", "authors_line", "source_line",
            "direction", "direction_hue", "anchor", "icon", "rating_buttons", "citations",
            "published_label",
-           "scatter", "venue_counts", "library_anchors", "watched_hits", "past_issues"]
+           "scatter", "venue_counts", "library_anchors", "watched_hits", "past_issues",
+           "author_candidates"]

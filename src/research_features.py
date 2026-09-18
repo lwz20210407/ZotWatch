@@ -14,6 +14,8 @@ import yaml
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 from typing import Literal
 
+from .utils import iso_to_datetime
+
 from .author_watch import work_key
 from .topic_matching import matches_any
 
@@ -231,13 +233,26 @@ def propose_tracking(works, config, settings, state, feedback):
             aid = author.get("author_id", "")
             if re.fullmatch(r"A\d+", aid) and aid not in watched:
                 authors[aid].append({"key": key, **row, "identity": author})
+    # When an author was first observed, so a candidate can be reported as newly
+    # emerging rather than merely accumulated over many issues.
+    first_seen = state.setdefault("author_first_seen", {})
+    now_iso = datetime.now(timezone.utc).isoformat()
     proposals = []
     for aid, papers in authors.items():
         papers = list({p["key"]: p for p in papers}.values())
+        first_seen.setdefault(aid, now_iso)
         if len(papers) >= config.proposal_min_papers:
+            since = iso_to_datetime(first_seen.get(aid)) or datetime.now(timezone.utc)
+            age_days = max((datetime.now(timezone.utc) - since).days, 0)
             proposals.append({"kind": "作者候选", "id": aid, "name": papers[0]["identity"].get("name") or aid,
                               "papers": [{"title": p["title"], "url": p["url"], "doi": p["doi"]} for p in papers[:3]],
-                              "count": len(papers), "reason": "多篇不同的高相关论文；身份、机构和研究延续性仍待确认"})
+                              "count": len(papers), "age_days": age_days, "is_new": age_days <= 45,
+                              "affiliation": papers[0]["identity"].get("affiliation", ""),
+                              "facets": sorted({f for p in papers for f in p.get("facets", [])}),
+                              "reason": "多篇不同的高相关论文；身份、机构和研究延续性仍待确认"})
+    # Keep the ledger bounded alongside the observations it describes.
+    if len(first_seen) > 2000:
+        state["author_first_seen"] = dict(sorted(first_seen.items(), key=lambda kv: kv[1], reverse=True)[:2000])
     existing = {s.openalex_id for s in settings.citation_watch.seeds}
     for key, row in observations.items():
         entry = feedback.entries.get(normalize_doi(row.get("doi")))

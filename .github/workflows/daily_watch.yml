@@ -12,7 +12,8 @@ concurrency:
 # in the real Thursday digest. Code changes are validated by ci.yml instead.
 on:
   schedule:
-    - cron: "0 23 * * 3"  # Thursday Beijing time 07:00
+    # Beijing is UTC+8, so 16:35 Thursday Beijing = 08:35 Thursday UTC.
+    - cron: "35 8 * * 4"
   workflow_dispatch:
     inputs:
       dry_run:

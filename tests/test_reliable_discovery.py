@@ -33,6 +33,14 @@ def paper(i, **kwargs):
     return RankedWork(**data)
 
 
+def facet_id(settings, term="LS-OPT"):
+    """The facet covering `term`; survives renames of the research taxonomy."""
+    for facet in settings.research.facets:
+        if any(term.lower() == t.lower() for t in facet.terms):
+            return facet.id
+    raise AssertionError(f"no facet covers {term!r}")
+
+
 class ReliableTests(unittest.TestCase):
     def setUp(self):
         self.settings = load_settings(Path(__file__).resolve().parents[1])
@@ -77,19 +85,19 @@ class ReliableTests(unittest.TestCase):
 
     def test_scoped_feedback_does_not_penalize_other_problem_and_reset(self):
         config = self.settings.research
-        entries = [FeedbackEntry(doi='10.1234/p1', rating='irrelevant', scope='inverse', facets=['inverse'])]
+        entries = [FeedbackEntry(doi='10.1234/p1', rating='irrelevant', scope=facet_id(self.settings), facets=[facet_id(self.settings)])]
         model = FeedbackModel(entries, config)
-        same = paper(1, extra={'primary_problem':'inverse'})
-        other = paper(1, extra={'primary_problem':'fracture'})
+        same = paper(1, extra={'primary_problem':facet_id(self.settings)})
+        other = paper(1, extra={'primary_problem':facet_id(self.settings,'ductile fracture')})
         a = model.apply([same], self.settings.scoring.thresholds)[0]
         b = model.apply([other], self.settings.scoring.thresholds)[0]
         self.assertLess(a.score, same.score); self.assertEqual(b.score, other.score)
-        neutral = FeedbackModel([FeedbackEntry(doi=same.doi, rating='later', facets=['inverse'])], config)
+        neutral = FeedbackModel([FeedbackEntry(doi=same.doi, rating='later', facets=[facet_id(self.settings)])], config)
         self.assertEqual(neutral.preferences, {})
         with tempfile.TemporaryDirectory() as tmp:
             Path(tmp,'config').mkdir()
             save_feedback(tmp, entries[0].model_dump(), config)
-            save_feedback(tmp, {'doi':same.doi,'rating':'reset','scope':'inverse'}, config)
+            save_feedback(tmp, {'doi':same.doi,'rating':'reset','scope': facet_id(self.settings)}, config)
             restored = FeedbackModel(load_feedback(tmp, config), config)
             self.assertEqual(restored.preferences, {})
 
@@ -110,13 +118,14 @@ class ReliableTests(unittest.TestCase):
         config.facets[1].collection_keys = ['thermal']
         items = [ZoteroItem(key='a', version=1, title='A', collections=['plasticity']),
                  ZoteroItem(key='b', version=1, title='B', collections=['thermal'])]
+        first, second = config.facets[0].id, config.facets[1].id
         profiles = build_problem_profiles(items, np.eye(2), config)
-        np.testing.assert_allclose(profiles['stress_state']['centroid'], [1.0,0.0])
-        self.assertEqual(profiles['thermorate']['count'], 1)
+        np.testing.assert_allclose(profiles[first]['centroid'], [1.0,0.0])
+        self.assertEqual(profiles[second]['count'], 1)
 
     def test_semantic_route_not_keyword_gated_but_retraction_still_filtered(self):
         f = object.__new__(CandidateFetcher); f.settings = self.settings
-        candidate = CandidateWork(source='openalex',identifier='W1',title='Unusual new wording', extra={'semantic_facets':['inverse']})
+        candidate = CandidateWork(source='openalex',identifier='W1',title='Unusual new wording', extra={'semantic_facets': [facet_id(self.settings)]})
         self.assertTrue(f._filter_by_topic([candidate]))
         self.assertFalse(f._filter_by_topic([candidate.model_copy(update={'title':'Retraction: Unusual new wording'})]))
         raw = {'id':'https://openalex.org/W1','display_name':'New wording','publication_date':'2026-09-17'}
@@ -128,7 +137,7 @@ class ReliableTests(unittest.TestCase):
         self.assertTrue(out[0].extra['semantic_facets'])
 
     def test_diversity_reserves_relevant_exploration_and_limits_dominant_group(self):
-        works = [paper(i,extra={'primary_problem':'inverse'}) for i in range(8)]
+        works = [paper(i,extra={'primary_problem':facet_id(self.settings)}) for i in range(8)]
         works += [paper(9,extra={'primary_problem':'fracture','semantic_facets':['fracture']})]
         works += [paper(10,extra={'primary_problem':'impact'})]
         vec = SimpleNamespace(encode=lambda texts: np.eye(len(texts)))

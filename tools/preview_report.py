@@ -126,7 +126,20 @@ DIAGNOSTICS = {
         {"facet": "增材组织—缺陷—失效", "raw": 118, "topic": 22, "dedup": 9, "delivered": 2,
          "status": "正常", "zero_runs": 0}],
     "network": {"requests": 312, "cache_hits": 88, "local_openalex_remaining_usd": "0.061"},
-    "proposals": [{"kind": "作者候选", "name": "Guozheng Kang", "id": "A5080733637", "count": 4}],
+    "proposals": [
+        {"kind": "作者候选", "name": "Guozheng Kang", "id": "A5080733637", "count": 6,
+         "affiliation": "Southwest Jiaotong University", "is_new": False, "age_days": 190,
+         "papers": [{"title": "Cyclic plasticity of Ti-6Al-4V under non-proportional loading",
+                     "url": "#", "doi": "10.1/a"},
+                    {"title": "Ratcheting and its finite element implementation", "url": "#", "doi": "10.1/b"}]},
+        {"kind": "作者候选", "name": "Shoto Yoshikawa", "id": "A5102674240", "count": 3,
+         "affiliation": "Ritsumeikan University", "is_new": True, "age_days": 21,
+         "papers": [{"title": "Multiaxial low-cycle fatigue of additively manufactured Ti-6Al-4V",
+                     "url": "#", "doi": "10.1/c"}]},
+        {"kind": "作者候选", "name": "Hamed Ahmadi", "id": "A5002061714", "count": 2,
+         "affiliation": "Tarbiat Modares University", "is_new": True, "age_days": 12,
+         "papers": [{"title": "Ballistic response of titanium sandwich panels", "url": "#", "doi": "10.1/d"}]},
+    ],
 }
 
 
@@ -166,6 +179,7 @@ def main() -> int:
     render_html(WORKS, web, diagnostics=DIAGNOSTICS, problem_names=NAMES,
                 library_size="4399 篇", window_days=30,
                 library_directions=LIBRARY_DIRECTIONS, issue_no=12,
+                feedback_repository="lwz20210407/ZotWatch",
                 coverage_warnings=["OpenAlex 查询轮换未覆盖全部追踪期刊，本轮覆盖不足"])
     mail.write_text(render_digest(WORKS, report_url="https://lwz20210407.github.io/ZotWatch/",
                                   feed_url="https://lwz20210407.github.io/ZotWatch/feed.xml"),

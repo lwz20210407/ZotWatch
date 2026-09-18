@@ -778,6 +778,46 @@ required_any_group_sets:
     - ["Johnson-Cook", "MJC", "Zerilli-Armstrong", "Preston-Tonks-Wallace", "PTW", "Steinberg", "Follansbee-Kocks", "Khan-Huang-Liang", "Rusinek-Klepaczko", "Mechanical Threshold Stress", "MTS", "Bodner-Partom", "Bammann-Chiesa-Johnson", "BCJ", "Cowper-Symonds"]
     - ["strain rate", "temperature", "dynamic", "high strain rate", "flow stress", "constitutive", "plasticity", "metal", "alloy"]
 exclude_keywords:
+  # 陶瓷复合装甲不属于本人博士课题（2026-09-19 确认）。文库里约 247 篇陶瓷装甲文献仍在
+  # FAISS 索引中，会把相似度往那边拉，所以在检索期就排除，而不是只靠 scoring.yaml 的降权。
+  # 用定向短语而非裸词 "ceramic"/"composite"：后者会误杀「带陶瓷涂层的 TC4 动态断裂」
+  # 这类真正相关的论文。
+  - ceramic armor
+  - ceramic armour
+  - ceramic armors
+  - ceramic armours
+  - ceramic composite armor
+  - ceramic composite armour
+  - ceramic-faced
+  - ceramic faced
+  - ceramic tile
+  - ceramic tiles
+  - ceramic plate impact
+  - alumina tile
+  - alumina tiles
+  - boron carbide armor
+  - silicon carbide armor
+  - B4C tile
+  - armor ceramic
+  - armour ceramic
+  - armor ceramics
+  - armour ceramics
+  - composite armor
+  - composite armour
+  - body armor
+  - body armour
+  - ceramic-metal
+  - ceramic metal
+  - ceramic/metal
+  - ceramic backing
+  - alumina ceramic
+  - alumina ceramics
+  - boron carbide reinforced
+  - UHMWPE
+  - 陶瓷装甲
+  - 陶瓷复合装甲
+  - 陶瓷面板
+  - 陶瓷空心球
   # Only explicit off-topic phrases veto a paper; material subfields are ranked.
   - "gene expression"
   - "gene sequencing"

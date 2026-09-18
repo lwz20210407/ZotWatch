@@ -26,6 +26,23 @@ def paper(key="1", **kwargs):
     return RankedWork(**values)
 
 
+def facet_for(settings, term="LS-OPT"):
+    """The facet that actually covers `term`.
+
+    Binding to an id or a display name couples the tests to the owner's research
+    taxonomy, which is theirs to rewrite; binding to a term the fixtures use
+    survives renames and re-splits.
+    """
+    for facet in settings.research.facets:
+        if any(term.lower() == t.lower() for t in facet.terms):
+            return facet
+    raise AssertionError(f"no facet covers {term!r}")
+
+
+def facet_id(settings, term="LS-OPT"):
+    return facet_for(settings, term).id
+
+
 class ResearchTests(unittest.TestCase):
     def setUp(self):
         self.settings = load_settings(Path(__file__).resolve().parents[1])
@@ -38,7 +55,7 @@ class ResearchTests(unittest.TestCase):
 
     def test_owner_only_and_latest_feedback_then_local_override(self):
         def issue(owner, rating, updated):
-            payload = {"doi": "10.1234/a", "rating": rating, "facets": ["inverse"]}
+            payload = {"doi": "10.1234/a", "rating": rating, "facets": [facet_id(self.settings)]}
             return {"user": {"login": owner}, "updated_at": updated,
                     "body": "<!-- zotwatch-feedback-v1 -->\n```json\n" + json.dumps(payload) + "\n```"}
         with tempfile.TemporaryDirectory() as tmp:
@@ -47,23 +64,23 @@ class ResearchTests(unittest.TestCase):
                 issue(self.config.feedback_owner, "direct", "1"),
                 issue(self.config.feedback_owner, "transferable", "2"), issue("attacker", "irrelevant", "3")]), encoding="utf-8")
             self.assertEqual(load_feedback(tmp, self.config)[0].rating, "transferable")
-            save_feedback(tmp, {"doi": "10.1234/a", "rating": "mechanism", "facets": ["inverse"]}, self.config)
+            save_feedback(tmp, {"doi": "10.1234/a", "rating": "mechanism", "facets": [facet_id(self.settings)]}, self.config)
             self.assertEqual(load_feedback(tmp, self.config)[0].rating, "mechanism")
             with self.assertRaises(ValueError): save_feedback(tmp, {"doi": "10.1234/a", "rating": "direct", "facets": ["steel"]}, self.config)
 
     def test_feedback_learns_method_not_material_and_is_bounded(self):
-        model = FeedbackModel([FeedbackEntry(doi="10.1234/other", rating="transferable", facets=["inverse"])], self.config)
+        model = FeedbackModel([FeedbackEntry(doi="10.1234/other", rating="transferable", facets=[facet_id(self.settings)])], self.config)
         steel = paper(); titanium = paper("2", title="TC4 inverse identification of plasticity")
         results = model.apply([steel, titanium], self.settings.scoring.thresholds)
         self.assertGreater(results[0].score, steel.score)
         self.assertAlmostEqual(results[0].extra['feedback_adjustment'], results[1].extra['feedback_adjustment'])
         self.assertLessEqual(abs(results[0].extra['feedback_adjustment']), self.config.feedback_max_adjustment)
         self.assertNotIn("feedback_adjustment", steel.extra)
-        negative = FeedbackModel([FeedbackEntry(doi=steel.doi, rating="irrelevant", facets=["inverse"])], self.config)
+        negative = FeedbackModel([FeedbackEntry(doi=steel.doi, rating="irrelevant", facets=[facet_id(self.settings)])], self.config)
         self.assertTrue(negative.apply([steel], self.settings.scoring.thresholds))  # No hard veto.
 
     def test_read_does_not_train_negative_preferences(self):
-        model = FeedbackModel([FeedbackEntry(doi=paper().doi, rating="read", facets=["inverse"])], self.config)
+        model = FeedbackModel([FeedbackEntry(doi=paper().doi, rating="read", facets=[facet_id(self.settings)])], self.config)
         self.assertEqual(model.preferences, {})
         self.assertTrue(model.apply([paper()], self.settings.scoring.thresholds)[0].extra['feedback_read'])
 
@@ -78,7 +95,7 @@ class ResearchTests(unittest.TestCase):
         stages = {"raw": [paper()], "topic": [], "dedup": [], "delivered": []}
         state = {}
         rows = coverage_report(self.config, stages, [], state)
-        row = next(r for r in rows if r["facet"] == "参数反演与硬化外推")
+        row = next(r for r in rows if r["facet"] == facet_for(self.settings).name)
         self.assertIn("未通过主题筛选", row["status"])
         zeros = row["zero_runs"]
         rows = coverage_report(self.config, stages, ["failed"], state)
