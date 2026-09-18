@@ -102,10 +102,15 @@ ZotWatcher 是一个基于 Zotero 数据构建个人兴趣画像，并持续监�
    ```
 
 ## 邮件推送
-收件人默认写在 workflow 里，**无需任何配置即可工作**。想改成不公开、或发给多个地址时，
-再去 **Settings - Secrets and variables - Actions** 加变量或 Secret `EMAIL_TO`
-（逗号或分号分隔），它会覆盖默认值。
-SMTP 参数放在 Secrets：`SMTP_HOST`、`SMTP_PORT`、`SMTP_USERNAME`、`SMTP_PASSWORD`、`SMTP_FROM`。
+收件人来自 `EMAIL_TO`，在 **Settings - Secrets and variables - Actions** 配置，
+多个地址用逗号或分号分隔。
+
+**要存成 Secret，不要存成 Variable。** 公开仓库的 Actions 日志也是公开的，
+而只有 Secret 会被 GitHub 打码；Variable 会把邮箱明文打进公开日志。
+
+SMTP 参数同样放 Secrets：`SMTP_HOST`、`SMTP_PORT`、`SMTP_USERNAME`、`SMTP_PASSWORD`、`SMTP_FROM`。
+嵌入服务需要 `EMBEDDING_API_KEY`。缺 `EMBEDDING_API_KEY` 或 `EMAIL_TO` 时，
+工作流会在**开头**就报错退出，而不是跑完 40 分钟、Pages 都部署了才在最后一步失败。
 
 邮件正文即当期完整报告（`multipart/alternative`），纯文本部分列出前 8 篇标题与链接，
 附件只保留 `feed.xml`。历史推送保存在 `reports/` 并由 Pages 发布，入口 `archive.html`。

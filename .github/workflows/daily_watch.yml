@@ -38,11 +38,10 @@ jobs:
       OPENALEX_MAILTO: ${{ secrets.OPENALEX_MAILTO }}
       OPENALEX_API_KEY: ${{ secrets.OPENALEX_API_KEY }}
       CROSSREF_MAILTO: ${{ secrets.CROSSREF_MAILTO }}
-      # Works with no setup. Override by defining repository variable or secret
-      # EMAIL_TO (also accepts a comma-separated list) -- worth doing eventually,
-      # since an address literal in a public repo is scrapeable and makes any
-      # fork email this address instead of its own owner.
-      EMAIL_TO: ${{ vars.EMAIL_TO || secrets.EMAIL_TO || 'lwz20210407@njust.edu.cn' }}
+      # Secret rather than variable: this repository is public, so its Actions
+      # logs are public too, and only secrets are masked there. A variable would
+      # print the address in plain text. Accepts a comma-separated list.
+      EMAIL_TO: ${{ vars.EMAIL_TO || secrets.EMAIL_TO }}
       EMBEDDING_API_KEY: ${{ secrets.EMBEDDING_API_KEY }}
       SMTP_HOST: ${{ secrets.SMTP_HOST }}
       SMTP_PORT: ${{ secrets.SMTP_PORT }}
@@ -75,12 +74,20 @@ jobs:
           print(f"slug={hashlib.sha256(sig.encode()).hexdigest()[:12]}")
           PY
 
-      - name: Check embedding provider
+      # Fail here rather than 40 minutes in. Email is the last step, after the
+      # Pages deploy, so a missing value discovered there wastes the whole run.
+      - name: Check required configuration
         run: |
+          missing=0
           if [ -z "${EMBEDDING_API_KEY}" ]; then
             echo "::error::EMBEDDING_API_KEY is not set. config/embedding.yaml uses a remote provider; add the secret, or set provider to 'local' (which also needs sentence-transformers in requirements.txt)."
-            exit 1
+            missing=1
           fi
+          if [ "${DRY_RUN}" != "true" ] && [ -z "${EMAIL_TO}" ]; then
+            echo "::error::EMAIL_TO is not set. Add it under Settings - Secrets and variables - Actions. Use a secret, not a variable: this repository is public, so its Actions logs are public and only secrets are masked."
+            missing=1
+          fi
+          [ "$missing" -eq 0 ] || exit 1
           echo "Embedding signature: ${{ steps.model.outputs.signature }}"
 
       # restore + save with a run-unique key. The previous `actions/cache@v4` used
