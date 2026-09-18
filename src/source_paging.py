@@ -61,17 +61,34 @@ def iter_works(
         request_params["cursor"] = cursor
 
 
-def crossref_publication_date(item: Dict[str, Any]) -> Optional[datetime]:
-    """Use publication metadata, never the Crossref record creation timestamp."""
+def crossref_publication_date_precise(item: Dict[str, Any]) -> tuple:
+    """Return (date, precision) where precision is "day", "month" or "year".
+
+    Crossref date-parts may carry only a year, or a year and month. The missing
+    components are filled with 1 so a datetime can be built, which means the
+    stored value looks like 2026-01-01 for a record that really only says "2026".
+    Printing that as a full date invents precision the source never had, so the
+    precision travels with the date and the report formats accordingly.
+    """
     dates = []
     for field in ("published", "published-online", "published-print", "issued"):
         parts = item.get(field, {}).get("date-parts", [])
         if not parts or not parts[0]:
             continue
-        values = parts[0]
+        values = [v for v in parts[0] if v is not None]
+        if not values:
+            continue
         try:
-            dates.append(datetime(values[0], values[1] if len(values) > 1 else 1,
-                                  values[2] if len(values) > 2 else 1, tzinfo=timezone.utc))
+            built = datetime(values[0], values[1] if len(values) > 1 else 1,
+                             values[2] if len(values) > 2 else 1, tzinfo=timezone.utc)
         except (ValueError, TypeError):
             continue
-    return min(dates) if dates else None
+        dates.append((built, {1: "year", 2: "month"}.get(len(values), "day")))
+    if not dates:
+        return None, ""
+    return min(dates, key=lambda row: row[0])
+
+
+def crossref_publication_date(item: Dict[str, Any]) -> Optional[datetime]:
+    """Use publication metadata, never the Crossref record creation timestamp."""
+    return crossref_publication_date_precise(item)[0]

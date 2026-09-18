@@ -23,6 +23,7 @@ TLDR, because the reader here is triaging rather than searching.
 from __future__ import annotations
 
 import logging
+import zlib
 from pathlib import Path
 from typing import List
 
@@ -97,6 +98,22 @@ def source_line(work: RankedWork) -> str:
     return ", ".join(b for b in bits if b)
 
 
+def published_label(work: RankedWork) -> str:
+    """Publication date at the precision the source actually gave.
+
+    Crossref records that carry only a year are stored as YYYY-01-01, so printing
+    a full date for every paper would claim a day the publisher never stated.
+    """
+    if not work.published:
+        return ""
+    precision = (work.extra or {}).get("date_precision") or "day"
+    if precision == "year":
+        return work.published.strftime("%Y")
+    if precision == "month":
+        return work.published.strftime("%Y-%m")
+    return work.published.strftime("%Y-%m-%d")
+
+
 def direction(work: RankedWork, problem_names: dict) -> str:
     key = work.extra.get("primary_problem")
     if key:
@@ -137,10 +154,20 @@ DIRECTION_HUES = (
 )
 
 
-def direction_hue(name: str) -> dict:
+def direction_hue(name: str, order: dict | None = None) -> dict:
+    """Colour for a research direction.
+
+    When the caller knows every direction on the page it passes `order`, which
+    assigns colours by position and so keeps them distinct. A name-derived hash is
+    only the fallback; with seven directions over an eight-colour palette it
+    collided, and two directions sharing a colour defeats the point.
+    """
     if not name:
         return {"fg": "#7c736c", "bg": "#f3f1ed"}
-    index = sum(ord(ch) for ch in name) % len(DIRECTION_HUES)
+    if order and name in order:
+        index = order[name] % len(DIRECTION_HUES)
+    else:
+        index = zlib.crc32(name.encode("utf-8")) % len(DIRECTION_HUES)
     fg, bg = DIRECTION_HUES[index]
     return {"fg": fg, "bg": bg}
 
@@ -148,10 +175,9 @@ def direction_hue(name: str) -> dict:
 def anchor(work: RankedWork) -> str:
     nearest = (work.extra.get("nearest_library_work") or {}).get("title")
     if nearest:
-        short = " ".join(str(nearest).split())
-        if len(short) > 44:
-            short = short[:43] + "…"
-        return f"最接近库内《{short}》"
+        # Shown in full: a truncated title is not enough to recognise which of
+        # your own papers the recommendation is anchored to.
+        return "最接近库内《" + " ".join(str(nearest).split()) + "》"
     if work.extra.get("cites_seeds"):
         return f"引用了 {len(work.extra['cites_seeds'])} 篇你关注的论文"
     if work.extra.get("referenced_by"):
@@ -159,7 +185,35 @@ def anchor(work: RankedWork) -> str:
     return ""
 
 
-def scatter(works, problem_names: dict, *, width: int = 252, height: int = 158) -> dict:
+def library_anchors(works, limit: int = 5) -> list:
+    """Which of the user's own papers this batch clusters around.
+
+    Each card names its single nearest library paper; aggregating them answers a
+    question no card can: what in my library is this week's literature actually
+    circling. Not available anywhere else on the page.
+    """
+    counts: dict = {}
+    for work in works:
+        title = (work.extra.get("nearest_library_work") or {}).get("title")
+        if title:
+            title = " ".join(str(title).split())
+            counts[title] = counts.get(title, 0) + 1
+    return sorted(counts.items(), key=lambda kv: (-kv[1], kv[0]))[:limit]
+
+
+def watched_hits(works, limit: int = 6) -> list:
+    """Tracked authors who published in this batch."""
+    counts: dict = {}
+    for work in works:
+        for author in work.extra.get("watched_authors") or []:
+            name = author.get("name") if isinstance(author, dict) else str(author)
+            if name:
+                counts[name] = counts.get(name, 0) + 1
+    return sorted(counts.items(), key=lambda kv: (-kv[1], kv[0]))[:limit]
+
+
+def scatter(works, problem_names: dict, *, width: int = 252, height: int = 158,
+            hue_order: dict | None = None) -> dict:
     """Points for the recency/relevance bubble chart.
 
     Borrowed in spirit from Connected Papers, whose graph encodes several
@@ -182,7 +236,7 @@ def scatter(works, problem_names: dict, *, width: int = 252, height: int = 158) 
         x = pad_l + (width - pad_l - pad_r) * (1 - age / max_age)
         y = pad_t + (height - pad_t - pad_b) * (1 - (score - lo) / span)
         radius = 3.2 + min(float(citations(work)), 200.0) ** 0.42
-        hue = direction_hue(direction(work, problem_names))
+        hue = direction_hue(direction(work, problem_names), hue_order)
         points.append({"x": round(x, 1), "y": round(y, 1), "r": round(min(radius, 11.0), 1),
                        "color": hue["fg"], "title": work.title, "score": score,
                        "cites": citations(work), "age": age})
@@ -204,7 +258,7 @@ _TEMPLATE = """
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>文献周报 {{ date_label }}</title>
+<title>文献周刊{% if issue_no %} 第 {{ issue_no }} 期{% endif %} · {{ date_label }}</title>
 <style>
   :root{
     --page:#faf9f7; --card:#fff; --ink:#241f1b; --body:#4a423c; --muted:#7c736c;
@@ -267,13 +321,34 @@ _TEMPLATE = """
   .sw input:checked+i::after{transform:translateX(16px)}
 
   /* ---------------- main ---------------- */
-  .mast{margin-bottom:18px}
-  .kicker{font-size:11.5px;font-weight:700;letter-spacing:.18em;color:var(--accent);
-    text-transform:uppercase}
-  h1{margin:9px 0 0;font-size:29px;line-height:1.2;font-weight:700;letter-spacing:-.02em}
-  .sub{margin-top:7px;font-size:14px;color:var(--muted)}
-  .count{margin:18px 0 14px;font-size:14px;color:var(--muted)}
-  .count b{font-size:26px;font-weight:700;color:var(--ink);margin-right:5px}
+  /* Masthead, built like a periodical's: a wordmark, a bilingual title lockup,
+     an issue line and a standfirst. "文献周报" alone was four characters floating
+     at the top of a page this wide. */
+  .mast{margin:0 0 26px;padding-bottom:22px;border-bottom:1px solid var(--line);
+    position:relative}
+  .mast::after{content:"";position:absolute;left:0;bottom:-1px;width:72px;height:3px;
+    border-radius:2px;background:var(--accent)}
+
+  .brand{display:flex;align-items:center;gap:11px;flex-wrap:wrap}
+  .mark{font-size:13px;font-weight:700;letter-spacing:.02em;color:var(--accent);
+    padding:3px 10px;border:1.5px solid var(--accent);border-radius:7px}
+  .brand-sep{width:22px;height:1px;background:var(--line)}
+  .brand-note{font-size:12.5px;color:var(--faint)}
+
+  .lockup{display:flex;align-items:baseline;gap:clamp(12px,1.4vw,20px);flex-wrap:wrap;
+    margin-top:17px}
+  h1{margin:0;font-size:clamp(34px,3.8vw,50px);line-height:1;font-weight:700;
+    letter-spacing:.04em;color:var(--ink)}
+  .latin{font-size:clamp(12px,1vw,14px);font-weight:600;letter-spacing:.24em;
+    text-transform:uppercase;color:var(--faint);white-space:nowrap;
+    padding-bottom:clamp(2px,.4vw,5px)}
+
+  .issue{margin-top:14px;font-size:14px;color:var(--body);font-weight:500}
+  .issue .no{color:var(--accent-d);font-weight:650}
+  .issue .sep{margin:0 9px;color:var(--faint);font-weight:400}
+
+  .lede{margin:13px 0 0;max-width:58ch;font-size:14.5px;line-height:1.85;color:var(--muted)}
+  .lede b{color:var(--ink);font-weight:650}
 
   h2{margin:34px 0 12px;font-size:15px;font-weight:600;color:var(--ink);
     display:flex;align-items:center;gap:9px}
@@ -324,7 +399,8 @@ _TEMPLATE = """
   .transfer b{color:var(--ink);font-weight:600;margin-right:6px}
 
   /* why this paper is here -- the thing a public search engine cannot show */
-  .why{display:flex;align-items:center;gap:7px;margin-top:13px;font-size:13.5px;
+  .why{display:flex;align-items:flex-start;gap:7px;margin-top:13px;font-size:13.5px;
+    line-height:1.6;
     color:var(--hue,var(--accent-d));background:var(--hue-soft,var(--accent-soft));
     border-radius:9px;padding:8px 12px}
   .why .ico{color:var(--hue,var(--accent))}
@@ -348,16 +424,32 @@ _TEMPLATE = """
 
   /* ---------------- right rail ---------------- */
   aside.right{position:sticky;top:26px;display:flex;flex-direction:column;gap:14px}
-  .chart{width:100%;height:auto;display:block;margin-top:2px;overflow:visible}
-  .chart .grid{stroke:var(--line);stroke-width:1}
-  .chart .bub{opacity:.72;transition:opacity .12s}
-  .chart .bub:hover{opacity:1}
-  .axis{display:flex;justify-content:space-between;font-size:10.5px;color:var(--faint);
-    margin-top:2px}
-  .legend{margin-top:11px;display:flex;flex-direction:column;gap:6px}
-  .lg{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--muted)}
-  .lg .dot{width:7px;height:7px}
-  .lg b{margin-left:auto;font-weight:600;color:var(--ink);font-variant-numeric:tabular-nums}
+  .hint{font-size:11.5px;line-height:1.65;color:var(--faint);margin:-5px 0 10px}
+  .toc{display:flex;flex-direction:column;gap:1px;max-height:46vh;overflow-y:auto;
+    margin:-4px -6px 0}
+  .toc a{display:flex;align-items:baseline;gap:7px;padding:7px 8px;border-radius:8px;
+    font-size:12.5px;line-height:1.5;color:var(--body);text-decoration:none;
+    transition:background .12s}
+  .toc a:hover{background:var(--soft);color:var(--ink)}
+  .toc .dot{flex:none;align-self:center}
+  .toc .n{flex:none;font-size:11px;font-weight:600;color:var(--faint);
+    font-variant-numeric:tabular-nums}
+  .toc .tt{flex:1;min-width:0;overflow:hidden;display:-webkit-box;
+    -webkit-line-clamp:2;-webkit-box-orient:vertical}
+  .toc em{flex:none;font-style:normal;font-size:10px;font-weight:600;color:var(--must);
+    background:var(--must-bg);border-radius:4px;padding:1px 5px}
+  .brow.off{opacity:.42}
+  .row a.rt{color:var(--accent-d);text-decoration:none}
+  .row a.rt:hover{text-decoration:underline}
+  article{scroll-margin-top:22px}
+  .rows{display:flex;flex-direction:column;gap:9px}
+  /* Titles and journal names wrap instead of being cut with an ellipsis; a
+     clipped title is not enough to recognise the paper it refers to. */
+  .row{display:flex;align-items:flex-start;gap:9px;font-size:12.5px;line-height:1.6;
+    color:var(--muted)}
+  .row .rt{flex:1;min-width:0;overflow-wrap:anywhere}
+  .row .dot{display:inline-block;margin-right:7px;vertical-align:1px}
+  .row b{flex:none;font-weight:600;color:var(--ink);font-variant-numeric:tabular-nums}
   .bars{display:flex;flex-direction:column;gap:9px;margin-top:2px}
   .brow{font-size:12.5px;color:var(--muted)}
   .brow .t{display:flex;justify-content:space-between;gap:8px;margin-bottom:4px}
@@ -419,7 +511,7 @@ _TEMPLATE = """
     <h3>{{ icon('book') }} 研究方向</h3>
     <button class="fitem" aria-pressed="true" data-dir=""><span>全部</span><span>{{ counts.total }}</span></button>
     {% for name, n in directions %}
-    {% set h = direction_hue(name) %}
+    {% set h = direction_hue(name, hue_order) %}
     <button class="fitem" aria-pressed="false" data-dir="{{ name }}">
       <span><i class="dot" style="background:{{ h.fg }}"></i>{{ name }}</span><span>{{ n }}</span></button>
     {% endfor %}
@@ -444,18 +536,36 @@ _TEMPLATE = """
 </aside>
 
 <main>
-  <div class="mast">
-    <div class="kicker">ZotWatch</div>
-    <h1>文献周报</h1>
-    <div class="sub">{{ generated_at }} · 北京时间</div>
-  </div>
-  <div class="count"><b>{{ counts.total }}</b>篇推送{% if funnel %}，来自 {{ funnel.raw }} 篇候选{% endif %}</div>
+  <header class="mast">
+    <div class="brand">
+      <span class="mark">ZotWatch</span>
+      <span class="brand-sep"></span>
+      <span class="brand-note">基于 Zotero 文库画像的文献追踪</span>
+    </div>
+
+    <div class="lockup">
+      <h1>文献周刊</h1>
+      <div class="latin">Weekly&nbsp;Research&nbsp;Digest</div>
+    </div>
+
+    <div class="issue">
+      {% if issue_no %}<span class="no">第 {{ issue_no }} 期</span><span class="sep">·</span>{% endif %}
+      <span>{{ date_cn }}</span><span class="sep">·</span>
+      <span>{{ generated_at_time }} 北京时间</span>
+    </div>
+
+    <p class="lede">
+      本期 <b>{{ counts.total }}</b> 篇{% if counts.must_read %}，其中 <b>{{ counts.must_read }}</b> 篇必读{% endif %}，
+      从近 {{ window_days }} 天的{% if funnel %} <b>{{ funnel.raw }}</b> {% else %} {% endif %}篇候选中筛出，
+      按你 Zotero 文库{% if library_size %} <b>{{ library_size }}</b> {% endif %}的兴趣画像排序。
+    </p>
+  </header>
 
 {% macro card(work, rank) %}
 {% set dir = direction(work, problem_names) %}
 {% set abs_lead, abs_rest = split_abstract(work.abstract) %}
-{% set hue = direction_hue(dir) %}
-<article data-dir="{{ dir }}" data-must="{{ 1 if work.label == 'must_read' else 0 }}"
+{% set hue = direction_hue(dir, hue_order) %}
+<article id="p{{ rank }}" data-dir="{{ dir }}" data-must="{{ 1 if work.label == 'must_read' else 0 }}"
          style="--hue:{{ hue.fg }};--hue-soft:{{ hue.bg }}">
   <div class="badges">
     {% if rank %}<span class="rank">{{ '%02d'|format(rank) }}</span>{% endif %}
@@ -464,7 +574,7 @@ _TEMPLATE = """
   </div>
 
   <a class="title" href="{{ work.url or '#' }}" target="_blank" rel="noopener">{{ work.title }}{%
-    if work.published %} <span class="yr">({{ work.published.year }})</span>{% endif %}</a>
+    set when = published_label(work) %}{% if when %} <span class="yr">({{ when }})</span>{% endif %}</a>
   {% if work.extra.get('title_zh') %}<div class="title-zh">{{ work.extra.title_zh }}</div>{% endif %}
 
   {% if authors_line(work) %}<div class="line">{{ icon('user') }}<span>{{ authors_line(work) }}</span></div>{% endif %}
@@ -576,36 +686,32 @@ _TEMPLATE = """
 </main>
 
 <aside class="right">
-  {% if chart %}
+  {# A periodical, not a search page: the reader's problem is getting through one
+     issue, not narrowing thousands of hits. So the rail leads with navigation. #}
+  {% if works %}
   <div class="panel">
-    <h3>{{ icon('target') }} 本期分布</h3>
-    <div style="font-size:11.5px;line-height:1.6;color:var(--faint);margin:-6px 0 8px">
-      横轴越靠右越新，纵轴越靠上越相关，圆越大被引越多。
-    </div>
-    <svg class="chart" viewBox="0 0 {{ chart.width }} {{ chart.height }}" role="img"
-         aria-label="本期论文的时间与相关度分布">
-      <line class="grid" x1="8" y1="{{ chart.height - 16 }}" x2="{{ chart.width - 10 }}" y2="{{ chart.height - 16 }}"/>
-      <line class="grid" x1="8" y1="10" x2="8" y2="{{ chart.height - 16 }}"/>
-      {% for pt in chart.points %}
-      <circle class="bub" cx="{{ pt.x }}" cy="{{ pt.y }}" r="{{ pt.r }}" fill="{{ pt.color }}">
-        <title>{{ pt.title }}｜相关度 {{ '%.2f'|format(pt.score) }}｜被引 {{ pt.cites }}｜{{ pt.age }} 天前</title>
-      </circle>
+    <h3>{{ icon('book') }} 本期目录</h3>
+    <nav class="toc">
+      {% for work in works %}
+      {% set h = direction_hue(direction(work, problem_names), hue_order) %}
+      <a href="#p{{ loop.index }}">
+        <i class="dot" style="background:{{ h.fg }}"></i>
+        <span class="n">{{ '%02d'|format(loop.index) }}</span>
+        <span class="tt">{{ work.extra.get('title_zh') or work.title }}</span>
+        {% if work.label == 'must_read' %}<em>必读</em>{% endif %}
+      </a>
       {% endfor %}
-    </svg>
-    <div class="axis"><span>{{ chart.max_age }} 天前</span><span>今天</span></div>
+    </nav>
   </div>
   {% endif %}
 
-  {% if directions %}
+  {% if anchors %}
   <div class="panel">
-    <h3>{{ icon('book') }} 方向分布</h3>
-    <div class="bars">
-      {% for name, n in directions %}
-      {% set h = direction_hue(name) %}
-      <div class="brow">
-        <div class="t"><span>{{ name }}</span><b>{{ n }}</b></div>
-        <div class="track"><i style="width:{{ (n / directions[0][1] * 100)|round|int }}%;background:{{ h.fg }}"></i></div>
-      </div>
+    <h3>{{ icon('target') }} 本期围绕你的哪几篇</h3>
+    <div class="hint">本期论文各自最接近的库内文献，聚合起来看，这周的文献在围着你的哪些工作打转。</div>
+    <div class="rows">
+      {% for title, n in anchors %}
+      <div class="row"><span class="rt">{{ title }}</span>{% if n > 1 %}<b>{{ n }}</b>{% endif %}</div>
       {% endfor %}
     </div>
   </div>
@@ -614,32 +720,65 @@ _TEMPLATE = """
   {% if venues %}
   <div class="panel">
     <h3>{{ icon('book') }} 本期期刊</h3>
-    <div class="legend">
+    <div class="rows">
       {% for name, n in venues %}
-      <div class="lg"><span style="min-width:0;overflow:hidden;text-overflow:ellipsis;
-        white-space:nowrap">{{ name }}</span><b>{{ n }}</b></div>
+      <div class="row"><span class="rt">{{ name }}</span><b>{{ n }}</b></div>
       {% endfor %}
     </div>
   </div>
   {% endif %}
 
-  {% if funnel %}
+  {% if library_directions %}
   <div class="panel">
-    <h3>{{ icon('target') }} 检索漏斗</h3>
-    <div class="funnel">
-      {% for label, value in [('抓取候选', funnel.raw), ('主题通过', funnel.topic),
-                              ('库内去重', funnel.dedup), ('本期推送', counts.total)] %}
-      <div class="fstep">
-        <div class="t"><span>{{ label }}</span><b>{{ value }}</b></div>
-        <div class="fbar"><i style="width:{{ (value / (funnel.raw or 1) * 100)|round(1) }}%"></i></div>
+    <h3>{{ icon('book') }} 你的兴趣画像</h3>
+    <div class="hint">推荐是按这个结构排序的。库里某个方向积累得多，本期该方向自然推得多。</div>
+    <div class="bars">
+      {% for name, n in library_directions %}
+      {% set h = direction_hue(name, hue_order) %}
+      <div class="brow{{ ' off' if name in quiet_directions else '' }}">
+        <div class="t"><span>{{ name }}</span><b>{{ n }}</b></div>
+        <div class="track"><i style="width:{{ (n / library_directions[0][1] * 100)|round|int }}%;background:{{ h.fg }}"></i></div>
       </div>
       {% endfor %}
     </div>
-    <div style="font-size:11.5px;line-height:1.6;color:var(--faint);margin-top:9px">
-      推送数量少时，看这里能分辨是本周确实安静，还是检索出了问题。
+    {% if quiet_directions %}
+    <div class="hint" style="margin:11px 0 0">
+      灰掉的 {{ quiet_directions|length }} 个方向本期一篇都没有。连续几期为空就该检查检索词了。
     </div>
+    {% endif %}
   </div>
   {% endif %}
+
+  {% if watched or diagnostics.get('proposals') %}
+  <div class="panel">
+    <h3>{{ icon('user') }} 作者动向</h3>
+    {% if watched %}
+    <div class="hint">本期发文的已关注作者。</div>
+    <div class="rows">
+      {% for name, n in watched %}
+      <div class="row"><span class="rt">{{ name }}</span>{% if n > 1 %}<b>{{ n }}</b>{% endif %}</div>
+      {% endfor %}
+    </div>
+    {% endif %}
+    {% if diagnostics.get('proposals') %}
+    <div class="hint" style="margin-top:12px">反复出现、但你还没关注的作者，待你确认：</div>
+    <div class="rows">
+      {% for p in diagnostics.proposals[:5] %}
+      <div class="row"><span class="rt">{{ p.name }}</span><b>{{ p.count }}</b></div>
+      {% endfor %}
+    </div>
+    {% endif %}
+  </div>
+  {% endif %}
+
+  <div class="panel">
+    <h3>{{ icon('clock') }} 往期</h3>
+    <div class="hint">每期都会留档，链接不会因为下一期发布而失效。</div>
+    <div class="rows">
+      <div class="row"><a class="rt" href="archive.html">全部历史推送 →</a></div>
+      <div class="row"><a class="rt" href="feed.xml">RSS 订阅 →</a></div>
+    </div>
+  </div>
 </aside>
 
 <footer>
@@ -699,7 +838,9 @@ def render_html(works: List[RankedWork], output_path: Path | str, *, watched_wor
                 classic_works: List[RankedWork] | None = None, coverage_warnings: List[str] | None = None,
                 diagnostics: dict | None = None, update_works: List[RankedWork] | None = None,
                 exploration_works: List[RankedWork] | None = None,
-                problem_names: dict | None = None, library_size: str = "") -> Path:
+                problem_names: dict | None = None, library_size: str = "",
+                window_days: int = 30, library_directions: list | None = None,
+                issue_no: int = 0) -> Path:
     env = Environment(autoescape=True)
     template: Template = env.from_string(_TEMPLATE)
     problem_names = problem_names or {}
@@ -710,6 +851,9 @@ def render_html(works: List[RankedWork], output_path: Path | str, *, watched_wor
         name = direction(work, problem_names)
         if name:
             seen[name] = seen.get(name, 0) + 1
+
+    ordered = sorted(seen.items(), key=lambda kv: (-kv[1], kv[0]))
+    hue_order = {name: i for i, (name, _) in enumerate(ordered)}
 
     now = beijing_now()
     rendered = template.render(
@@ -722,18 +866,27 @@ def render_html(works: List[RankedWork], output_path: Path | str, *, watched_wor
         diagnostics=diagnostics or {},
         funnel=funnel_totals(diagnostics),
         counts={"total": len(every), "must_read": sum(1 for w in every if w.label == "must_read")},
-        directions=sorted(seen.items(), key=lambda kv: (-kv[1], kv[0])),
+        directions=ordered,
         problem_names=problem_names,
         library_size=library_size,
         generated_at=now.strftime("%Y-%m-%d %H:%M"),
         date_label=now.strftime("%Y-%m-%d"),
+        date_cn=f"{now.year} 年 {now.month} 月 {now.day} 日",
+        generated_at_time=now.strftime("%H:%M"),
+        window_days=window_days,
+        issue_no=issue_no,
         clamp_at=ABSTRACT_CLAMP,
         recommendation_reasons=recommendation_reasons,
         authors_line=authors_line, source_line=source_line, direction=direction,
         anchor=anchor, clamp=clamp, split_abstract=split_abstract, icon=icon,
+        published_label=published_label,
         direction_hue=direction_hue,
-        chart=scatter(every, problem_names),
+        hue_order=hue_order,
         venues=venue_counts(every),
+        anchors=library_anchors(every),
+        watched=watched_hits(every),
+        library_directions=library_directions or [],
+        quiet_directions=[n for n, _ in (library_directions or []) if n not in seen],
         rating_buttons=rating_buttons, citations=citations,
     )
     path = Path(output_path)
@@ -745,4 +898,5 @@ def render_html(works: List[RankedWork], output_path: Path | str, *, watched_wor
 
 __all__ = ["render_html", "funnel_totals", "clamp", "split_abstract", "authors_line", "source_line",
            "direction", "direction_hue", "anchor", "icon", "rating_buttons", "citations",
-           "scatter", "venue_counts"]
+           "published_label",
+           "scatter", "venue_counts", "library_anchors", "watched_hits"]

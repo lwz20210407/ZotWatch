@@ -282,13 +282,24 @@ def _run_watch(
     if report:
         report_date = beijing_now()
         report_name = f"report-{report_date:%Y%m%d}.html"
+        # Issue number = how many digests have been published, this one included.
+        issue_no = len(list((base_dir / "reports").glob("report-*.html"))) + (
+            0 if (base_dir / "reports" / report_name).exists() else 1)
         profile_names = {key: value.get("name", key) for key, value
                          in (ranker.profile.get("problem_profiles") or {}).items()}
         render_html(ranked, base_dir / "reports" / report_name, watched_works=watched,
                     classic_works=classics, coverage_warnings=retrieval_warnings + monitor.warnings,
                     diagnostics=diagnostics, update_works=alerts, exploration_works=exploration,
                     problem_names=profile_names,
-                    library_size=f"{ranker.profile.get('item_count', 0)} 篇")
+                    library_size=f"{ranker.profile.get('item_count', 0)} 篇",
+                    window_days=settings.sources.window_days,
+                    issue_no=issue_no,
+                    # How many papers back each research direction in the library:
+                    # this is why the ranking leans the way it does.
+                    library_directions=sorted(
+                        ((v.get("name", k), int(v.get("count", 0)))
+                         for k, v in (ranker.profile.get("problem_profiles") or {}).items()),
+                        key=lambda kv: -kv[1]))
         # The email is only a reminder pointing here; it carries a short preview.
         for suffix, text in (
             ("html", render_digest(ranked, report_url=site_url(), feed_url=site_url() + "feed.xml")),

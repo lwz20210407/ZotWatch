@@ -17,7 +17,7 @@ from .author_watch import authorship_identifiers, candidate_from_openalex, fetch
 from .network_budget import BudgetSession
 from .citation_watch import merge_candidates
 from .models import CandidateWork
-from .source_paging import crossref_publication_date, iter_works
+from .source_paging import crossref_publication_date, crossref_publication_date_precise, iter_works
 from .settings import Settings
 from .topic_matching import matches_any, matches_groups
 from .utils import ensure_isoformat, iso_to_datetime, utc_now
@@ -364,6 +364,10 @@ class CandidateFetcher:
                     " ".join(filter(None, [p.get("given"), p.get("family")])).strip()
                     for p in item.get("author", [])
                 ]
+                # Keep the precision alongside the date: Crossref year-only records
+                # are stored as YYYY-01-01, and the report must not print that as a
+                # full date the publisher never stated.
+                published, precision = crossref_publication_date_precise(item)
                 results.append(
                     CandidateWork(
                         source="crossref",
@@ -373,10 +377,11 @@ class CandidateFetcher:
                         authors=[a for a in authors if a],
                         doi=doi,
                         url=item.get("URL"),
-                        published=crossref_publication_date(item),
+                        published=published,
                         venue=(item.get("container-title") or [None])[0],
                         metrics={"is-referenced-by": float(item.get("is-referenced-by-count", 0))},
-                        extra={"type": item.get("type"), "query": query},
+                        extra={"type": item.get("type"), "query": query,
+                               "date_precision": precision},
                     )
                 )
         return _dedupe_candidates(results)
@@ -507,6 +512,10 @@ class CandidateFetcher:
                     " ".join(filter(None, [p.get("given"), p.get("family")])).strip()
                     for p in item.get("author", [])
                 ]
+                # Keep the precision alongside the date: Crossref year-only records
+                # are stored as YYYY-01-01, and the report must not print that as a
+                # full date the publisher never stated.
+                published, precision = crossref_publication_date_precise(item)
                 results.append(
                     CandidateWork(
                         source="crossref",
@@ -516,12 +525,13 @@ class CandidateFetcher:
                         authors=[a for a in authors if a],
                         doi=doi,
                         url=item.get("URL"),
-                        published=crossref_publication_date(item),
+                        published=published,
                         venue=(item.get("container-title") or [venue])[0],
                         metrics={"is-referenced-by": float(item.get("is-referenced-by-count", 0))},
                         extra={
                             "source": "top_venue",
                             "type": item.get("type"),
+                            "date_precision": precision,
                         },
                     )
                 )
@@ -673,6 +683,18 @@ def _ensure_aware(dt):
     if dt.tzinfo is None:
         return dt.replace(tzinfo=timezone.utc)
     return dt
+
+
+def date_precision(value) -> str:
+    """How precise a raw date string is: "day", "month" or "year"."""
+    if not isinstance(value, str):
+        return "day" if value else ""
+    digits = value.strip()[:10]
+    if len(digits) >= 10:
+        return "day"
+    if len(digits) >= 7:
+        return "month"
+    return "year" if len(digits) >= 4 else ""
 
 
 def _parse_date(value):
