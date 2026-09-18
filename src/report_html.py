@@ -23,6 +23,7 @@ TLDR, because the reader here is triaging rather than searching.
 from __future__ import annotations
 
 import logging
+import re
 import zlib
 from pathlib import Path
 from typing import List
@@ -185,6 +186,37 @@ def anchor(work: RankedWork) -> str:
     return ""
 
 
+def past_issues(current: Path, limit: int = 8) -> list:
+    """Previously published issues, newest first.
+
+    Each report embeds its issue number and item count as meta tags, so the
+    archive can be listed without re-deriving anything. Reports written before
+    those tags existed fall back to the date in the filename.
+    """
+    directory = Path(current).parent
+    if not directory.is_dir():
+        return []
+    rows = []
+    for path in sorted(directory.glob("report-*.html"), key=lambda f: f.name, reverse=True):
+        if path.name == Path(current).name:
+            continue
+        stamp = path.stem.replace("report-", "")
+        if len(stamp) != 8 or not stamp.isdigit():
+            continue
+        head = path.read_text(encoding="utf-8", errors="replace")[:2500]
+        meta = dict(re.findall(r'name="zotwatch:(\w+)"\s+content="([^"]*)"', head))
+        rows.append({
+            "file": path.name,
+            "date": f"{stamp[:4]}-{stamp[4:6]}-{stamp[6:]}",
+            "short": f"{int(stamp[4:6])} 月 {int(stamp[6:])} 日",
+            "no": meta.get("issue") or "",
+            "count": meta.get("count") or "",
+        })
+        if len(rows) >= limit:
+            break
+    return rows
+
+
 def library_anchors(works, limit: int = 5) -> list:
     """Which of the user's own papers this batch clusters around.
 
@@ -259,6 +291,10 @@ _TEMPLATE = """
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>文献周刊{% if issue_no %} 第 {{ issue_no }} 期{% endif %} · {{ date_label }}</title>
+{# Machine-readable so the archive card can list past issues without reparsing HTML. #}
+<meta name="zotwatch:issue" content="{{ issue_no }}" />
+<meta name="zotwatch:count" content="{{ counts.total }}" />
+<meta name="zotwatch:date" content="{{ date_label }}" />
 <style>
   :root{
     --page:#faf9f7; --card:#fff; --ink:#241f1b; --body:#4a423c; --muted:#7c736c;
@@ -441,6 +477,17 @@ _TEMPLATE = """
   .brow.off{opacity:.42}
   .row a.rt{color:var(--accent-d);text-decoration:none}
   .row a.rt:hover{text-decoration:underline}
+  .issues{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:1px}
+  .issues a{display:flex;align-items:baseline;gap:8px;padding:7px 8px;margin:0 -6px;
+    border-radius:8px;text-decoration:none;font-size:12.5px;transition:background .12s}
+  .issues a:hover{background:var(--soft)}
+  .issues .no{flex:none;font-weight:600;color:var(--ink)}
+  .issues .when{flex:1;min-width:0;color:var(--faint)}
+  .issues .cnt{flex:none;color:var(--muted);font-variant-numeric:tabular-nums}
+  .links{display:flex;gap:14px;margin-top:13px;padding-top:11px;
+    border-top:1px solid var(--line);font-size:12.5px}
+  .links a{color:var(--accent-d);text-decoration:none}
+  .links a:hover{text-decoration:underline}
   article{scroll-margin-top:22px}
   .rows{display:flex;flex-direction:column;gap:9px}
   /* Titles and journal names wrap instead of being cut with an ellipsis; a
@@ -705,18 +752,6 @@ _TEMPLATE = """
   </div>
   {% endif %}
 
-  {% if anchors %}
-  <div class="panel">
-    <h3>{{ icon('target') }} 本期围绕你的哪几篇</h3>
-    <div class="hint">本期论文各自最接近的库内文献，聚合起来看，这周的文献在围着你的哪些工作打转。</div>
-    <div class="rows">
-      {% for title, n in anchors %}
-      <div class="row"><span class="rt">{{ title }}</span>{% if n > 1 %}<b>{{ n }}</b>{% endif %}</div>
-      {% endfor %}
-    </div>
-  </div>
-  {% endif %}
-
   {% if venues %}
   <div class="panel">
     <h3>{{ icon('book') }} 本期期刊</h3>
@@ -749,34 +784,25 @@ _TEMPLATE = """
   </div>
   {% endif %}
 
-  {% if watched or diagnostics.get('proposals') %}
-  <div class="panel">
-    <h3>{{ icon('user') }} 作者动向</h3>
-    {% if watched %}
-    <div class="hint">本期发文的已关注作者。</div>
-    <div class="rows">
-      {% for name, n in watched %}
-      <div class="row"><span class="rt">{{ name }}</span>{% if n > 1 %}<b>{{ n }}</b>{% endif %}</div>
-      {% endfor %}
-    </div>
-    {% endif %}
-    {% if diagnostics.get('proposals') %}
-    <div class="hint" style="margin-top:12px">反复出现、但你还没关注的作者，待你确认：</div>
-    <div class="rows">
-      {% for p in diagnostics.proposals[:5] %}
-      <div class="row"><span class="rt">{{ p.name }}</span><b>{{ p.count }}</b></div>
-      {% endfor %}
-    </div>
-    {% endif %}
-  </div>
-  {% endif %}
-
   <div class="panel">
     <h3>{{ icon('clock') }} 往期</h3>
-    <div class="hint">每期都会留档，链接不会因为下一期发布而失效。</div>
-    <div class="rows">
-      <div class="row"><a class="rt" href="archive.html">全部历史推送 →</a></div>
-      <div class="row"><a class="rt" href="feed.xml">RSS 订阅 →</a></div>
+    {% if past %}
+    <div class="hint">每期留档，链接不会因为下一期发布而失效。</div>
+    <ol class="issues">
+      {% for row in past %}
+      <li><a href="{{ row.file }}">
+        <span class="no">{% if row.no %}第 {{ row.no }} 期{% else %}{{ row.date }}{% endif %}</span>
+        <span class="when">{{ row.short }}</span>
+        {% if row.count %}<span class="cnt">{{ row.count }} 篇</span>{% endif %}
+      </a></li>
+      {% endfor %}
+    </ol>
+    {% else %}
+    <div class="hint">这是第一期，还没有往期。以后每期都会留档在这里。</div>
+    {% endif %}
+    <div class="links">
+      <a href="archive.html">全部往期 →</a>
+      <a href="feed.xml">RSS 订阅 →</a>
     </div>
   </div>
 </aside>
@@ -855,6 +881,7 @@ def render_html(works: List[RankedWork], output_path: Path | str, *, watched_wor
     ordered = sorted(seen.items(), key=lambda kv: (-kv[1], kv[0]))
     hue_order = {name: i for i, (name, _) in enumerate(ordered)}
 
+    path = Path(output_path)
     now = beijing_now()
     rendered = template.render(
         works=works,
@@ -883,13 +910,11 @@ def render_html(works: List[RankedWork], output_path: Path | str, *, watched_wor
         direction_hue=direction_hue,
         hue_order=hue_order,
         venues=venue_counts(every),
-        anchors=library_anchors(every),
-        watched=watched_hits(every),
+        past=past_issues(path),
         library_directions=library_directions or [],
         quiet_directions=[n for n, _ in (library_directions or []) if n not in seen],
         rating_buttons=rating_buttons, citations=citations,
     )
-    path = Path(output_path)
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(rendered, encoding="utf-8")
     logger.info("Wrote HTML report to %s (%.0f KB)", path, len(rendered.encode("utf-8")) / 1024)
@@ -899,4 +924,4 @@ def render_html(works: List[RankedWork], output_path: Path | str, *, watched_wor
 __all__ = ["render_html", "funnel_totals", "clamp", "split_abstract", "authors_line", "source_line",
            "direction", "direction_hue", "anchor", "icon", "rating_buttons", "citations",
            "published_label",
-           "scatter", "venue_counts", "library_anchors", "watched_hits"]
+           "scatter", "venue_counts", "library_anchors", "watched_hits", "past_issues"]

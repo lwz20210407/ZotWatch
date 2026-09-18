@@ -143,8 +143,26 @@ def main() -> int:
     except Exception as exc:  # preview must work offline
         print(f"  (跳过中文标题与 TLDR: {exc})")
 
-    web = BASE / "reports" / "preview-web.html"
-    mail = BASE / "reports" / "preview-mail.html"
+    # Everything lands in its own directory. Writing stand-in issues straight into
+    # reports/ put fabricated issues into the real archive, which is tracked in git
+    # and published to Pages.
+    out = BASE / "reports" / "preview"
+    out.mkdir(parents=True, exist_ok=True)
+    for stale in out.glob("report-*.html"):
+        stale.unlink()
+    for offset, (issue, count) in enumerate(
+            [(11, 9), (10, 6), (9, 14), (8, 5), (7, 11)], start=1):
+        stamp = (datetime.now() - timedelta(days=7 * offset)).strftime("%Y%m%d")
+        (out / f"report-{stamp}.html").write_text(
+            f'<!DOCTYPE html><html><head><meta charset="utf-8" />'
+            f'<title>文献周刊 第 {issue} 期</title>'
+            f'<meta name="zotwatch:issue" content="{issue}" />'
+            f'<meta name="zotwatch:count" content="{count}" />'
+            f'<meta name="zotwatch:date" content="{stamp}" />'
+            f"</head><body>预览占位：第 {issue} 期</body></html>", encoding="utf-8")
+
+    web = out / "preview-web.html"
+    mail = out / "preview-mail.html"
     render_html(WORKS, web, diagnostics=DIAGNOSTICS, problem_names=NAMES,
                 library_size="4399 篇", window_days=30,
                 library_directions=LIBRARY_DIRECTIONS, issue_no=12,
@@ -154,7 +172,7 @@ def main() -> int:
                     encoding="utf-8")
 
     for path in (web, mail):
-        print(f"  {path.relative_to(BASE)}  {path.stat().st_size / 1024:.1f} KB")
+        print(f"  {path.relative_to(BASE).as_posix()}  {path.stat().st_size / 1024:.1f} KB")
         if args.open:
             webbrowser.open(path.as_uri())
     return 0
