@@ -40,3 +40,6 @@ __pycache__/
 
 # OS
 .DS_Store
+/reports/preview-*.html
+/reports/digest-*
+/data/zh-cache.json

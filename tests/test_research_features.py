@@ -169,8 +169,11 @@ class ResearchTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp, "report.html"); render_html([work], path, diagnostics=diagnostics)
             html = path.read_text(encoding="utf-8")
-            self.assertIn("研究问题覆盖诊断", html); self.assertIn("方法迁移说明卡", html)
+            self.assertIn("运行诊断", html); self.assertIn("方法迁移说明卡", html)
             self.assertIn("公开 GitHub Issue", html); self.assertNotIn("<script>bad", html)
+            # The web report is the reading surface; TLDR and Chinese title
+            # are optional, but escaping never is.
+            self.assertNotIn("<bad>", html)
 
 
 if __name__ == "__main__": unittest.main()
