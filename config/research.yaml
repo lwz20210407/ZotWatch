@@ -28,15 +28,24 @@ proposal_limit: 10
 
 facets:
   # ---------- 材料对象 ----------
+  # 这条方向问的是「增材 TC4 的力学响应」，不是「增材 TC4 的组织」。
+  #
+  # 上一版 semantic_query 写成 "microstructure, porosity, lack of fusion, build
+  # orientation, heat treatment ..."，是一句纯表征句子。facet 的语义检索按句子找近邻，
+  # 于是 OpenAlex 返回的就是表征论文；更糟的是这些命中会被标上 semantic_facets，而
+  # src/fetch_new.py 里带 semantic_facets 的候选直接跳过关键词主题门。三个机制叠起来，
+  # EBSD/TEM 类论文畅通无阻。2026-09-19 本人明确指出这些「太偏材料不偏力学」。
+  #
+  # 现在锚点放在力学响应上，组织与缺陷只作为解释力学行为的机制项出现。
   - id: lpbf_tc4
-    semantic_query: "Laser powder bed fusion Ti-6Al-4V: microstructure, porosity, lack of fusion, build orientation, heat treatment and their effect on mechanical response."
-    name: 增材 TC4 组织与缺陷
+    semantic_query: "Mechanical response of laser powder bed fusion Ti-6Al-4V: anisotropic plasticity, ductile fracture and damage evolution, and how build orientation, porosity and lack-of-fusion defects change the flow and failure behaviour."
+    name: 增材 TC4 缺陷与力学响应
     terms: [LPBF, SLM, selective laser melting, laser powder bed fusion, PBF-LB/M, additively manufactured,
-            build orientation, lack of fusion, porosity, prior beta grains, alpha prime martensite,
-            crystallographic texture, hot isostatic pressing, heat treatment, EBSD,
-            增材, 激光粉末床熔融, 织构, 孔隙, 热处理]
-    use: 可作为制备工艺、缺陷形貌与组织对力学响应影响的机制线索
-    verify: 核对制备参数、热处理状态、孔隙形貌与取向，以及是否与你的试样同一工艺窗口
+            build orientation, build direction, lack of fusion, porosity, defect morphology,
+            as-built anisotropy, texture-induced anisotropy, hot isostatic pressing,
+            增材, 激光粉末床熔融, 孔隙, 成形方向, 各向异性]
+    use: 可作为缺陷形貌与成形方向如何改变塑性流动和断裂行为的机制线索
+    verify: 核对是否给出应力应变或断裂数据（而非只有组织照片）、制备参数与热处理状态、是否与你的试样同一工艺窗口
 
   # ---------- 载荷条件：三个自变量，彼此独立 ----------
   - id: temperature

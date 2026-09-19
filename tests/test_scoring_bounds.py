@@ -143,10 +143,44 @@ class PriorityOrderTests(unittest.TestCase):
         self.assertEqual(name, "TC4核心研究")
         self.assertEqual(multiplier, 1.0)
 
-    def test_multipliers_are_non_increasing(self) -> None:
+    def test_multipliers_are_non_increasing_within_a_match_scope(self) -> None:
+        """First match wins, so a demoting rule must not shadow a higher one.
+
+        Compared per scope, not globally: a title-scoped rule reads a strict subset of
+        what a title_abstract rule reads, so a low-multiplier title rule above a higher
+        title_abstract rule is a deliberate narrowing rather than shadowing. That is
+        how 表征主导 (x0.55, title) sits above 机制参考 (x0.85).
+        """
         settings = load_settings(BASE)
-        multipliers = [rule.multiplier for rule in settings.scoring.research_priorities]
-        self.assertEqual(multipliers, sorted(multipliers, reverse=True))
+        for scope in {rule.match_fields for rule in settings.scoring.research_priorities}:
+            multipliers = [rule.multiplier for rule in settings.scoring.research_priorities
+                           if rule.match_fields == scope]
+            self.assertEqual(multipliers, sorted(multipliers, reverse=True),
+                             f"rules scoped to {scope} are out of order")
+
+    def test_characterisation_led_title_is_demoted_below_mechanism_reference(self) -> None:
+        """A title about the technique ranks below one about mechanical response.
+
+        The owner rejected EBSD/TEM-led papers on 2026-09-19 as "太偏材料不偏力学".
+        Scoping the rule to the title is what keeps a genuine paper that merely uses
+        EBSD for fractography at full priority.
+        """
+        from src.topic_matching import research_priority
+        settings = load_settings(BASE)
+        led = CandidateWork(
+            source="t", identifier="t1",
+            title="EBSD characterization of microstructural evolution in LPBF Ti-6Al-4V",
+            abstract="Electron backscatter diffraction reveals the texture. Mechanical properties are reported.")
+        uses = CandidateWork(
+            source="t", identifier="t2",
+            title="Ductile fracture of LPBF Ti-6Al-4V under dynamic loading",
+            abstract="Fractography and EBSD of the broken notched specimens support a stress triaxiality "
+                     "and Lode dependent fracture criterion calibrated for Ti-6Al-4V.")
+        led_name, led_multiplier = research_priority(led, settings.scoring)
+        uses_name, uses_multiplier = research_priority(uses, settings.scoring)
+        self.assertEqual(led_name, "表征主导")
+        self.assertEqual(uses_name, "TC4核心研究")
+        self.assertLess(led_multiplier, uses_multiplier)
 
 
 if __name__ == "__main__":

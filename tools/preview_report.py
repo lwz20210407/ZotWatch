@@ -183,7 +183,7 @@ def main() -> int:
                 coverage_warnings=["OpenAlex 查询轮换未覆盖全部追踪期刊，本轮覆盖不足"])
     mail.write_text(render_digest(WORKS, report_url="https://lwz20210407.github.io/ZotWatch/",
                                   feed_url="https://lwz20210407.github.io/ZotWatch/feed.xml",
-                                  problem_names=NAMES, issue_no=12,
+                                  issue_no=12,
                                   extras={"重点作者新作": WORKS[:1], "经典文献补漏": WORKS[:2]}),
                     encoding="utf-8")
 

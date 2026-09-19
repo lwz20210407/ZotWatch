@@ -114,6 +114,9 @@ class SourcesConfig(BaseModel):
     queries: List[str] = Field(default_factory=list)
     tracked_venues: List[str] = Field(default_factory=list)
     include_keywords: List[str] = Field(default_factory=list)
+    # Terms that name a mechanics-of-materials object. A semantically discovered
+    # candidate must hit one of these before it may skip the keyword group sets.
+    mechanics_anchor_keywords: List[str] = Field(default_factory=list)
     required_keyword_groups: List[List[str]] = Field(default_factory=list)
     required_any_group_sets: List[List[List[str]]] = Field(default_factory=list)
     exclude_keywords: List[str] = Field(default_factory=list)
