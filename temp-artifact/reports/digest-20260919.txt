@@ -1,0 +1,66 @@
+每周最新文献订阅与追踪 · 第 4 期 · 2026-09-19
+本期 20 篇
+
+完整周报：https://lwz20210407.github.io/ZotWatch/
+
+── 其余推荐 20 篇 ──────────────────────────
+
+ 01. 亚稳高熵合金中FCC→HCP→BCC相变与空洞演化耦合控制应变速率依赖的加工硬化
+     https://linkinghub.elsevier.com/retrieve/pii/S092150932600794X
+
+ 02. 用于预测Q235B钢动态应变时效的新模型
+     https://link.springer.com/article/10.1007/s00419-026-03170-w
+
+ 03. 对“用于316L不锈钢纹理依赖塑性高效不确定性量化集成CPFE–PCE框架”的勘误
+     https://linkinghub.elsevier.com/retrieve/pii/S0167663626001705
+
+ 04. 基于等温真实应力-应变曲线的氢脆钢动态本构模型
+     https://linkinghub.elsevier.com/retrieve/pii/S2238785426024105
+
+ 05. 局部化学异质性引发的原子尺度应力非局域化调控BCC多主元合金的脆-韧转变
+     https://validate.perfdrive.com/fb803c746e9148689b3984a31fccd902/?ssa=27116473-a670-4d03-87ff-e5038195765e&ssb=43925235742&ssc=https%3A%2F%2Fiopscience.iop.org%2Farticle%2F10.1088%2F2752-5724%2Faea58a&ssi=4cacbd77-cnvj-4dc4-9080-fdc815da282b&ssk=botmanager_support@radware.com&ssm=56868053783374463104766888734475&ssn=b560d6bbfc3f67ad3d0024d878ffe6bfa1cc79fd1e92-3c80-44c4-880a50&sso=b81b8cce-1a14dc7b739945b57727f2a9e8e7747cf122d26a23b33c53&ssp=37721830991789813011178989868295459&ssq=02746410498736247575504987778201217876551&ssr=OS4yMzQuMTUxLjExMg==&sst=ZotWatcher/0.1%20metadata%20enrichment&ssu=&ssv=&ssw=&ssx=eyJyZCI6ImlvcC5vcmciLCJfX3V6bWYiOiI3ZjkwMDA3OWZkMWU5Mi0zYzgwLTQ0YzQtOGNjZS0xYTE0ZGM3YjczOTkxLTE3ODk4MDQ5ODcwNzUwLTAwNGU1MzYxZjUzMjAzZmU4YjUxMCIsInV6bXgiOiI3ZmMwMDA2ODcwYTZjMy0xZDE1LTQxNjgtYjM4Yi03ZWY5ZGI0MDM0N2QxLTE3ODk4MDQ5ODcwNzUwLTAwNTRkNTkzNGZlMjBmOTk1YWUxMCJ9
+
+ 06. 通过增材制造实现成分架构设计，开发可加工硬化钛合金
+     https://www.nature.com/articles/s41467-026-76618-w
+
+ 07. 通过分类与回归机器学习算法联合应用识别板料成形本构模型参数
+     https://linkinghub.elsevier.com/retrieve/pii/S0020768326004610
+
+ 08. 铝中的弹塑性冲击波：晶粒、位错密度和孪晶介导塑性的作用
+     https://linkinghub.elsevier.com/retrieve/pii/S0927025626005586
+
+ 09. 激光熔覆增材制造316 L不锈钢板的循环行为与本构建模
+     https://linkinghub.elsevier.com/retrieve/pii/S0950061826022713
+
+ 10. 新型近α钛合金Ti65在热压缩过程中热变形行为与微观结构演变
+     https://www.mdpi.com/1996-1944/19/17/3749
+
+ 11. 用于分析双相钢局部延性断裂热点中关键微观结构因素的门控融合增强卷积神经网络-图卷积网络模型
+     https://link.springer.com/article/10.1007/s40192-026-00472-3
+
+ 12. T应力和过载对双轴加载十字形试样中塑性诱导裂纹闭合的影响
+     https://linkinghub.elsevier.com/retrieve/pii/S0167844226004167
+
+ 13. 不同动态压缩应变速率下AZ31镁合金孪生演变的准原位分析
+     https://linkinghub.elsevier.com/retrieve/pii/S0925838826047936
+
+ 14. 相似与异种焊接管在四点弯曲下的延性断裂相场建模
+     https://www.researchsquare.com/article/rs-10575287/v1
+
+ 15. 冲击载荷下钢木复合梁柱节点的动态响应与损伤演变研究
+     https://linkinghub.elsevier.com/retrieve/pii/S2352012426015146
+
+ 16. 开环与闭环原位工艺控制对LPBF Ti-6Al-4V微观结构与力学性能的影响研究
+     https://linkinghub.elsevier.com/retrieve/pii/S1526612526006328
+
+ 17. 机器学习辅助构建TC17钛合金热变形的局部活化能和加工图
+     https://linkinghub.elsevier.com/retrieve/pii/S2238785426024816
+
+ 18. 对‘SLM打印Ti6Al4V薄板的成形性和断裂’的勘误
+     https://linkinghub.elsevier.com/retrieve/pii/S002074032600771X
+
+ 19. 通过调控体积能量密度实现LPBF沉积Ti6Al4V-5Cu的高强度
+     https://linkinghub.elsevier.com/retrieve/pii/S0925838826046037
+
+ 20. 尺寸效应对PEEK变形和断裂机制的影响
+     https://linkinghub.elsevier.com/retrieve/pii/S001379442600768X

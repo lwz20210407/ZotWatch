@@ -1,0 +1,172 @@
+{
+  "ranking": [
+    {
+      "doi": "10.1016/j.msea.2026.150514",
+      "title": "Coupled FCC→HCP→BCC transformation and void evolution control strain-rate-dependent work hardening in a metastable high-entropy alloy",
+      "score": 0.6793841767824971,
+      "facets": [
+        "strain_rate",
+        "other_metals"
+      ]
+    },
+    {
+      "doi": "10.1016/j.conbuildmat.2026.147363",
+      "title": "Cyclic behaviour and constitutive modelling of laser-cladding additively manufactured 316 L stainless steel sheets with different anisotropy orientations",
+      "score": 0.5890888872123611,
+      "facets": [
+        "other_metals"
+      ]
+    },
+    {
+      "doi": "10.1016/j.mechmat.2026.105766",
+      "title": "Corrigendum to “An integrated CPFE–PCE framework for efficient uncertainty quantification of texture-dependent plasticity in 316L stainless steel” [Mech. Mater. 219 (2026) 105725]",
+      "score": 0.6219408844780467,
+      "facets": [
+        "calibration",
+        "other_metals"
+      ]
+    },
+    {
+      "doi": "https://doi.org/10.1007/s00419-026-03170-w",
+      "title": "New model to predict the dynamic strain aging in Q235B steel",
+      "score": 0.621305825817744,
+      "facets": [
+        "temperature",
+        "strain_rate",
+        "plasticity_hardening",
+        "calibration",
+        "umat_implementation",
+        "other_metals"
+      ]
+    },
+    {
+      "doi": "10.1016/j.jmapro.2026.06.071",
+      "title": "Effect of open-loop and closed-loop in-situ process control on microstructure and mechanical properties of L-PBF Ti-6Al-4V",
+      "score": 0.5698410095286389,
+      "facets": [
+        "lpbf_tc4"
+      ]
+    },
+    {
+      "doi": "10.1016/j.commatsci.2026.115039",
+      "title": "Elastoplastic shock wave in aluminum: Role of grains, dislocation density and twin-mediated plasticity",
+      "score": 0.5923668022542709,
+      "facets": [
+        "plasticity_hardening",
+        "other_metals"
+      ]
+    },
+    {
+      "doi": "10.1007/s40192-026-00472-3",
+      "title": "A Gated Fusion-Enhanced Convolutional Neural Network–Graph Convolutional Network Model for Analyzing Key Microstructural Factors in Local Ductile Fracture Hotspots of Dual-Phase Steels",
+      "score": 0.5876934945585977,
+      "facets": [
+        "ductile_fracture",
+        "other_metals"
+      ]
+    },
+    {
+      "doi": "10.1016/j.jallcom.2026.190534",
+      "title": "Achieving high strength in LPBF - Deposited Ti6Al4V-5Cu via tailoring volumetric energy density",
+      "score": 0.5690111962845528,
+      "facets": [
+        "lpbf_tc4"
+      ]
+    },
+    {
+      "doi": "10.1016/j.jallcom.2026.190724",
+      "title": "Quasi in-situ analysis of twinning evolution in AZ31 magnesium alloy under different dynamic compression strain rates",
+      "score": 0.5790834062165207,
+      "facets": [
+        "strain_rate",
+        "other_metals"
+      ]
+    },
+    {
+      "doi": "https://doi.org/10.1126/sciadv.aec0989",
+      "title": "Beyond empirical models: Discovering constitutive laws in solids with graph-based equation discovery",
+      "score": 0.5548950491904887,
+      "facets": [
+        "strain_rate"
+      ]
+    },
+    {
+      "doi": "10.1016/j.engfailanal.2026.110950",
+      "title": "The nickel-driven TRIP effect: A new strategy to improve the fatigue life and ductility of high-strength steels prepared by LPBF",
+      "score": 0.5576344443545451,
+      "facets": [
+        "other_metals"
+      ]
+    },
+    {
+      "doi": "10.1016/j.engfailanal.2026.111030",
+      "title": "TWIP/TRIP–independent ductility enhancement with maintained high ultimate tensile strength in laser powder bed fusion 316L stainless steel",
+      "score": 0.5537932146221041,
+      "facets": [
+        "other_metals"
+      ]
+    },
+    {
+      "doi": "10.1016/j.jallcom.2026.190325",
+      "title": "Heterogeneous microstructures and hetero-deformation-induced strengthening in LPBF-fabricated Ti6Al4V-FeCoNiCu composites and SPS-consolidated recycled powders",
+      "score": 0.5616528272717963,
+      "facets": [
+        "lpbf_tc4"
+      ]
+    },
+    {
+      "doi": "10.1007/s10704-026-00944-9",
+      "title": "Single edge notch bending fracture behaviour of latticed structured inconel 718 parts made by laser powder bed fusion",
+      "score": 0.5335394894068735,
+      "facets": [
+        "other_metals"
+      ]
+    },
+    {
+      "doi": "10.1016/j.ijmecsci.2026.111918",
+      "title": "Erratum to “Formability and fracture of SLM-printed Ti6Al4V sheets” [International Journal of Mechanical Sciences Vol 325 (2026) 565–587/111803]",
+      "score": 0.5667170425464819,
+      "facets": [
+        "lpbf_tc4"
+      ]
+    },
+    {
+      "doi": "10.1016/j.jnucmat.2026.157077",
+      "title": "Irradiation-Dependent Johnson–Cook Constitutive Model under Coupled Temperature and Strain-Rate Conditions",
+      "score": 0.5559804666554621,
+      "facets": [
+        "strain_rate"
+      ]
+    },
+    {
+      "doi": "10.1016/j.ijmecsci.2026.111937",
+      "title": "Crystal plasticity based low-cycle fatigue study in engineered magnesium alloys",
+      "score": 0.5482567913785136,
+      "facets": [
+        "other_metals"
+      ]
+    },
+    {
+      "doi": "https://doi.org/10.1038/s41467-026-76618-w",
+      "title": "Compositional architecting by additive manufacturing enables hardenable titanium alloys",
+      "score": 0.5920758729735747,
+      "facets": [
+        "plasticity_hardening"
+      ]
+    },
+    {
+      "doi": "10.1016/j.jallcom.2026.190881",
+      "title": "Temperature-dependent martensite decomposition and β phase precipitation in selectively laser-melted TA15 titanium alloy",
+      "score": 0.5519832030107923,
+      "facets": []
+    },
+    {
+      "doi": "10.1016/j.msea.2026.150532",
+      "title": "Effect of aging heat treatment on microstructure and mechanical properties of electron beam welded Ti-3Al-5Mo-4Cr-2Zr-1Fe metastable β titanium alloy joints",
+      "score": 0.5404609666864156,
+      "facets": []
+    }
+  ],
+  "description": "同一候选集上的旧语义权重对照，不是完整历史版本回放",
+  "generated_at": "2026-09-19T08:10:15.181849+00:00"
+}

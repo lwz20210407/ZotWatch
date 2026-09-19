@@ -100,7 +100,20 @@ research_priorities:
          # 原有外围主题
          "fatigue performance", "creep damage", "lattice structure", "molecular dynamics",
          "atomistic simulation", "machining", "welding", "concrete", "cement", "polymer",
-         "ceramic", "biomedical", "implant", "混凝土", "水泥", "聚合物", "陶瓷", "生物医学"]
+         "ceramic", "biomedical", "implant", "混凝土", "水泥", "聚合物", "陶瓷", "生物医学",
+         # 2026-09-19 试跑补漏：这四类明明该降权却漏网，全是词表的洞而非策略问题。
+         # "welded" —— 词表原来只有 "welding"，匹配器只补尾部 s，管不到动词变形，
+         #   于是 "Ductile Fracture in Welded Pipes" 拿了默认 ×0.90。
+         "welded", "weld metal", "weldment",
+         # 木结构 —— "steel-wood composite beam-column nodes" 靠 steel + damage evolution
+         #   被「跨金属」以 ×1.0 认走。
+         "wood", "timber", "masonry", "木结构", "木材",
+         # 具体聚合物牌号 —— 词表有 "polymer"，但论文标题写的是牌号。
+         "PEEK", "PMMA", "UHMWPE", "epoxy", "thermoplastic", "elastomer",
+         # 疲劳裂纹扩展 —— "fatigue performance" 匹配不到 "crack closure"/"crack growth"。
+         #   疲劳不在本课题链上（温度/率/应力状态 → 塑性/断裂/损伤 → 标定 → 侵彻）。
+         "crack closure", "fatigue crack", "crack growth rate", "Paris law", "S-N curve",
+         "疲劳裂纹"]
   # One category, two alternative matching routes: identification/numerics method
   # papers, and constitutive/fracture work on other metals.
   - name: "跨金属方法参考"

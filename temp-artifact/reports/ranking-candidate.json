@@ -1,0 +1,186 @@
+{
+  "ranking": [
+    {
+      "doi": "10.1016/j.msea.2026.150514",
+      "title": "Coupled FCC→HCP→BCC transformation and void evolution control strain-rate-dependent work hardening in a metastable high-entropy alloy",
+      "score": 0.6793841767824971,
+      "facets": [
+        "strain_rate",
+        "other_metals"
+      ]
+    },
+    {
+      "doi": "https://doi.org/10.1007/s00419-026-03170-w",
+      "title": "New model to predict the dynamic strain aging in Q235B steel",
+      "score": 0.621305825817744,
+      "facets": [
+        "temperature",
+        "strain_rate",
+        "plasticity_hardening",
+        "calibration",
+        "umat_implementation",
+        "other_metals"
+      ]
+    },
+    {
+      "doi": "10.1016/j.mechmat.2026.105766",
+      "title": "Corrigendum to “An integrated CPFE–PCE framework for efficient uncertainty quantification of texture-dependent plasticity in 316L stainless steel” [Mech. Mater. 219 (2026) 105725]",
+      "score": 0.6219408844780467,
+      "facets": [
+        "calibration",
+        "other_metals"
+      ]
+    },
+    {
+      "doi": "https://doi.org/10.1016/j.jmrt.2026.09.062",
+      "title": "Dynamic constitutive model of hydrogen-resistant steel based on isothermal true stress-strain curve",
+      "score": 0.6208272303797897,
+      "facets": [
+        "temperature",
+        "strain_rate",
+        "plasticity_hardening"
+      ]
+    },
+    {
+      "doi": "https://doi.org/10.1088/2752-5724/aea58a",
+      "title": "Atomic-Scale Stress Delocalization Enabled by Local Chemical Heterogeneity Modulates Brittle-to-Ductile Transition in BCC Multi-Principal Element Alloys",
+      "score": 0.5948281949984642,
+      "facets": [
+        "ductile_fracture"
+      ]
+    },
+    {
+      "doi": "https://doi.org/10.1038/s41467-026-76618-w",
+      "title": "Compositional architecting by additive manufacturing enables hardenable titanium alloys",
+      "score": 0.5920758729735747,
+      "facets": [
+        "plasticity_hardening"
+      ]
+    },
+    {
+      "doi": "https://doi.org/10.1016/j.ijsolstr.2026.114289",
+      "title": "Identification of discrete and continuous parameters of sheet metal constitutive models, through combined application of classification and regression machine learning algorithms",
+      "score": 0.5930189987224979,
+      "facets": [
+        "stress_state",
+        "plasticity_hardening"
+      ]
+    },
+    {
+      "doi": "10.1016/j.commatsci.2026.115039",
+      "title": "Elastoplastic shock wave in aluminum: Role of grains, dislocation density and twin-mediated plasticity",
+      "score": 0.5923668022542709,
+      "facets": [
+        "plasticity_hardening",
+        "other_metals"
+      ]
+    },
+    {
+      "doi": "10.1016/j.conbuildmat.2026.147363",
+      "title": "Cyclic behaviour and constitutive modelling of laser-cladding additively manufactured 316 L stainless steel sheets with different anisotropy orientations",
+      "score": 0.5890888872123611,
+      "facets": [
+        "other_metals"
+      ]
+    },
+    {
+      "doi": "10.3390/ma19173749",
+      "title": "Hot Deformation Behavior and Microstructure Evolution of a Novel Near-α Titanium Alloy with Initial Lamellar Microstructure During Hot Compression",
+      "score": 0.5859866318510206,
+      "facets": [
+        "temperature",
+        "strain_rate",
+        "plasticity_hardening"
+      ]
+    },
+    {
+      "doi": "10.1007/s40192-026-00472-3",
+      "title": "A Gated Fusion-Enhanced Convolutional Neural Network–Graph Convolutional Network Model for Analyzing Key Microstructural Factors in Local Ductile Fracture Hotspots of Dual-Phase Steels",
+      "score": 0.5876934945585977,
+      "facets": [
+        "ductile_fracture",
+        "other_metals"
+      ]
+    },
+    {
+      "doi": "10.1016/j.tafmec.2026.105850",
+      "title": "Influence of T-stress and overloads on plasticity-induced crack closure in biaxially loaded cruciform specimens using digital image correlation",
+      "score": 0.5820860556908317,
+      "facets": []
+    },
+    {
+      "doi": "10.1016/j.jallcom.2026.190724",
+      "title": "Quasi in-situ analysis of twinning evolution in AZ31 magnesium alloy under different dynamic compression strain rates",
+      "score": 0.5790834062165207,
+      "facets": [
+        "strain_rate",
+        "other_metals"
+      ]
+    },
+    {
+      "doi": "https://doi.org/10.21203/rs.3.rs-10575287/v1",
+      "title": "Phase-Field Modeling of Ductile Fracture in Similar and Dissimilar Welded Pipes under Four-Point Bending",
+      "score": 0.5702035964609806,
+      "facets": [
+        "plasticity_hardening",
+        "ductile_fracture",
+        "umat_implementation"
+      ]
+    },
+    {
+      "doi": "10.1016/j.istruc.2026.112565",
+      "title": "Study on dynamic response and damage evolution of steel-wood composite beam-column nodes under impact loading",
+      "score": 0.5720453760113959,
+      "facets": [
+        "damage_evolution"
+      ]
+    },
+    {
+      "doi": "10.1016/j.jmapro.2026.06.071",
+      "title": "Effect of open-loop and closed-loop in-situ process control on microstructure and mechanical properties of L-PBF Ti-6Al-4V",
+      "score": 0.5698410095286389,
+      "facets": [
+        "lpbf_tc4"
+      ]
+    },
+    {
+      "doi": "https://doi.org/10.1016/j.jmrt.2026.09.132",
+      "title": "Machine learning assisted construction of local activation energy and processing maps for hot deformation of TC17 titanium alloy",
+      "score": 0.5676773704678564,
+      "facets": [
+        "temperature",
+        "strain_rate",
+        "plasticity_hardening"
+      ]
+    },
+    {
+      "doi": "10.1016/j.ijmecsci.2026.111918",
+      "title": "Erratum to “Formability and fracture of SLM-printed Ti6Al4V sheets” [International Journal of Mechanical Sciences Vol 325 (2026) 565–587/111803]",
+      "score": 0.5667170425464819,
+      "facets": [
+        "lpbf_tc4"
+      ]
+    },
+    {
+      "doi": "10.1016/j.jallcom.2026.190534",
+      "title": "Achieving high strength in LPBF - Deposited Ti6Al4V-5Cu via tailoring volumetric energy density",
+      "score": 0.5690111962845528,
+      "facets": [
+        "lpbf_tc4"
+      ]
+    },
+    {
+      "doi": "https://doi.org/10.1016/j.engfracmech.2026.112606",
+      "title": "Size effect on the deformation and fracture mechanisms of PEEK",
+      "score": 0.5550277199983246,
+      "facets": [
+        "strain_rate",
+        "stress_state",
+        "ductile_fracture",
+        "damage_evolution"
+      ]
+    }
+  ],
+  "description": "分问题画像与多样性排序",
+  "generated_at": "2026-09-19T08:10:15.182152+00:00"
+}
