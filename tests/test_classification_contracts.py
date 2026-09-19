@@ -105,6 +105,60 @@ class DirectionLabelTests(unittest.TestCase):
         self.assertEqual(shown, "跨金属方法参考")
 
 
+class CoreRuleWidthTests(unittest.TestCase):
+    """The core rule was widened. It must not have become a way in for off-topic work.
+
+    The narrow rule demanded terms like "ductile fracture" or "stress triaxiality", so
+    "Formability and fracture of SLM-printed Ti6Al4V sheets" -- dead centre of this
+    project -- fell through to the cross-metal rule. A second rule of the same name
+    accepts a titanium alloy plus a loose mechanical word, and is deliberately NOT
+    authoritative: naming titanium and the word "fracture" also describes fatigue crack
+    growth, dental implants and hot forging, and those must still be demoted.
+    """
+
+    def setUp(self):
+        self.settings = load_settings(BASE)
+
+    def multiplier(self, title, abstract=""):
+        from src.topic_matching import research_priority
+        return research_priority(candidate(title, abstract), self.settings.scoring)[1]
+
+    def test_genuinely_core_titanium_work_is_core(self):
+        for title, abstract in [
+            ("Formability and fracture of SLM-printed Ti6Al4V sheets",
+             "forming limit and fracture of selective laser melted Ti6Al4V"),
+            ("A stress-state dependent ductile fracture model for Ti-6Al-4V under dynamic loading",
+             "stress triaxiality, Lode angle, ductile fracture calibration, ballistic validation"),
+            ("Build orientation effects on the dynamic tensile fracture of LPBF Ti-6Al-4V",
+             "split Hopkinson tension, lack-of-fusion defects, fracture strain"),
+        ]:
+            with self.subTest(title=title[:50]):
+                self.assertEqual(self.multiplier(title, abstract), 1.0)
+
+    def test_titanium_plus_a_loose_word_is_not_enough_when_the_topic_is_peripheral(self):
+        """Each of these names titanium AND a loose mechanical word, and is off-chain."""
+        for title, abstract in [
+            ("Fatigue crack growth behaviour of Ti-6Al-4V under variable amplitude loading",
+             "crack closure and overload effects on the fracture of the titanium alloy"),
+            ("Failure of porous Ti-6Al-4V dental implants after osseointegration",
+             "biomedical implant, in-vivo fracture of titanium alloy scaffolds"),
+            ("Hot forging of Ti-6Al-4V: deformation behaviour and microstructure evolution",
+             "hot deformation behaviour, processing map, forging of the titanium alloy"),
+            ("Corrosion-assisted fracture of coated Ti-6Al-4V in seawater",
+             "corrosion and coating degradation cause failure of the titanium alloy"),
+            ("EBSD study of texture evolution and ductility in Ti-6Al-4V",
+             "microstructure characterisation by EBSD of the titanium alloy"),
+        ]:
+            with self.subTest(title=title[:50]):
+                self.assertLess(self.multiplier(title, abstract), 1.0)
+
+    def test_the_widened_rule_is_not_authoritative(self):
+        """If it were, it would override every demotion and undo the whole point."""
+        core = [r for r in self.settings.scoring.research_priorities if r.name == "TC4核心研究"]
+        self.assertEqual(len(core), 2, "expected a narrow authoritative rule and a wide one")
+        self.assertEqual(sum(1 for r in core if r.authoritative), 1)
+
+
 class ScoreRangeTests(unittest.TestCase):
     """Every combination of bonuses and feedback must stay inside [0,1]."""
 
