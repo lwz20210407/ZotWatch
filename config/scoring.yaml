@@ -66,6 +66,36 @@ research_priorities:
       - ["Ti-6Al-4V", "TC4", "titanium alloy", "钛合金"]
       - ["constitutive", "ductile fracture", "fracture criterion", "damage evolution", "damage initiation", "flow stress", "strain hardening", "stress triaxiality", "Lode", "strain rate", "dynamic tension", "dynamic compression", "thermoviscoplastic", "thermo-viscoplastic", "thermal softening", "ballistic", "penetration", "perforation", "Johnson-Cook", "GISSMO", "本构", "延性断裂", "损伤演化", "应力状态", "应变率", "屈服", "侵彻"]
       - &mechanics ["constitutive", "plasticity", "plastic", "hardening", "flow stress", "yield", "yielding", "fracture", "damage", "ductility", "ductile", "stress strain", "Johnson-Cook", "GISSMO", "failure", "ballistic limit", "塑性", "本构", "断裂", "损伤", "硬化", "屈服", "侵彻"]
+  # 外围方法参考只让 TC4核心研究 排在它前面，其余全部让位。
+  #
+  # 2026-09-19 试跑暴露了顺序问题：这条规则对该管的论文一次都没生效过。
+  #   - 涂层（Cr2AlC on H13 steel）、热变形（AA3102、近α钛）标题里明明有 coating /
+  #     hot deformation，却拿了 ×1.0——「其他金属」只要 金属 + constitutive 就先认走了。
+  #   - 腐蚀那篇（Ti/CeO2）更隐蔽：被「反演/数值实现」用 "fracture energy" 认走。那个词
+  #     在方法规则里本意是数值正则化参数（配 characteristic length、nonlocal damage），
+  #     这篇里却是材料韧性。关键词无法消歧，只能让降权规则排在它前面。
+  #
+  # 上移不会重蹈覆辙：从前的坑是它排在**最顶上**，连 "Ductile fracture of coated
+  # Ti-6Al-4V under dynamic loading" 都要降 30%。现在 TC4核心研究 仍在它前面，核心工作
+  # 照样先被认走。代价是「铝合金热轧方向对动态断裂的影响」这类落到 0.70，可以接受。
+  - name: "外围方法参考"
+    multiplier: 0.70
+    match_fields: title
+    required_groups:
+      - [# 2026-09-19 本人确认砍掉：热变形/锻造。属热加工工艺范畴（Arrhenius/Zener-Hollomon、
+         # 800-1000°C 低应变率成形），与冲击失效链不是一个区间。真正的 TC4 高温本构仍由
+         # TC4核心研究 以 ×1.0 认走，不受影响。
+         "hot deformation", "hot working", "hot compression", "hot rolling", "hot forming",
+         "thermomechanical processing", "forging", "extrusion", "superplastic",
+         "热变形", "热加工", "锻造", "挤压",
+         # 2026-09-19 本人确认砍掉：涂层 / 腐蚀 / 复合材料。
+         "corrosion", "coating", "coated", "cold spray", "cold-sprayed", "thermal barrier",
+         "CFRP", "GFRP", "fiber-reinforced", "fibre-reinforced", "laminate", "sandwich panel",
+         "涂层", "腐蚀", "复合材料",
+         # 原有外围主题
+         "fatigue performance", "creep damage", "lattice structure", "molecular dynamics",
+         "atomistic simulation", "machining", "welding", "concrete", "cement", "polymer",
+         "ceramic", "biomedical", "implant", "混凝土", "水泥", "聚合物", "陶瓷", "生物医学"]
   # One category, two alternative matching routes: identification/numerics method
   # papers, and constitutive/fracture work on other metals.
   - name: "跨金属方法参考"
@@ -78,14 +108,7 @@ research_priorities:
     required_groups:
       - ["aluminum", "aluminium", "magnesium", "steel", "copper", "nickel", "Inconel", "metal", "alloy"]
       - ["constitutive", "ductile fracture", "fracture criterion", "damage evolution", "stress triaxiality", "Lode", "flow stress", "hardening", "Gurson", "GTN", "MMC", "GISSMO", "Johnson-Cook"]
-  # 以下两条只看标题，且都排在三条 ×1.0 之后——核心工作先被认走，不会被截胡。
-  # 这正是 外围方法参考 从前排在最顶上时踩过的坑（原注释见下）。
-  # 两条之间按倍率递减排：0.70 在前，0.55 在后。
-  - name: "外围方法参考"
-    multiplier: 0.70
-    match_fields: title
-    required_groups:
-      - ["fatigue performance", "creep damage", "lattice structure", "molecular dynamics", "atomistic simulation", "corrosion", "coating", "machining", "welding", "concrete", "cement", "polymer", "ceramic", "biomedical", "implant", "混凝土", "水泥", "聚合物", "陶瓷", "生物医学"]
+  # 表征主导也只看标题，与 外围方法参考 按倍率递减排：0.70 在前，0.55 在后。
   # 表征主导：标题本身讲的是表征手段或组织演变，而不是力学响应或模型。
   # 2026-09-19 本人指出「研究各种表征手段、EBSD、TEM 这些东西的，太偏材料不偏力学」。
   #

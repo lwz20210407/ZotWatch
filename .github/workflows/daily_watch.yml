@@ -260,7 +260,13 @@ jobs:
           set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          for path in data/watch-state/state.json reports/feed.xml; do
+          # zh-cache.json rides along with the delivery history. Without it every run
+          # logged "0 cached" and re-translated the whole issue from scratch, so the
+          # cost was paid weekly and -- worse -- a batch lost to a timeout could never
+          # be repaired: on 2026-09-19 that left 8 of 27 cards with no Chinese title
+          # or TLDR, permanently. Cached by a hash of title+abstract, so the next run
+          # fills in whatever the last one failed to translate.
+          for path in data/watch-state/state.json data/zh-cache.json reports/feed.xml; do
             [ -f "$path" ] && git add -f "$path"
           done
           for path in reports/report-*.html; do

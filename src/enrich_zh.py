@@ -92,7 +92,7 @@ class ChineseEnricher:
     def enabled(self) -> bool:
         return bool(self.config.enabled and os.getenv(self.config.api_key_env, ""))
 
-    def _post(self, batch: List[dict]) -> List[dict]:
+    def _post(self, batch: List[dict], attempts: int = 3) -> List[dict]:
         if self._session is None:
             self._session = requests.Session()
             self._session.headers.update({
@@ -106,7 +106,7 @@ class ChineseEnricher:
         response = request_with_retry(
             self._session, "POST",
             f"{self.config.base_url.rstrip('/')}/chat/completions",
-            logger=logger, context=f"enrich({len(batch)} papers)",
+            logger=logger, context=f"enrich({len(batch)} papers)", attempts=attempts,
             json={
                 "model": self.config.model_name,
                 "messages": [
@@ -126,6 +126,54 @@ class ChineseEnricher:
         content = response.json()["choices"][0]["message"]["content"]
         return _parse(content)
 
+    def _enrich_chunk(self, chunk: List[dict]) -> int:
+        """Translate one chunk, halving it rather than retrying it on failure.
+
+        A timeout here is not bad luck. The prompt asks for a full Chinese abstract
+        per paper, so a chunk of eight requests ~7.7k output tokens, and a chunk whose
+        abstracts happen to be long simply cannot finish inside timeout_seconds.
+        Retrying the identical request hits the identical wall: on 2026-09-19 that
+        burned three 180 s attempts and then dropped all eight papers, which is why 8
+        of 27 cards carried no Chinese title, TLDR or abstract while the other 19 were
+        complete. Halving turns a whole-batch loss into at worst one paper's loss.
+
+        So a multi-item chunk gets a single attempt -- there is nothing to gain from
+        repeating an oversized request -- and only a single paper, where a timeout
+        really can be transient, gets the full retry budget.
+        """
+        try:
+            rows = self._post(chunk, attempts=3 if len(chunk) == 1 else 1)
+        except Exception as exc:  # best effort; never break the digest
+            if len(chunk) == 1:
+                logger.warning("Chinese enrichment failed for %r: %s",
+                               (chunk[0]["title"] or "")[:60], exc)
+                return 0
+            half = len(chunk) // 2
+            logger.warning("Chinese enrichment batch of %d failed (%s); splitting in two",
+                           len(chunk), exc.__class__.__name__)
+            return self._enrich_chunk(chunk[:half]) + self._enrich_chunk(chunk[half:])
+
+        # Match on the index the model echoes back rather than on position, so a
+        # batch that returns fewer rows costs only the rows it dropped.
+        done = 0
+        for index, out in enumerate(rows):
+            try:
+                slot = int(out.get("i", index))
+            except (TypeError, ValueError):
+                slot = index
+            if not 0 <= slot < len(chunk):
+                continue
+            self.cache[chunk[slot]["key"]] = {
+                "title_zh": str(out.get("title_zh") or "").strip(),
+                "tldr": str(out.get("tldr") or "").strip(),
+                "abstract_zh": str(out.get("abstract_zh") or "").strip(),
+            }
+            self._dirty = True
+            done += 1
+        if done < len(chunk):
+            logger.warning("Batch returned %d of %d rows", done, len(chunk))
+        return done
+
     def enrich(self, works: Sequence) -> None:
         """Fill work.extra['title_zh'] and work.extra['tldr_zh'] for every work."""
         pending: List[dict] = []
@@ -144,35 +192,14 @@ class ChineseEnricher:
             logger.info("Generating Chinese title + TLDR for %d papers (%d cached)",
                         len(pending), len(self.cache))
             size = self.config.batch_size
+            done_total = 0
             for start in range(0, len(pending), size):
                 chunk = pending[start : start + size]
-                try:
-                    rows = self._post(chunk)
-                except Exception as exc:  # best effort; never break the digest
-                    logger.warning("Chinese enrichment batch failed (%d papers): %s",
-                                   len(chunk), exc)
-                    continue
-                # Match on the index the model echoes back rather than on position,
-                # so a batch that returns fewer rows costs only the rows it dropped.
-                done = 0
-                for index, out in enumerate(rows):
-                    try:
-                        slot = int(out.get("i", index))
-                    except (TypeError, ValueError):
-                        slot = index
-                    if not 0 <= slot < len(chunk):
-                        continue
-                    self.cache[chunk[slot]["key"]] = {
-                        "title_zh": str(out.get("title_zh") or "").strip(),
-                        "tldr": str(out.get("tldr") or "").strip(),
-                        "abstract_zh": str(out.get("abstract_zh") or "").strip(),
-                    }
-                    self._dirty = True
-                    done += 1
-                if done < len(chunk):
-                    logger.warning("Batch returned %d of %d; %d papers stay English-only",
-                                   done, len(chunk), len(chunk) - done)
-                logger.info("  enriched %d/%d", min(start + size, len(pending)), len(pending))
+                done_total += self._enrich_chunk(chunk)
+                logger.info("  enriched %d/%d", done_total, len(pending))
+            if done_total < len(pending):
+                logger.warning("%d of %d papers stay English-only",
+                               len(pending) - done_total, len(pending))
             self.save()
 
         for work in works:
