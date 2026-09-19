@@ -1,4 +1,8 @@
 enabled: true
+# 2026-09-19 范围收缩：产品目标收回到「每周自动发现相关新文献，过滤离题和重复，
+# 邮件提醒 + 可追溯网页」。合作群体分析不是本人要过的功能，是顺手加的，收益未经验证，
+# 却每周都跑、占版面、烧预算。代码保留，改成默认关闭——真要看时把这行改 true。
+collaboration_analysis: false
 semantic_enabled: true
 semantic_min_similarity: 0.40
 diversity_pool: 100
@@ -40,6 +44,11 @@ facets:
   - id: lpbf_tc4
     semantic_query: "Mechanical response of laser powder bed fusion Ti-6Al-4V: anisotropic plasticity, ductile fracture and damage evolution, and how build orientation, porosity and lack-of-fusion defects change the flow and failure behaviour."
     name: 增材 TC4 缺陷与力学响应
+    # 这条方向断言的是「材料事实」，所以必须真的提到钛，不能只靠 LPBF/孔隙这些通用词。
+    # 2026-09-19 那期里 "LPBF 316L steel" 和 "FFF-sintered 316L/17-4PH steels" 就是靠
+    # terms 里的 LPBF 挂进来的，再被质心 argmax 一取，钢的论文被标成了「增材 TC4」。
+    # 其他方向（温度/应变率/断裂/反演…）是条件、现象或方法，OR 是对的，不设 requires。
+    requires: [Ti-6Al-4V, Ti6Al4V, TC4, Ti64, titanium, 钛]
     terms: [LPBF, SLM, selective laser melting, laser powder bed fusion, PBF-LB/M, additively manufactured,
             build orientation, build direction, lack of fusion, porosity, defect morphology,
             as-built anisotropy, texture-induced anisotropy, hot isostatic pressing,

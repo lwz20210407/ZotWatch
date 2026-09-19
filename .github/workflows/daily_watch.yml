@@ -118,14 +118,28 @@ jobs:
             echo "found=false" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Verify prebuilt profile matches the configured encoder
+      # Checks the whole manifest, not just the encoder signature: schema version,
+      # item_count against index_items, sqlite row count, FAISS vector count and width.
+      # The old check compared one field, so a bundle could be internally inconsistent
+      # -- an index shorter than the item list, vectors of the wrong width -- and still
+      # be accepted, then fail or silently misbehave much later in the run.
+      - name: Verify prebuilt profile
         if: steps.prebuilt.outputs.found == 'true'
         run: |
           echo "Prebuilt profile: ${{ steps.prebuilt.outputs.items }} items, generated ${{ steps.prebuilt.outputs.generated }}"
-          if [ "${{ steps.prebuilt.outputs.signature }}" != "${{ steps.model.outputs.signature }}" ]; then
-            echo "::error::Profile was built with '${{ steps.prebuilt.outputs.signature }}' but config/embedding.yaml now says '${{ steps.model.outputs.signature }}'. Vectors from different models are not comparable. Rebuild locally with: python -m src.cli profile --local --bundle"
-            exit 1
-          fi
+          python -m src.cli verify-profile
+
+      # The facet centroids are derived data: which library papers belong to each
+      # research direction, averaged. That depends only on config/research.yaml and on
+      # vectors already inside profile.sqlite, so it is recomputed here on every run --
+      # no Zotero access, no encoder call, no bill. Previously the only way to pick up a
+      # facet edit was to rebuild locally and re-upload 27 MB by hand, and on 2026-09-19
+      # that manual step silently did not happen: the published bundle still carried
+      # centroids from a microstructure-flavoured facet after the facet was rewritten,
+      # which quietly undid half of a filtering change.
+      - name: Recompute facet centroids for the current config
+        if: steps.prebuilt.outputs.found == 'true'
+        run: python -m src.cli rederive-profile
 
       # Fallback path only, when no prebuilt profile exists. restore + save with a
       # run-unique key: the previous actions/cache@v4 used a month-stamped key,

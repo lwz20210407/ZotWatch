@@ -10,7 +10,7 @@ from pathlib import Path
 from typing import Optional
 from dotenv import load_dotenv
 
-from .build_profile import ProfileBuilder
+from .build_profile import ProfileBuilder, rederive_profile, verify_profile
 from .author_watch import author_news, merge_report_works, work_key
 from .citation_watch import CitationDiscovery, merge_candidates
 from .watch_history import WatchHistory
@@ -47,12 +47,16 @@ def main(argv: Optional[list[str]] = None) -> None:
     parser = argparse.ArgumentParser(description="ZotWatcher CLI")
     parser.add_argument(
         "command",
-        choices=["profile", "watch", "commit-history", "feedback", "notify"],
+        choices=["profile", "watch", "commit-history", "feedback", "notify",
+                 "rederive-profile", "verify-profile"],
         help="Command to run",
     )
     parser.add_argument("--base-dir", default=str(BASE_DIR), help="Repository base directory")
     parser.add_argument("--verbose", action="store_true", help="Enable debug logging")
     parser.add_argument("--full", action="store_true", help="Full rebuild (profile command)")
+    parser.add_argument("--reembed", action="store_true",
+                        help="Drop every cached vector first, forcing a full re-encode "
+                             "(profile command; repairs pre-2026-09-19 cache drift)")
     parser.add_argument("--weekly", action="store_true", help="Alias for --full in profile command")
     parser.add_argument("--local", action="store_true",
                         help="Build the profile from the local zotero.sqlite instead of the Web API")
@@ -88,19 +92,40 @@ def main(argv: Optional[list[str]] = None) -> None:
             parser.error("feedback requires --doi and --rating")
         save_feedback(base_dir, {"doi": args.doi, "rating": args.rating, "facets": args.facets, "scope": args.scope}, settings.research)
         return
+    if args.command == "verify-profile":
+        problems = verify_profile(base_dir, settings)
+        for problem in problems:
+            logging.getLogger(__name__).error("profile: %s", problem)
+        raise SystemExit(1 if problems else 0)
+    if args.command == "rederive-profile":
+        rederive_profile(base_dir, settings)
+        return
     storage = ProfileStorage(base_dir / "data" / "profile.sqlite")
 
     if args.command == "profile":
         run_profile(base_dir, settings, storage, full=args.full or args.weekly,
-                    local=args.local, bundle=args.bundle)
+                    local=args.local, bundle=args.bundle, reembed=args.reembed)
     elif args.command == "watch":
         run_watch(base_dir, settings, storage, rss=args.rss, report=args.report, top=args.top, push=args.push,
                   defer_history=args.defer_history, prebuilt_profile=args.prebuilt_profile)
 
 
 def run_profile(base_dir: Path, settings: Settings, storage: ProfileStorage, *, full: bool,
-                local: bool = False, bundle: bool = False) -> None:
+                local: bool = False, bundle: bool = False, reembed: bool = False) -> None:
     logger = logging.getLogger(__name__)
+    if reembed:
+        # Repairs drift that predates the content-hash cache fix: a row edited before
+        # that commit already stores the new hash, so it is indistinguishable from a
+        # clean one and can only be repaired by re-encoding everything. Costs a full
+        # embedding bill, so it is never automatic.
+        storage.initialize()
+        conn = storage.connect()
+        affected = conn.execute(
+            "UPDATE items SET embedding=NULL, embedding_signature=NULL, embedding_version=NULL"
+            " WHERE embedding IS NOT NULL"
+        ).rowcount
+        conn.commit()
+        logger.warning("Dropped %d cached vectors; every item will be re-encoded", affected)
     if local:
         data_dir = settings.zotero.local.resolved_dir()
         if not data_dir:
@@ -217,8 +242,12 @@ def _run_watch(
     if config.enabled:
         ranked = feedback.apply(ranked, settings.scoring.thresholds)
     _log_score_distribution(ranked, settings.scoring.thresholds)
-    proposals = propose_tracking(ranked, config, settings, history.state, feedback) if config.enabled else []
-    groups = collaboration_groups(history.state, settings) if config.enabled else []
+    proposals = _optional("Author/venue proposals", lambda: propose_tracking(
+        ranked, config, settings, history.state, feedback), []) if config.enabled else []
+    # Collaboration analysis is off by default now (config/research.yaml). It was never
+    # asked for, its value was never demonstrated, and it ran every week regardless.
+    groups = _optional("Collaboration analysis", lambda: collaboration_groups(
+        history.state, settings), []) if config.enabled and config.collaboration_analysis else []
     ranked = history.filter(ranked)
     if config.enabled:
         ranked = [w for w in ranked if not w.extra.get("feedback_read")]
@@ -237,7 +266,10 @@ def _run_watch(
     for work in exploration:
         work.extra["report_channel"] = "跨圈方法发现（非近期新作）"
     ranked = recent
-    watched = author_news(ranked, settings.author_watch)
+    # Kept in full at the owner's explicit instruction ("作者动向我没说要删，甚至让你
+    # 好好做"), including the gap-filling and newly-emerging author candidates. Only
+    # its ability to break the digest is removed.
+    watched = _optional("Author trends", lambda: author_news(ranked, settings.author_watch), [])
     ranked = [work for work in ranked if work.label != "ignore"]
     ranked = _limit_preprints(ranked, max_ratio=0.3)
 
@@ -260,12 +292,14 @@ def _run_watch(
     enrich_chinese(combined, settings.translation, base_dir / "data" / "zh-cache.json")
 
     monitor = VersionMonitor(settings, fetcher.session)
-    alerts = monitor.check(combined, history.state) if config.enabled else []
+    alerts = _optional("Version monitoring", lambda: monitor.check(
+        combined, history.state), []) if config.enabled else []
     retrieval_warnings = list(getattr(warning_recorder, "messages", [])) + discovery.warnings
     raw = getattr(fetcher, "coverage_raw", None)
-    coverage = coverage_report(config, {"raw": list(raw.values()) if isinstance(raw, dict) else candidates,
-                               "topic": merged, "dedup": deduped, "delivered": combined},
-                               retrieval_warnings, history.state) if config.enabled else []
+    coverage = _optional("Coverage diagnostics", lambda: coverage_report(
+        config, {"raw": list(raw.values()) if isinstance(raw, dict) else candidates,
+                 "topic": merged, "dedup": deduped, "delivered": combined},
+        retrieval_warnings, history.state), []) if config.enabled else []
     diagnostics = {"coverage": coverage, "proposals": proposals,
                    "collaboration_groups": groups,
                    "network": fetcher.session.summary() if isinstance(fetcher.session, BudgetSession) else {},
@@ -334,6 +368,27 @@ def _log_top_results(ranked: list[RankedWork]) -> None:
     logger = logging.getLogger(__name__)
     for idx, work in enumerate(ranked[:10], start=1):
         logger.info("%02d | %.3f | %s | %s", idx, work.score, work.label, work.title)
+
+
+def _optional(label: str, produce, default):
+    """Run an auxiliary feature; its failure must never stop the digest going out.
+
+    The product is one weekly email plus a web page. Author trends, collaboration
+    clusters, version alerts and coverage diagnostics are all worth having, and none
+    of them is worth a silent Thursday. Made a standing constraint by the owner on
+    2026-09-19: "辅助功能失败，不影响主流程" -- a failed translation ships English, a
+    failed source reports incomplete coverage, and no analysis may hold up the mail.
+
+    The main path -- fetch, gate, dedupe, rank, render, send, record -- is
+    deliberately NOT wrapped: if any of that breaks, the digest is wrong and the run
+    should fail loudly rather than deliver something misleading.
+    """
+    try:
+        return produce()
+    except Exception as exc:  # noqa: BLE001 - auxiliary, must not propagate
+        logger.warning("%s failed (%s: %s); the digest continues without it",
+                       label, exc.__class__.__name__, exc)
+        return default
 
 
 def _log_score_distribution(works: list[RankedWork], thresholds) -> None:

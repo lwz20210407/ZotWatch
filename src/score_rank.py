@@ -14,6 +14,7 @@ from .faiss_store import FaissIndex
 from .citation_watch import citation_strength
 from .models import CandidateWork, RankedWork
 from .settings import ScoreScales, Settings
+from .research_features import facet_ids
 from .topic_matching import normalize_text, research_priority
 from .vectorizer import TextVectorizer
 
@@ -94,7 +95,13 @@ class WorkRanker:
             nearest_similarity = float(distance[0]) if distance.size else 0.0
             profiles = getattr(self, "profile", {}).get("problem_profiles", {})
             problem_scores = {key: float(vector @ np.asarray(profile["centroid"])) for key, profile in profiles.items()}
+            # NOT a classification. This is "closest facet centroid in embedding space",
+            # used as a single grouping key for the diversity quota and as the affinity
+            # term below. It says nothing about which direction the paper is actually
+            # ON -- that is research_facets, which needs textual evidence. Displaying
+            # this as a heading filed a 316L steel paper under "增材 TC4".
             primary_problem = max(problem_scores, key=problem_scores.get) if problem_scores else ""
+            evidenced_facets = facet_ids(candidate, self.settings.research)
             affinity = problem_scores.get(primary_problem, similarity)
             semantic_score = _clamp01(
                 0.4 * similarity + 0.6 * affinity if problem_scores else similarity
@@ -126,12 +133,26 @@ class WorkRanker:
             priority, multiplier = research_priority(candidate, self.settings.scoring)
             base_score = score
             score *= multiplier
+            # Recorded for the report and for diagnostics, NOT added to the score.
+            #
+            # They used to be added here, after the bounded sum and after the
+            # multiplier, so the total reached 1.09 (and 1.17 once feedback applied) --
+            # while the design claimed twice over that the total was in [0,1] and that
+            # the author and citation channels stayed out of the main ranking. Setting
+            # scoring.weights.author_bonus to 0 only closed one of the two paths; these
+            # bonuses come from config/authors.yaml and config/citations.yaml and kept
+            # running. An out-of-range total also silently rescales the thresholds: a
+            # watched-author paper effectively became must_read at 0.61, not 0.70.
+            #
+            # The signal is not lost. Papers found through the citation network and
+            # papers by watched authors each have their own report channel, and they
+            # still compete in the main ranking on relevance alone -- which is what
+            # "channels do not enter the main ranking" was supposed to mean.
             watched_bonus = (self.settings.author_watch.score_bonus
                              if self.settings.author_watch.enabled and candidate.extra.get("watched_authors") else 0.0)
-            score += watched_bonus
             citation_bonus = (citation_strength(candidate.extra) * self.settings.citation_watch.score_bonus
                               if self.settings.citation_watch.enabled else 0.0)
-            score += citation_bonus
+            score = _clamp01(score)
             legacy_score = score + (similarity - semantic_score) * weights.similarity * multiplier
             payload = candidate.model_dump()
             payload["extra"] = {
@@ -145,6 +166,7 @@ class WorkRanker:
                 "semantic_score": semantic_score,
                 "problem_scores": problem_scores,
                 "primary_problem": primary_problem,
+                "research_facets": evidenced_facets,
                 "nearest_similarity": nearest_similarity,
                 "score_components": {
                     "semantic": semantic_score,

@@ -46,8 +46,21 @@ class FeedbackEntry(BaseModel):
 
 
 def facet_ids(work, config):
+    """Every research direction the text actually evidences -- a multi-label answer.
+
+    Directions are not mutually exclusive: TC4 is a material object, temperature is a
+    loading condition, ductile fracture is a phenomenon, inverse identification is a
+    method. One paper legitimately carries several, and a paper only has to sit on part
+    of the research chain to be worth reading -- a good paper on parameter inversion,
+    damage regularisation or a yield criterion qualifies on its own.
+
+    `requires` makes a facet a conjunction where an OR over terms is too loose to state
+    a fact; see ResearchFacet.requires.
+    """
     text = work.title + " " + (work.abstract or "")
-    return [f.id for f in config.facets if matches_any(text, f.terms)]
+    return [f.id for f in config.facets
+            if matches_any(text, f.terms)
+            and (not f.requires or matches_any(text, f.requires))]
 
 
 def feedback_key(entry):
@@ -126,7 +139,10 @@ class FeedbackModel:
             if entry and entry.rating in RATINGS and (not entry.facets or primary in entry.facets or entry.scope == primary):
                 pref = (pref + RATINGS[entry.rating]) / 2
             delta = max(-1, min(1, pref)) * self.config.feedback_max_adjustment
-            score = work.score + delta
+            # Clamped: the labels below are absolute thresholds calibrated against a
+            # [0,1] distribution, so an adjusted score of 1.08 does not mean "more than
+            # must_read", it means the threshold no longer describes anything.
+            score = max(0.0, min(1.0, work.score + delta))
             label = "must_read" if score >= thresholds.must_read else "consider" if score >= thresholds.consider else "ignore"
             if work.extra.get("semantic_gate_failed"):
                 label = "ignore"

@@ -170,5 +170,121 @@ class EncoderSignatureTests(unittest.TestCase):
         self.assertNotEqual(builder.embedding_signature, settings.embedding.cache_signature())
 
 
+class DerivedLayerTests(unittest.TestCase):
+    """Facet centroids are derived data and must follow the current config.
+
+    The bundle mixes layers with different update conditions. Only the encoder
+    signature was ever checked, so editing a facet's terms left the published profile
+    carrying centroids built from the superseded definition, with nothing to notice --
+    on 2026-09-19 that nearly wasted half a filtering change, because the release asset
+    still pointed at microstructure after the facet had been rewritten.
+    """
+
+    def setUp(self):
+        from src.settings import load_settings
+        self.base = Path(__file__).resolve().parents[1]
+        self.settings = load_settings(self.base)
+
+    def test_fingerprint_moves_when_a_facet_term_changes(self):
+        before = self.settings.research.derived_fingerprint()
+        self.settings.research.facets[0].terms.append("a-new-term")
+        self.assertNotEqual(before, self.settings.research.derived_fingerprint())
+
+    def test_fingerprint_moves_when_a_facet_is_renamed(self):
+        before = self.settings.research.derived_fingerprint()
+        self.settings.research.facets[0].name = "renamed facet"
+        self.assertNotEqual(before, self.settings.research.derived_fingerprint())
+
+    def test_fingerprint_ignores_fields_the_derived_layer_never_reads(self):
+        """A cosmetic edit must not force a needless 27 MB rebuild."""
+        before = self.settings.research.derived_fingerprint()
+        self.settings.research.facets[0].use = "rewritten guidance"
+        self.settings.research.facets[0].semantic_query = "a different sentence"
+        self.assertEqual(before, self.settings.research.derived_fingerprint())
+
+    def test_rederive_recomputes_centroids_without_touching_the_encoder(self):
+        from src.build_profile import PROFILE_SCHEMA_VERSION, rederive_profile
+        from src.utils import json_dumps
+
+        tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(tmp.cleanup)
+        data = Path(tmp.name, "data")
+        data.mkdir()
+        store = ProfileStorage(data / "profile.sqlite")
+        store.initialize()
+
+        # A facet without `requires`, so one term is enough to place the paper.
+        facet = next(f for f in self.settings.research.facets if not f.requires)
+        hit, miss = facet.terms[0], "zzz-nothing-matches-this"
+        store.upsert_item(item("IN", f"A paper about {hit}"), content_hash="h1")
+        store.upsert_item(item("OUT", f"A paper about {miss}"), content_hash="h2")
+        store.set_embeddings([("IN", np.ones(4, dtype=np.float32).tobytes(), "sig", 0),
+                              ("OUT", np.full(4, 0.5, dtype=np.float32).tobytes(), "sig", 0)])
+        store.close()
+
+        (data / "profile.json").write_text(json_dumps({
+            "schema_version": PROFILE_SCHEMA_VERSION, "item_count": 2,
+            "derived_fingerprint": "stale-fingerprint",
+            "problem_profiles": {"gone": {"name": "from the old config", "count": 99}},
+        }, indent=2), encoding="utf-8")
+
+        out = rederive_profile(Path(tmp.name), self.settings)
+        self.assertEqual(out["derived_fingerprint"],
+                         self.settings.research.derived_fingerprint())
+        self.assertNotIn("gone", out["problem_profiles"],
+                         "the superseded facet must not survive a rederive")
+        self.assertIn(facet.id, out["problem_profiles"])
+        self.assertEqual(out["problem_profiles"][facet.id]["count"], 1)
+        self.assertEqual(out["problem_profiles"][facet.id]["name"], facet.name)
+
+
+class ProfileVerificationTests(unittest.TestCase):
+    """verify_profile must catch an inconsistent bundle, not just a wrong signature."""
+
+    def setUp(self):
+        from src.settings import load_settings
+        self.settings = load_settings(Path(__file__).resolve().parents[1])
+        self.tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.tmp.cleanup)
+        self.data = Path(self.tmp.name, "data")
+        self.data.mkdir()
+
+    def write(self, **overrides):
+        from src.build_profile import PROFILE_SCHEMA_VERSION
+        from src.utils import json_dumps
+        payload = {
+            "schema_version": PROFILE_SCHEMA_VERSION,
+            "item_count": 2,
+            "vector_dim": self.settings.embedding.dimensions,
+            "embedding_signature": self.settings.embedding.cache_signature(),
+            "index_items": [{"title": "A"}, {"title": "B"}],
+        }
+        payload.update(overrides)
+        (self.data / "profile.json").write_text(json_dumps(payload, indent=2), encoding="utf-8")
+
+    def problems(self):
+        from src.build_profile import verify_profile
+        return verify_profile(Path(self.tmp.name), self.settings)
+
+    def test_a_stale_schema_is_reported(self):
+        self.write(schema_version=1)
+        self.assertTrue(any("schema_version" in p for p in self.problems()))
+
+    def test_item_count_disagreeing_with_the_index_list_is_reported(self):
+        self.write(item_count=4000)
+        self.assertTrue(any("index_items" in p for p in self.problems()))
+
+    def test_a_foreign_encoder_signature_is_reported(self):
+        self.write(embedding_signature="local:all-MiniLM-L6-v2")
+        self.assertTrue(any("built with" in p for p in self.problems()))
+
+    def test_a_missing_index_is_reported(self):
+        self.write()
+        self.assertTrue(any("faiss.index" in p for p in self.problems()))
+
+    def test_a_missing_profile_is_reported(self):
+        self.assertTrue(any("profile.json" in p for p in self.problems()))
+
+
 if __name__ == "__main__":
     unittest.main()

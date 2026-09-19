@@ -86,7 +86,17 @@ class AuthorWatchTests(unittest.TestCase):
         self.assertIn("Researcher",write.call_args.args[0])
         self.assertIn("重点作者新作",write.call_args.args[0])
 
-    def test_verified_author_bonus(self) -> None:
+    def test_watched_author_is_recorded_but_does_not_change_the_score(self) -> None:
+        """A watched author is a channel, not a relevance signal.
+
+        This bonus used to be added after the bounded weighted sum and after the
+        priority multiplier, so a score could reach 1.09 while the design claimed the
+        total was in [0,1] and that the author channel stayed out of the main ranking.
+        The side effect was worse than the out-of-range number: the must_read threshold
+        is an absolute 0.70 calibrated against that distribution, so a watched-author
+        paper was effectively promoted at 0.67. The value is still recorded for the
+        report; it just no longer moves the ranking.
+        """
         with patch.dict(sys.modules,{"src.vectorizer":SimpleNamespace(TextVectorizer=object)}):
             from src.score_rank import WorkRanker
         ranker=object.__new__(WorkRanker);ranker.settings=self.settings;ranker.journal_metrics={}
@@ -95,7 +105,13 @@ class AuthorWatchTests(unittest.TestCase):
         known=mark_watched_authors(self.work(),self.config)
         unknown=self.work(aid="A999").model_copy(update={"identifier":"unknown"})
         out={w.identifier:w for w in ranker.rank([known,unknown])}
-        self.assertAlmostEqual(out['w'].score-out['unknown'].score,self.config.score_bonus)
+        self.assertAlmostEqual(out['w'].score, out['unknown'].score,
+                               msg="the author channel must not tilt the main ranking")
+        self.assertAlmostEqual(out['w'].extra['watched_author_bonus'], self.config.score_bonus)
+        self.assertEqual(out['unknown'].extra['watched_author_bonus'], 0.0)
+        for work in out.values():
+            self.assertLessEqual(work.score, 1.0)
+            self.assertGreaterEqual(work.score, 0.0)
 
     def test_semantic_failure_cannot_bypass_gate_via_author_section(self) -> None:
         work = self.ranked(mark_watched_authors(self.work(), self.config))
