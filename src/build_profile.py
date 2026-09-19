@@ -30,6 +30,15 @@ class ProfileBuilder:
         self.storage = storage
         self.settings = settings
         self.vectorizer = vectorizer or TextVectorizer.from_settings(settings)
+        # The signature must name the encoder that actually ran, not the one config
+        # asks for. When EMBEDDING_API_KEY is missing, build_vectorizer() silently
+        # falls back to a 384-dim local model; stamping the bundle with the remote
+        # 1024-dim signature produced a profile that passed the workflow's
+        # compatibility gate and then queried a 384-dim index with 1024-dim vectors.
+        self.embedding_signature = (
+            getattr(self.vectorizer, "signature", None)
+            or self.settings.embedding.cache_signature()
+        )
         self.artifacts = ProfileArtifacts(
             sqlite_path=str(self.base_dir / "data" / "profile.sqlite"),
             faiss_path=str(self.base_dir / "data" / "faiss.index"),
@@ -64,8 +73,7 @@ class ProfileBuilder:
         model signature and the Zotero item version: change the model and
         everything is recomputed, edit one paper and only that paper is.
         """
-        signature = self.settings.embedding.cache_signature()
-        cached = self.storage.cached_embeddings(signature)
+        cached = self.storage.cached_embeddings(self.embedding_signature)
         separator = self.vectorizer.text_separator
 
         pending = [item for item in items if item.key not in cached]
@@ -78,7 +86,7 @@ class ProfileBuilder:
                 [item.content_for_embedding(separator) for item in pending]
             )
             self.storage.set_embeddings(
-                [(item.key, vector.tobytes(), signature, item.version)
+                [(item.key, vector.tobytes(), self.embedding_signature, item.version)
                  for item, vector in zip(pending, fresh)]
             )
             for item, vector in zip(pending, fresh):
@@ -111,7 +119,7 @@ class ProfileBuilder:
             "generated_at": utc_now().isoformat(),
             "item_count": len(items),
             "model": self.vectorizer.model_name,
-            "embedding_signature": self.settings.embedding.cache_signature(),
+            "embedding_signature": self.embedding_signature,
             "centroid": centroid.tolist(),
             "top_authors": top_authors,
             "top_venues": top_venues,
