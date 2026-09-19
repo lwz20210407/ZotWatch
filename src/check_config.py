@@ -38,30 +38,41 @@ def check(base_dir: Path) -> List[str]:
     if thresholds.must_read <= thresholds.consider:
         problems.append("scoring.thresholds.must_read must be greater than consider")
 
-    # research_priority() returns on the first matching rule, so multipliers must be
-    # non-increasing down the list; otherwise a demoting rule placed early shadows a
-    # core rule placed later.
+    # The ordering rule that used to live here is gone, along with the defect it was
+    # trying to police. research_priority() now collects every matching rule and takes
+    # the LOWEST multiplier, so row order no longer determines the outcome -- it only
+    # picks which name is reported among rules of equal multiplier. Requiring
+    # non-increasing order was a workaround for "first match wins", and it did not work:
+    # it passed while a demotion rule sat below a x1.0 rule that always claimed the same
+    # papers first, so the rule never fired at all.
     #
-    # Compared within a match scope, not across. A title-scoped rule reads a strict
-    # subset of what a title_abstract rule reads, so putting a low-multiplier
-    # title rule above a higher title_abstract rule is a deliberate narrowing: it can
-    # only fire when the marker is in the title itself. That is how 表征主导 (x0.55,
-    # title) sits above 机制参考 (x0.85) -- a paper merely using EBSD in its
-    # fractography still reaches 机制参考; one titled "EBSD characterization of ..."
-    # does not.
+    # What is worth checking now is a rule that can never win: identical required_groups
+    # with a higher multiplier than another rule, which the lowest-wins policy will
+    # always beat. Anything subtler (one rule's groups implying another's) is not
+    # decidable from the config, which is why tools/check_topic_gate.py exists.
     priorities = settings.scoring.research_priorities
     for index, current in enumerate(priorities):
-        for earlier in priorities[:index]:
-            if earlier.match_fields != current.match_fields:
+        for other_index, other in enumerate(priorities):
+            if other_index == index or other.match_fields != current.match_fields:
                 continue
-            if current.multiplier > earlier.multiplier:
+            if other.required_groups == current.required_groups and other.multiplier < current.multiplier:
                 problems.append(
-                    f"research_priorities[{index}] '{current.name}' (x{current.multiplier}) ranks "
-                    f"higher than the preceding rule '{earlier.name}' (x{earlier.multiplier}) at "
-                    f"the same match scope ({current.match_fields}). First match wins, so the "
-                    f"preceding rule shadows it. Order rules by descending multiplier."
+                    f"research_priorities[{index}] '{current.name}' (x{current.multiplier}) has the "
+                    f"same required_groups as '{other.name}' (x{other.multiplier}) at the same match "
+                    f"scope, and the lower multiplier always wins, so this rule can never apply. "
+                    f"Merge them or narrow one."
                 )
                 break
+
+    names = {}
+    for rule in priorities:
+        if rule.name in names and names[rule.name] != rule.multiplier:
+            problems.append(
+                f"priority name '{rule.name}' is used with both x{names[rule.name]} and "
+                f"x{rule.multiplier}; the report shows the name, so the same label would "
+                f"mean two different things"
+            )
+        names.setdefault(rule.name, rule.multiplier)
 
     if settings.embedding.neighbors < 1:
         problems.append("embedding.neighbors must be at least 1")

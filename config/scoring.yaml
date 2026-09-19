@@ -62,6 +62,11 @@ default_priority_multiplier: 0.90
 research_priorities:
   - name: "TC4核心研究"
     multiplier: 1.0
+    # 正向识别：材料是我的对象，且落在我的研究链上。这类判定不该被标题里一个外围词推翻——
+    # "Ductile fracture of coated Ti-6Al-4V under dynamic loading" 是核心工作，只是恰好
+    # 涉及涂层。倍率解析现在按「authoritative 优先，否则取最低」，不再靠行序，所以这条
+    # 无论排在哪里都不会被截胡，也不会截胡别人。
+    authoritative: true
     required_groups:
       - ["Ti-6Al-4V", "TC4", "titanium alloy", "钛合金"]
       - ["constitutive", "ductile fracture", "fracture criterion", "damage evolution", "damage initiation", "flow stress", "strain hardening", "stress triaxiality", "Lode", "strain rate", "dynamic tension", "dynamic compression", "thermoviscoplastic", "thermo-viscoplastic", "thermal softening", "ballistic", "penetration", "perforation", "Johnson-Cook", "GISSMO", "本构", "延性断裂", "损伤演化", "应力状态", "应变率", "屈服", "侵彻"]

@@ -217,6 +217,13 @@ class ResearchPriority(BaseModel):
     name: str
     required_groups: List[List[str]]
     multiplier: float = Field(1.0, gt=0.0, le=1.0)
+    # A positive identification that overrides any demotion also matching the paper.
+    # Most rules are one of two kinds and the distinction has to be stated, not implied
+    # by row order: a rule like "this is my material AND my research chain" is
+    # authoritative, whereas "the title mentions a coating" is a negative signal about
+    # an otherwise unidentified paper. Without this, "Ductile fracture of coated
+    # Ti-6Al-4V under dynamic loading" loses 30% to the word "coated".
+    authoritative: bool = False
     match_fields: Literal["title", "title_abstract"] = "title_abstract"
 
     @validator("required_groups")

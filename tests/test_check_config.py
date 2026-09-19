@@ -37,14 +37,49 @@ class CheckConfigTests(unittest.TestCase):
         problems = check(self.root)
         self.assertTrue(any("sum to" in problem for problem in problems), problems)
 
-    def test_detects_a_demoting_rule_placed_above_a_core_rule(self) -> None:
+    def test_rule_order_no_longer_changes_the_outcome(self) -> None:
+        """Reordering the table must be a no-op now, including the original defect.
+
+        Priority used to be "first match wins", so putting the x0.70 peripheral rule at
+        the top demoted core work by 30% whenever a title mentioned a coating. The check
+        that policed this required non-increasing multipliers -- a workaround that also
+        failed, passing happily while a demotion rule sat below a x1.0 rule that always
+        claimed the same papers first, so it never fired at all. Resolution is now
+        explicit (authoritative wins, else lowest multiplier), so order is free.
+        """
         data = self._scoring()
         rules = data["research_priorities"]
-        # Put the 0.70 peripheral rule back at the top, the original defect.
         data["research_priorities"] = [rules[-1]] + rules[:-1]
         self._write(data)
+        self.assertEqual(check(self.root), [])
+
+    def test_detects_a_rule_that_can_never_apply(self) -> None:
+        """Same groups, higher multiplier: the lowest-wins policy always beats it."""
+        data = self._scoring()
+        first = data["research_priorities"][0]
+        clone = dict(first)
+        clone["name"] = "永远轮不到"
+        clone["multiplier"] = min(1.0, float(first["multiplier"]))
+        clone.pop("authoritative", None)
+        first_copy = dict(first)
+        first_copy["multiplier"] = 0.5
+        first_copy["name"] = "更低的同规则"
+        first_copy.pop("authoritative", None)
+        data["research_priorities"] = [clone, first_copy] + data["research_priorities"][1:]
+        self._write(data)
         problems = check(self.root)
-        self.assertTrue(any("shadows it" in problem for problem in problems), problems)
+        self.assertTrue(any("never apply" in problem for problem in problems), problems)
+
+    def test_detects_one_label_meaning_two_different_multipliers(self) -> None:
+        data = self._scoring()
+        rules = data["research_priorities"]
+        twin = dict(rules[0])
+        twin["multiplier"] = 0.5
+        twin.pop("authoritative", None)
+        data["research_priorities"] = rules + [twin]
+        self._write(data)
+        problems = check(self.root)
+        self.assertTrue(any("two different things" in problem for problem in problems), problems)
 
     def test_detects_inverted_thresholds(self) -> None:
         data = self._scoring()
