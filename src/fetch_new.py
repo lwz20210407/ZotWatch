@@ -124,7 +124,18 @@ class CandidateFetcher:
 
         results = self._filter_by_topic(merge_candidates(results))
         logger.info("Fetched %d candidate works", len(results))
-        self._save_cache(results)
+        # Never overwrite a good cache with the result of a partly failed run. The
+        # cache carries a fetched_at that the next run uses for a 12-hour freshness
+        # short-circuit, so writing an outage's empty result here made the following
+        # run return nothing while issuing no requests at all.
+        if failed_sources and not results:
+            logger.warning(
+                "%d of %d sources failed and nothing was retrieved; keeping the previous "
+                "candidate cache rather than recording an empty run",
+                failed_sources, enabled_sources,
+            )
+        else:
+            self._save_cache(results)
         return results
 
     def _run_fetch_source(self, source_name: str, fetcher) -> tuple[List[CandidateWork], bool]:

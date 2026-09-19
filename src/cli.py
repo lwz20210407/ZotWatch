@@ -338,13 +338,18 @@ def _run_watch(
         # The email carries every paper, but one or three lines each; directions,
         # bylines and scores stay on the page, which is why it needs no names map.
         digest_args = dict(issue_no=issue_no)
+        # This issue's own page, not the site root. The email used to link to the root,
+        # which Pages republishes as the newest issue every week, so opening an email
+        # from three weeks ago showed this week's papers -- the archive existed but
+        # nothing ever pointed into it.
+        issue_url = site_url() + report_name
         for suffix, text in (
-            ("html", render_digest(ranked, report_url=site_url(),
+            ("html", render_digest(ranked, report_url=issue_url,
                                    feed_url=site_url() + "feed.xml",
                                    extras={"重点作者新作": watched, "经典文献补漏": classics,
                                            "跨圈方法发现": exploration, "版本与更正提醒": alerts},
                                    **digest_args)),
-            ("txt", render_text(ranked, report_url=site_url(), **digest_args)),
+            ("txt", render_text(ranked, report_url=issue_url, **digest_args)),
         ):
             (base_dir / "reports" / f"digest-{report_date:%Y%m%d}.{suffix}").write_text(
                 text, encoding="utf-8")

@@ -36,8 +36,17 @@ def iter_works(
                 logger=logger, context=f"{context} page {page}",
             )
         except requests.RequestException as exc:
+            # Raise instead of returning quietly. A bare `return` made a total outage
+            # indistinguishable from "no new papers": the caller saw a normal empty
+            # iterator and recorded failed=False, so the "every source failed, fall back
+            # to the cache" branch could not fire. Worse, the empty result overwrote the
+            # candidate cache with a fresh fetched_at, and the NEXT run took the
+            # 12-hour freshness short-circuit and returned zero candidates without
+            # issuing a single request -- one outage blanking the digest for another
+            # half day. Pages already yielded are kept: the caller sees partial results
+            # AND the failure.
             logger.warning("Incomplete coverage for %s after %d pages: %s", context, page - 1, exc)
-            return
+            raise
         data = response.json()
         if provider == "crossref":
             message = data.get("message", {})
