@@ -301,8 +301,9 @@ def _run_watch(
                         ((v.get("name", k), int(v.get("count", 0)))
                          for k, v in (ranker.profile.get("problem_profiles") or {}).items()),
                         key=lambda kv: -kv[1]))
-        # The email is only a reminder pointing here; it carries a short preview.
-        digest_args = dict(problem_names=profile_names, issue_no=issue_no)
+        # The email carries every paper, but one or three lines each; directions,
+        # bylines and scores stay on the page, which is why it needs no names map.
+        digest_args = dict(issue_no=issue_no)
         for suffix, text in (
             ("html", render_digest(ranked, report_url=site_url(),
                                    feed_url=site_url() + "feed.xml",
