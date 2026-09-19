@@ -217,6 +217,13 @@ class ResearchPriority(BaseModel):
     name: str
     required_groups: List[List[str]]
     multiplier: float = Field(1.0, gt=0.0, le=1.0)
+    # A positive identification that overrides any demotion also matching the paper.
+    # Most rules are one of two kinds and the distinction has to be stated, not implied
+    # by row order: a rule like "this is my material AND my research chain" is
+    # authoritative, whereas "the title mentions a coating" is a negative signal about
+    # an otherwise unidentified paper. Without this, "Ductile fracture of coated
+    # Ti-6Al-4V under dynamic loading" loses 30% to the word "coated".
+    authoritative: bool = False
     match_fields: Literal["title", "title_abstract"] = "title_abstract"
 
     @validator("required_groups")
@@ -317,6 +324,12 @@ class ResearchFacet(BaseModel):
     id: str
     name: str
     terms: List[str]
+    # Optional conjunction: the facet applies only when the text ALSO names one of
+    # these. terms alone are OR-ed, which is right for conditions and phenomena but
+    # wrong for a material object -- "LPBF 316L steel plasticity and ductile fracture"
+    # matched the Ti-6Al-4V facet on the word LPBF, and because primary_problem is an
+    # argmax over facet centroids the report then filed a steel paper under "增材 TC4".
+    requires: List[str] = Field(default_factory=list)
     use: str
     verify: str
     semantic_query: str = ""
@@ -325,6 +338,32 @@ class ResearchFacet(BaseModel):
 
 
 class ResearchConfig(BaseModel):
+    def derived_fingerprint(self) -> str:
+        """Hash of everything the derived profile layer reads from this config.
+
+        The bundle's embedding_signature only names the encoder, so editing a facet's
+        terms or name left the published profile carrying centroids built from the old
+        definition -- and the workflow's compatibility check had no way to notice. On
+        2026-09-19 that nearly wasted half a filtering change: the facet query was
+        rewritten locally while the release asset still pointed at microstructure.
+
+        Covers exactly the fields build_problem_profiles and facet_ids consume, so a
+        cosmetic edit elsewhere in research.yaml does not force a needless rebuild.
+        """
+        import hashlib
+
+        parts = []
+        for facet in self.facets:
+            parts.append("\x1f".join([
+                facet.id, facet.name,
+                "\x1e".join(facet.terms),
+                "\x1e".join(facet.requires),
+                "\x1e".join(facet.collection_keys),
+                "\x1e".join(facet.seed_dois),
+            ]))
+        blob = "\x1d".join(parts)
+        return hashlib.sha256(blob.encode("utf-8")).hexdigest()[:16]
+
     enabled: bool = False
     feedback_max_adjustment: float = Field(0.08, ge=0, le=0.15)
     feedback_owner: str = ""
@@ -333,6 +372,9 @@ class ResearchConfig(BaseModel):
     proposal_min_papers: int = Field(2, ge=2, le=10)
     proposal_limit: int = Field(10, ge=0, le=30)
     facets: List[ResearchFacet] = Field(default_factory=list)
+    # Off by default: a feature that has not proved useful should not run every week,
+    # take up space in the report and spend budget just because the code exists.
+    collaboration_analysis: bool = False
     semantic_enabled: bool = True
     semantic_min_similarity: float = Field(0.40, ge=0, le=1)
     diversity_pool: int = Field(100, ge=20, le=300)

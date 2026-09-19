@@ -46,8 +46,30 @@ items 顺序与输入一致、长度一致，不要输出任何其他文字。""
 CJK = re.compile(r"[㐀-鿿]")
 
 
-def _key(title: str, abstract: Optional[str]) -> str:
-    raw = f"{(title or '').strip()}\x00{(abstract or '').strip()[:1200]}"
+# Bump when the prompt or the model changes: a cached translation produced by a
+# different prompt is not the translation this code would produce now.
+PROMPT_VERSION = 2
+
+# Long enough that no real abstract is cut. Crossref and OpenAlex abstracts top out
+# around 4k characters; this leaves headroom and still bounds the request.
+ABSTRACT_LIMIT = 12000
+
+
+def _key(title: str, abstract: Optional[str], model: str = "") -> str:
+    """Identity of a translation request: the full text, the prompt and the model.
+
+    The abstract used to be truncated to 1200 characters before hashing, which is not a
+    hash collision but a deliberate one: two papers sharing a title and a 1200-character
+    prefix got the same key and the second silently received the first one's Chinese
+    text. Measured on this library, 80% of abstracts are longer than 1200 characters, so
+    for most of the corpus the key was effectively title-only.
+    """
+    raw = "\x00".join([
+        (title or "").strip(),
+        (abstract or "").strip(),
+        model or "",
+        str(PROMPT_VERSION),
+    ])
     return hashlib.sha256(raw.encode("utf-8")).hexdigest()[:16]
 
 
@@ -99,10 +121,20 @@ class ChineseEnricher:
                 "Authorization": f"Bearer {os.getenv(self.config.api_key_env, '')}",
                 "Content-Type": "application/json",
             })
-        payload = [
-            {"i": i, "title": row["title"], "abstract": (row.get("abstract") or "")[:2000]}
-            for i, row in enumerate(batch)
-        ]
+        # The abstract used to be cut to 2000 characters before being sent, so "full
+        # abstract translation" was false for long ones: measured on a real issue, 51 of
+        # 407 abstracts were truncated, the worst losing 46.9% of its text -- and the
+        # card showed the COMPLETE English abstract right beside the half-finished
+        # Chinese one, with nothing to say it stopped early. The cap is now high enough
+        # that no real abstract reaches it, and anything that somehow does is logged.
+        payload = []
+        for i, row in enumerate(batch):
+            abstract = (row.get("abstract") or "").strip()
+            if len(abstract) > ABSTRACT_LIMIT:
+                logger.warning("Abstract of %r is %d chars; translating the first %d",
+                               (row.get("title") or "")[:60], len(abstract), ABSTRACT_LIMIT)
+                abstract = abstract[:ABSTRACT_LIMIT]
+            payload.append({"i": i, "title": row["title"], "abstract": abstract})
         response = request_with_retry(
             self._session, "POST",
             f"{self.config.base_url.rstrip('/')}/chat/completions",
@@ -114,8 +146,13 @@ class ChineseEnricher:
                     {"role": "user", "content": json.dumps(payload, ensure_ascii=False)},
                 ],
                 "temperature": 0.2,
-                # A whole translated abstract per item, not just a title and a line.
-                "max_tokens": 900 * len(batch) + 512,
+                # Scaled to the text actually sent, not to the batch size. A flat
+                # 900 tokens per item was fine while abstracts were cut at 2000
+                # characters; now that they are sent whole, a fixed budget would just
+                # move the truncation from the input to the output. Chinese needs
+                # roughly one token per 1.5 source characters, doubled for headroom.
+                "max_tokens": min(32000, 1024 + int(
+                    sum(len(row["abstract"]) + len(row["title"]) for row in payload) * 1.4)),
                 "response_format": {"type": "json_object"},
                 # Qwen3 emits a long reasoning trace by default, which blows the
                 # timeout and buries the JSON. This digest needs the answer only.
@@ -163,11 +200,20 @@ class ChineseEnricher:
                 slot = index
             if not 0 <= slot < len(chunk):
                 continue
-            self.cache[chunk[slot]["key"]] = {
+            row = {
                 "title_zh": str(out.get("title_zh") or "").strip(),
                 "tldr": str(out.get("tldr") or "").strip(),
                 "abstract_zh": str(out.get("abstract_zh") or "").strip(),
             }
+            # An all-empty reply is a failure, not a translation. Caching it poisoned
+            # the entry permanently: the next run hit the empty cache and never retried,
+            # so the paper stayed English-only forever. Leave it uncached and it is
+            # attempted again the next time the paper comes round.
+            if not any(row.values()):
+                logger.warning("Empty translation for %r; not caching, will retry",
+                               (chunk[slot].get("title") or "")[:60])
+                continue
+            self.cache[chunk[slot]["key"]] = row
             self._dirty = True
             done += 1
         if done < len(chunk):
@@ -179,7 +225,7 @@ class ChineseEnricher:
         pending: List[dict] = []
         seen: set = set()
         for work in works:
-            key = _key(work.title, work.abstract)
+            key = _key(work.title, work.abstract, self.config.model_name)
             if key in self.cache or key in seen:
                 continue
             seen.add(key)
@@ -203,7 +249,7 @@ class ChineseEnricher:
             self.save()
 
         for work in works:
-            row = self.cache.get(_key(work.title, work.abstract)) or {}
+            row = self.cache.get(_key(work.title, work.abstract, self.config.model_name)) or {}
             title_zh = row.get("title_zh") or ""
             # Guard against the model echoing the English title back.
             if title_zh and CJK.search(title_zh):

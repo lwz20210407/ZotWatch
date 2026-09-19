@@ -39,6 +39,8 @@ class LocalIngestStats:
     skipped_untitled: int = 0
     synced: int = 0
     local_only: int = 0
+    removed: int = 0
+    purge_refused: int = 0
 
 
 def _copy_database(data_dir: Path, workdir: Path) -> Path:
@@ -187,12 +189,27 @@ def iter_local_items(data_dir: Path | str) -> Iterable[tuple[ZoteroItem, bool]]:
             conn.close()
 
 
+# Refuse to purge rather than delete more than this share of the store in one pass.
+# A wrong data_dir, or a Zotero database mid-sync, reads as "almost everything was
+# deleted"; losing that bet costs the embedding cache for the whole library.
+MAX_PURGE_FRACTION = 0.2
+
+
 def ingest_local(storage, data_dir: Path | str) -> LocalIngestStats:
-    """Load the whole local library into the profile storage."""
+    """Load the whole local library into the profile storage.
+
+    This is a full snapshot, not a delta, so an item absent from the pass was
+    trashed, merged away or hard-deleted in Zotero and must go. Without that, the
+    store only ever grew: on 2026-09-19 it held 4399 items while the library had
+    4391, and those 8 deleted papers were still pulling on the centroid, still
+    turning up as nearest neighbours, and still able to suppress a genuinely new
+    candidate through dedupe.
+    """
     from .utils import hash_content
 
     storage.initialize()
     stats = LocalIngestStats()
+    seen: set = set()
     for item, is_synced in iter_local_items(data_dir):
         storage.upsert_item(
             item,
@@ -200,14 +217,31 @@ def ingest_local(storage, data_dir: Path | str) -> LocalIngestStats:
                 item.title, item.abstract or "", ",".join(item.creators), ",".join(item.tags)
             ),
         )
+        seen.add(item.key)
         stats.documents += 1
         if is_synced:
             stats.synced += 1
         else:
             stats.local_only += 1
+
+    existing = {row[0] for row in storage.connect().execute("SELECT key FROM items")}
+    stale = existing - seen
+    if stale and stats.documents:  # an empty read must never empty the store
+        if len(stale) > MAX_PURGE_FRACTION * max(len(existing), 1):
+            stats.purge_refused = len(stale)
+            logger.warning(
+                "Refusing to purge %d of %d items (>%.0f%%): this looks like a bad "
+                "zotero.sqlite path or a partial read, not %d deletions. Nothing removed.",
+                len(stale), len(existing), MAX_PURGE_FRACTION * 100, len(stale),
+            )
+        else:
+            storage.remove_items(stale)
+            stats.removed = len(stale)
+            logger.info("Purged %d items no longer in the local Zotero library", len(stale))
+
     logger.info(
-        "Local Zotero ingest: %d documents (%d synced to zotero.org, %d local-only)",
-        stats.documents, stats.synced, stats.local_only,
+        "Local Zotero ingest: %d documents (%d synced to zotero.org, %d local-only, %d purged)",
+        stats.documents, stats.synced, stats.local_only, stats.removed,
     )
     return stats
 

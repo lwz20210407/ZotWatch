@@ -120,6 +120,22 @@ class ProfileStorage:
                 url=excluded.url,
                 raw_json=excluded.raw_json,
                 content_hash=excluded.content_hash,
+                -- A moved content_hash drops the cached vector. Reuse used to be keyed
+                -- on items.version alone, on the premise that Zotero bumps it whenever
+                -- an item is edited. That is false for anything never synced to
+                -- zotero.org: those rows sit at version 0 forever, and 3881 of this
+                -- library's 4399 items are in exactly that state. Editing such an
+                -- item's title or abstract left a vector computed from the old text
+                -- permanently marked valid. Synced items are exposed too, in the
+                -- window between a local edit and the next sync round-trip.
+                -- `IS` rather than `=` so a NULL hash on both sides compares equal and
+                -- keeps the cache (callers may omit content_hash).
+                embedding=CASE WHEN items.content_hash IS excluded.content_hash
+                          THEN items.embedding END,
+                embedding_signature=CASE WHEN items.content_hash IS excluded.content_hash
+                          THEN items.embedding_signature END,
+                embedding_version=CASE WHEN items.content_hash IS excluded.content_hash
+                          THEN items.embedding_version END,
                 updated_at=CURRENT_TIMESTAMP
             """,
             data,
@@ -155,9 +171,13 @@ class ProfileStorage:
     def cached_embeddings(self, signature: str) -> dict:
         """Return {key: embedding bytes} still valid for `signature`.
 
-        An embedding is reusable only when it was produced by the same model at
-        the same dimension AND the Zotero item has not been edited since
-        (items.version is bumped by Zotero on every change).
+        An embedding is reusable only when it was produced by the same model at the
+        same dimension and the item's text has not changed since. The text check is
+        enforced in upsert_item, which clears these three columns whenever
+        content_hash moves -- NOT by the items.version comparison below, which is
+        kept only as a second line of defence. version cannot carry that
+        responsibility: Zotero leaves it at 0 for every item never synced to
+        zotero.org, which is 3881 of this library's 4399.
         """
         cur = self.connect().execute(
             "SELECT key, embedding FROM items"

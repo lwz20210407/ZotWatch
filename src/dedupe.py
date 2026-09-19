@@ -28,6 +28,9 @@ class DedupeEngine:
         self.existing_doi: Set[str] = set()
         self.existing_ids: Set[str] = set()
         self.existing_titles: List[str] = []
+        # normalised title -> the DOIs the library holds under it. A title match alone
+        # cannot convict when the two records carry different DOIs.
+        self.title_dois: dict = {}
         self._load_existing()
 
     def _load_existing(self) -> None:
@@ -39,6 +42,8 @@ class DedupeEngine:
             title = _normalize_title(item.title)
             if title:
                 self.existing_titles.append(title)
+                if item.doi:
+                    self.title_dois.setdefault(title, set()).add(_normalize_identifier(item.doi))
 
     def filter(self, candidates: Iterable[CandidateWork]) -> List[CandidateWork]:
         source = list(candidates)
@@ -46,6 +51,8 @@ class DedupeEngine:
         candidate_titles: List[str] = []
         seen_keys: Set[str] = set()
         suppressed: List[tuple[str, str]] = []
+        kept_despite_title: List[tuple[str, str]] = []
+        candidate_title_dois: dict = {}
 
         for work in source:
             key = _normalize_identifier(work.identifier)
@@ -64,12 +71,26 @@ class DedupeEngine:
                 title, candidate_titles, self.title_threshold
             )
             if match:
-                suppressed.append((work.title, match))
-                continue
+                # A different DOI is positive evidence of a different work, so it
+                # overrides a fuzzy title match. Without this, "... Part I" in the
+                # library suppressed a candidate "... Part II": token_sort_ratio scores
+                # the pair at or above the threshold and the 0.75 length guard passes,
+                # and the code only ever treated matching DOIs as evidence FOR
+                # duplication, never differing ones as evidence against. When either
+                # side has no DOI there is no identity evidence either way, so the
+                # title match still decides.
+                known = self.title_dois.get(match) or candidate_title_dois.get(match) or set()
+                if doi and known and doi not in known:
+                    kept_despite_title.append((work.title, match))
+                else:
+                    suppressed.append((work.title, match))
+                    continue
 
             deduped.append(work)
             if title:
                 candidate_titles.append(title)
+                if doi:
+                    candidate_title_dois.setdefault(title, set()).add(doi)
             seen_keys.add(key)
             if doi:
                 seen_keys.add(doi)
@@ -78,6 +99,8 @@ class DedupeEngine:
         # genuinely new paper, so report it at INFO instead of hiding it in DEBUG.
         for title, match in suppressed:
             logger.info("Title-similarity suppressed: %r matched existing %r", title, match)
+        for title, match in kept_despite_title:
+            logger.info("Kept despite a title match (different DOI): %r vs %r", title, match)
         return deduped
 
     def _is_title_duplicate(self, title: str) -> bool:

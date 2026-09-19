@@ -62,10 +62,44 @@ default_priority_multiplier: 0.90
 research_priorities:
   - name: "TC4核心研究"
     multiplier: 1.0
+    # 正向识别：材料是我的对象，且落在我的研究链上。这类判定不该被标题里一个外围词推翻——
+    # "Ductile fracture of coated Ti-6Al-4V under dynamic loading" 是核心工作，只是恰好
+    # 涉及涂层。倍率解析现在按「authoritative 优先，否则取最低」，不再靠行序，所以这条
+    # 无论排在哪里都不会被截胡，也不会截胡别人。
+    authoritative: true
+    # 只看标题。2026-09-19 对抗探测发现权威规则太强：热锻论文必然在摘要里报应变率
+    # （"strain rate 0.001-10 /s"），于是 "Hot deformation ... isothermal forging" 被这条
+    # 以 ×1.0 认走，把本该生效的热变形降权 ×0.70 覆盖掉了。应力腐蚀开裂、氢化物+TEM
+    # 也是同样的路子，36 个对抗用例里这样混进来 4 个。
+    #
+    # 判据是证据强度：真核心工作会把链条术语写进**标题**
+    # （"Ductile fracture of coated Ti-6Al-4V under dynamic loading"），
+    # 而外围工作只是正文里顺带提到。摘要里出现不足以推翻一条降权。
+    match_fields: title
     required_groups:
-      - ["Ti-6Al-4V", "TC4", "titanium alloy", "钛合金"]
-      - ["constitutive", "ductile fracture", "fracture criterion", "damage evolution", "damage initiation", "flow stress", "strain hardening", "stress triaxiality", "Lode", "strain rate", "dynamic tension", "dynamic compression", "thermoviscoplastic", "thermo-viscoplastic", "thermal softening", "ballistic", "penetration", "perforation", "Johnson-Cook", "GISSMO", "本构", "延性断裂", "损伤演化", "应力状态", "应变率", "屈服", "侵彻"]
+      - ["Ti-6Al-4V", "Ti6Al4V", "TC4", "Ti64", "titanium alloy", "钛合金"]
+      # 2026-09-19 补：dynamic tensile / split Hopkinson / fracture strain 这几类同样是
+      # 链条正中间的术语，漏了它们会让真核心掉到放宽那条，再被「机制参考」的 0.85 压过。
+      # "dynamic tension" 匹配不到 "dynamic tensile"——匹配器只补尾部 s，管不到词形变化。
+      - ["constitutive", "ductile fracture", "fracture criterion", "damage evolution", "damage initiation", "flow stress", "strain hardening", "stress triaxiality", "Lode", "strain rate", "dynamic tension", "dynamic tensile", "dynamic compression", "dynamic compressive", "split Hopkinson", "SHPB", "fracture strain", "failure strain", "adiabatic shear", "thermoviscoplastic", "thermo-viscoplastic", "thermal softening", "ballistic", "penetration", "perforation", "Johnson-Cook", "GISSMO", "本构", "延性断裂", "损伤演化", "应力状态", "应变率", "屈服", "侵彻"]
       - &mechanics ["constitutive", "plasticity", "plastic", "hardening", "flow stress", "yield", "yielding", "fracture", "damage", "ductility", "ductile", "stress strain", "Johnson-Cook", "GISSMO", "failure", "ballistic limit", "塑性", "本构", "断裂", "损伤", "硬化", "屈服", "侵彻"]
+  # 同名第二条，放宽的一版：**不是 authoritative**，所以可以被降权。
+  #
+  # 2026-09-19 试跑里一篇都没命中上面那条。比如 "Formability and fracture of SLM-printed
+  # Ti6Al4V sheets" —— 材料完全对，但上面那条的第二组要求「ductile fracture / 应力三轴度」
+  # 这类**具体**术语，它只写了 fracture，于是掉到了「跨金属」。规则卡太死。
+  #
+  # 关键在于这条**故意不加 authoritative**：放宽词表会让「钛合金疲劳断裂」「钛合金植入物
+  # 失效」这类材料对、方向不对的论文也命中，如果它同时是 authoritative，就会压过外围降权、
+  # 以 ×1.0 混进来。不加，则「取最低」生效——这类论文照样被外围规则降到 0.70。
+  - name: "TC4核心研究"
+    multiplier: 1.0
+    required_groups:
+      - ["Ti-6Al-4V", "Ti6Al4V", "TC4", "Ti64", "titanium alloy", "钛合金"]
+      - ["fracture", "formability", "forming limit", "ductility", "plasticity",
+         "deformation behaviour", "deformation behavior", "failure", "hardening",
+         "断裂", "成形", "塑性", "失效"]
+      - *mechanics
   # 外围方法参考只让 TC4核心研究 排在它前面，其余全部让位。
   #
   # 2026-09-19 试跑暴露了顺序问题：这条规则对该管的论文一次都没生效过。
@@ -95,7 +129,34 @@ research_priorities:
          # 原有外围主题
          "fatigue performance", "creep damage", "lattice structure", "molecular dynamics",
          "atomistic simulation", "machining", "welding", "concrete", "cement", "polymer",
-         "ceramic", "biomedical", "implant", "混凝土", "水泥", "聚合物", "陶瓷", "生物医学"]
+         "ceramic", "biomedical", "implant", "混凝土", "水泥", "聚合物", "陶瓷", "生物医学",
+         # 2026-09-19 试跑补漏：这四类明明该降权却漏网，全是词表的洞而非策略问题。
+         # "welded" —— 词表原来只有 "welding"，匹配器只补尾部 s，管不到动词变形，
+         #   于是 "Ductile Fracture in Welded Pipes" 拿了默认 ×0.90。
+         "welded", "weld metal", "weldment",
+         # 木结构 —— "steel-wood composite beam-column nodes" 靠 steel + damage evolution
+         #   被「跨金属」以 ×1.0 认走。
+         "wood", "timber", "masonry", "木结构", "木材",
+         # 具体聚合物牌号 —— 词表有 "polymer"，但论文标题写的是牌号。
+         "PEEK", "PMMA", "UHMWPE", "epoxy", "thermoplastic", "elastomer",
+         # 疲劳裂纹扩展 —— "fatigue performance" 匹配不到 "crack closure"/"crack growth"。
+         #   疲劳不在本课题链上（温度/率/应力状态 → 塑性/断裂/损伤 → 标定 → 侵彻）。
+         "crack closure", "fatigue crack", "crack growth rate", "Paris law", "S-N curve",
+         "疲劳裂纹",
+         # 2026-09-19 对抗探测补漏：36 个人造离题钛合金标题里，有 9 个靠「钛 + fracture/
+         # failure/hardening」直接拿到 ×1.0，因为没有任何一条降权规则覆盖它们的主题。
+         # 疲劳的各种写法（"fatigue performance" 匹配不到 fretting/高周/超高周）：
+         "fretting", "high-cycle fatigue", "low-cycle fatigue", "very-high-cycle",
+         "fatigue life", "fatigue strength", "cyclic loading", "ratcheting", "疲劳寿命",
+         # 表面与环境：氧化、磨损、摩擦学、应力腐蚀、渗氮：
+         "oxidation", "wear", "tribolog", "tribocorrosion", "erosion", "nitriding",
+         "stress corrosion", "hydrogen embrittlement", "hydride", "氧化", "磨损", "腐蚀开裂",
+         # 功能材料与非结构用途：形状记忆、储氢、生物支架：
+         "shape memory", "NiTi", "nitinol", "superelastic", "hydrogen storage",
+         "scaffold", "stent", "prosthes", "femoral", "dental", "bone plate",
+         "trauma plate", "orthopaedic", "orthopedic", "osseointegration", "intraoperative",
+         "thermohydrogen", "hydrogenation", "dehydrogenation",
+         "形状记忆", "储氢", "支架", "骨板"]
   # One category, two alternative matching routes: identification/numerics method
   # papers, and constitutive/fracture work on other metals.
   - name: "跨金属方法参考"

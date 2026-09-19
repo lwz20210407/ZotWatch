@@ -117,10 +117,25 @@ def published_label(work: RankedWork) -> str:
 
 
 def direction(work: RankedWork, problem_names: dict) -> str:
+    """The direction to show on the card, preferring evidence over vector proximity.
+
+    `primary_problem` is an argmax over facet centroids -- "closest direction in
+    embedding space", which is not the same claim as "belongs to this direction". Shown
+    as a heading it read as a fact, and on 2026-09-19 filed a 316L steel paper and a
+    Ti/CeO2 composite under "增材 TC4". A keyword-evidenced facet (research_facets, from
+    facet_ids) states something the text actually supports, so it wins. Nearest-centroid
+    is the last resort and only after the priority label, which is also evidence-based.
+    """
+    evidenced = work.extra.get("research_facets") or []
+    for key in evidenced:
+        if key in problem_names:
+            return problem_names[key]
+    if evidenced:
+        return evidenced[0]
+    if work.extra.get("research_priority"):
+        return work.extra["research_priority"]
     key = work.extra.get("primary_problem")
-    if key:
-        return problem_names.get(key, key)
-    return work.extra.get("research_priority") or ""
+    return problem_names.get(key, key) if key else ""
 
 
 # feedback_links() emits fourteen options (eight global ratings plus scoped ones).

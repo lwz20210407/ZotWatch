@@ -43,3 +43,4 @@ __pycache__/
 /reports/preview/
 /reports/digest-*
 /data/zh-cache.json
+temp-artifact/

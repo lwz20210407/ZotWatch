@@ -1,24 +1,50 @@
-"""Measure the topic gate: does it keep the owner's reading and reject what it should?
+"""Measure the topic gate by driving the production gate, not a copy of it.
 
-The gate is a pile of keyword group sets, and it is very easy to tighten it into
-rejecting the real library or loosen it into admitting every materials paper. Neither
-failure is visible until a digest arrives, a week later. This replays two sets through
-the *real* matching code and prints both error rates:
-
-  recall     the 4399-paper Zotero library, which is by definition on topic --
-             the gate should keep almost all of it
-  precision  a labelled list of off-topic titles, which it should reject or demote
+The gate is a pile of keyword group sets, and it is easy to tighten it into rejecting
+the real library or loosen it into admitting every materials paper. Neither failure is
+visible until a digest arrives a week later, so this replays labelled sets through it
+and prints the error rates.
 
     python tools/check_topic_gate.py                  # measure the working tree
-    python tools/check_topic_gate.py --ref HEAD       # measure a git revision
-    python tools/check_topic_gate.py --compare HEAD   # print both, side by side
+    python tools/check_topic_gate.py --compare HEAD   # working tree vs a revision
+    python tools/check_topic_gate.py --verdicts        # per-title detail
+    python tools/check_topic_gate.py --json            # machine-readable
 
---compare is the useful one: it answers "did my change actually help, and what did
-it cost in recall" instead of leaving both to a guess.
+Two things this got wrong before, both found by external review on 2026-09-19:
+
+1. It reimplemented the keyword half of CandidateFetcher._filter_by_topic, and the copy
+   was not the gate -- no retraction filter, no work_type filter, no watched-author or
+   citation route. The numbers it produced were quoted in commit messages and in
+   docs/DESIGN.md as evidence a filtering change worked, while measuring a
+   reimplementation. Demonstrated with one title: "RETRACTED: TC4 ductile fracture"
+   scored TC4核心研究 x1.0 here and was rejected outright in production. A harness that
+   duplicates the logic it tests lets both agree and both be wrong.
+
+2. --compare swapped only the CONFIG. The gate lives in src/, so code changes were
+   attributed to config, and the reported before/after partly did not come from the
+   thing being measured. It now uses a real git worktree, pinning code and config
+   together, and copies THIS harness in so both sides are measured the same way.
+
+What the numbers do and do not mean -- also a review finding, and the reason the
+metrics below are not called precision and recall:
+
+  library_kept    the share of the owner's own library the gate keeps. NOT recall. The
+                  library is not uniformly on topic: it holds ~247 ceramic-armour papers
+                  and some characterisation-led work, both of which the gate SHOULD
+                  reject. Read it as a regression signal -- a sudden drop means a change
+                  cut deeper than intended.
+  off_blocked     rejection rate on a small hand-labelled negative set. NOT precision,
+                  and with a set this size, repeatedly tuning rules against it overfits.
+                  It answers "did the specific thing I was fixing get fixed".
+  guards_kept     a small positive set that must survive any tightening.
+
+Honest benchmarking needs a real labelled sample; see docs/REMEDIATION-PLAN.md 3.3.
 """
 from __future__ import annotations
 
 import argparse
+import json
+import os
 import shutil
 import sqlite3
 import subprocess
@@ -29,13 +55,12 @@ from typing import List, Tuple
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from src.settings import load_settings  # noqa: E402
-from src.topic_matching import matches_any, matches_groups, research_priority  # noqa: E402
+from src.fetch_new import CandidateFetcher  # noqa: E402
 from src.models import CandidateWork  # noqa: E402
+from src.settings import load_settings  # noqa: E402
+from src.topic_matching import research_priority  # noqa: E402
 
 BASE = Path(__file__).resolve().parent.parent
-CONFIGS = ("sources.yaml", "scoring.yaml", "research.yaml", "embedding.yaml",
-           "authors.yaml", "network.yaml", "email.yaml", "zotero.yaml")
 
 # Off-topic examples. Real titles: the first block is what the owner rejected on
 # 2026-09-19 ("太偏材料不偏力学"), the second is characterisation-led work drawn from
@@ -61,10 +86,14 @@ OFF_TOPIC: List[Tuple[str, str]] = [
      "Damage evolution of a SiCf/Si3N4 ceramic matrix composite is tracked through mechanical and electromagnetic property degradation under load."),
     ("Finite element modeling of porous polymer pipeline coating using X-ray micro computed tomography",
      "X-ray micro computed tomography informs a finite element model of a porous polymer pipeline coating; mechanical properties are homogenised."),
+    # Only reachable through the production gate, which the old copy of the logic did
+    # not model. Kept as a standing check that this harness still drives the real path.
+    ("RETRACTED: TC4 ductile fracture under dynamic loading",
+     "Stress triaxiality and Lode dependent fracture criterion for TC4, calibrated and validated."),
 ]
 
 # On-topic examples that must survive any tightening. If the gate starts rejecting
-# these, the fix went too far.
+# these, the change went too far.
 ON_TOPIC: List[Tuple[str, str]] = [
     ("A stress-state dependent ductile fracture model for Ti-6Al-4V under dynamic loading",
      "A ductile fracture criterion coupling stress triaxiality and the Lode angle parameter is proposed for Ti-6Al-4V, calibrated from notched tension, shear and compression, and validated against ballistic perforation."),
@@ -82,118 +111,138 @@ ON_TOPIC: List[Tuple[str, str]] = [
 
 
 class Gate:
-    """The keyword half of CandidateFetcher._filter_by_topic, over one config tree."""
+    """Drives the production gate. Does not reimplement it."""
 
     def __init__(self, root: Path) -> None:
         self.settings = load_settings(root)
-        src = self.settings.sources
-        self.include = [t for t in src.include_keywords if t.strip()]
-        self.anchor = [t for t in getattr(src, "mechanics_anchor_keywords", []) if t.strip()]
-        self.exclude = [t for t in src.exclude_keywords if t.strip()]
-        self.group_sets = [
-            [[t for t in g if t.strip()] for g in gs if any(t.strip() for t in g)]
-            for gs in src.required_any_group_sets
-        ]
-        self.group_sets = [gs for gs in self.group_sets if gs]
-        self.require_topic_match = src.require_topic_match
+        # Bypass __init__: a real CandidateFetcher opens sessions and reads state a pure
+        # keyword probe has no use for. _filter_by_topic only needs .settings.
+        self.fetcher = object.__new__(CandidateFetcher)
+        self.fetcher.settings = self.settings
 
     def verdict(self, title: str, abstract: str, semantic: bool = False) -> str:
-        """Return 'excluded', 'rejected', or the priority name it would be scored under."""
-        haystack = " ".join(p for p in (title, abstract) if p)
-        if self.exclude and matches_any(haystack, self.exclude):
-            return "excluded"
-        # A semantic facet hit skips the group sets, but only if it clears the anchor.
-        privileged = semantic and (not self.anchor or matches_any(haystack, self.anchor))
-        if not privileged:
-            if self.group_sets and not any(matches_groups(haystack, gs) for gs in self.group_sets):
-                return "rejected"
-            if self.require_topic_match and self.include and not matches_any(haystack, self.include):
-                return "rejected"
-        work = CandidateWork(source="probe", identifier="probe", title=title, abstract=abstract)
+        """'rejected', or the priority name and multiplier the work would score under.
+
+        'rejected' covers every reason production drops a candidate -- retraction, work
+        type and the exclusion list included -- not only the keyword groups.
+        """
+        extra = {"semantic_facets": ["probe"]} if semantic else {}
+        work = CandidateWork(source="probe", identifier="probe", title=title,
+                             abstract=abstract, extra=extra)
+        if not self.fetcher._filter_by_topic([work]):
+            return "rejected"
         name, multiplier = research_priority(work, self.settings.scoring)
         return f"{name} x{multiplier}"
 
 
-def checkout(ref: str) -> Path:
-    """Materialise a git revision's config + return a root that load_settings accepts."""
-    tmp = Path(tempfile.mkdtemp(prefix="zotwatch-gate-"))
-    (tmp / "config").mkdir()
-    for name in CONFIGS:
-        out = subprocess.run(["git", "show", f"{ref}:config/{name}"], cwd=BASE,
-                             capture_output=True)
-        if out.returncode == 0:
-            (tmp / "config" / name).write_bytes(out.stdout)
-    for name in ("data",):
-        if (BASE / name).exists():
-            (tmp / name).mkdir(exist_ok=True)
-    return tmp
+def measure(root: Path) -> dict:
+    gate = Gate(root)
+    conn = sqlite3.connect(root / "data" / "profile.sqlite")
+    try:
+        library = conn.execute("select title, abstract from items").fetchall()
+    finally:
+        conn.close()
 
-
-def measure(gate: Gate, library_rows) -> dict:
-    kept = sum(1 for t, a in library_rows if not gate.verdict(t or "", a or "").startswith(("rejected", "excluded")))
-    off_blocked = [t for t, a in OFF_TOPIC if gate.verdict(t, a).startswith(("rejected", "excluded"))]
-    off_semantic = [t for t, a in OFF_TOPIC if gate.verdict(t, a, semantic=True).startswith(("rejected", "excluded"))]
-    on_kept = [t for t, a in ON_TOPIC if not gate.verdict(t, a).startswith(("rejected", "excluded"))]
-    demoted = [gate.verdict(t, a) for t, a in OFF_TOPIC]
+    rejected = lambda verdict: verdict == "rejected"
+    kept = sum(1 for t, a in library if not rejected(gate.verdict(t or "", a or "")))
+    verdicts = [gate.verdict(t, a) for t, a in OFF_TOPIC]
+    semantic = [gate.verdict(t, a, semantic=True) for t, a in OFF_TOPIC]
     return {
         "library_kept": kept,
-        "library_total": len(library_rows),
-        "off_blocked": len(off_blocked),
-        "off_blocked_semantic": len(off_semantic),
-        "on_kept": len(on_kept),
-        "on_total": len(ON_TOPIC),
-        "verdicts": demoted,
+        "library_total": len(library),
+        "off_blocked": sum(1 for v in verdicts if rejected(v)),
+        "off_blocked_semantic": sum(1 for v in semantic if rejected(v)),
+        "off_total": len(OFF_TOPIC),
+        "guards_kept": sum(1 for t, a in ON_TOPIC if not rejected(gate.verdict(t, a))),
+        "guards_total": len(ON_TOPIC),
+        "verdicts": verdicts,
     }
+
+
+def checkout(ref: str) -> Path:
+    """Materialise a git revision as a real worktree: its code AND its config."""
+    tmp = Path(tempfile.mkdtemp(prefix="zotwatch-gate-"))
+    worktree = tmp / "tree"
+    out = subprocess.run(["git", "worktree", "add", "--detach", str(worktree), ref],
+                         cwd=BASE, capture_output=True, text=True)
+    if out.returncode != 0:
+        raise SystemExit(f"could not create a worktree for {ref!r}:\n{out.stderr}")
+    # data/ is gitignored, so the library is absent from the worktree. Hard-link it
+    # rather than copying 36 MB.
+    (worktree / "data").mkdir(exist_ok=True)
+    for name in ("profile.sqlite", "journal_metrics.csv"):
+        source = BASE / "data" / name
+        if not source.exists():
+            continue
+        try:
+            os.link(source, worktree / "data" / name)
+        except OSError:
+            shutil.copy2(source, worktree / "data" / name)
+    # Measure both sides with THIS harness, so the only difference is the code and
+    # config under test rather than the measurement itself.
+    shutil.copy2(Path(__file__).resolve(), worktree / "tools" / Path(__file__).name)
+    return worktree
+
+
+def release(worktree: Path) -> None:
+    subprocess.run(["git", "worktree", "remove", "--force", str(worktree)],
+                   cwd=BASE, capture_output=True)
+    shutil.rmtree(worktree.parent, ignore_errors=True)
+
+
+def measure_in(worktree: Path) -> dict:
+    """Run the measurement inside a worktree, so its src/ is the code under test."""
+    out = subprocess.run(
+        [sys.executable, "-B", str(worktree / "tools" / Path(__file__).name), "--json"],
+        cwd=worktree, capture_output=True, text=True, encoding="utf-8")
+    if out.returncode != 0:
+        raise SystemExit(f"measurement failed inside {worktree}:\n{out.stderr[-2000:]}")
+    return json.loads(out.stdout)
 
 
 def report(label: str, m: dict) -> None:
     kept, total = m["library_kept"], m["library_total"]
     print(f"\n=== {label} ===")
-    print(f"  recall     library kept          {kept}/{total}  {kept/total:.1%}")
-    print(f"  precision  off-topic blocked     {m['off_blocked']}/{len(OFF_TOPIC)}"
-          f"   (via semantic route: {m['off_blocked_semantic']}/{len(OFF_TOPIC)})")
-    print(f"  guard      on-topic kept         {m['on_kept']}/{m['on_total']}")
+    print(f"  library_kept   {kept}/{total}  {kept / max(total, 1):.1%}"
+          f"   (regression signal, NOT recall)")
+    print(f"  off_blocked    {m['off_blocked']}/{m['off_total']}"
+          f"   (via the semantic route: {m['off_blocked_semantic']}/{m['off_total']})")
+    print(f"  guards_kept    {m['guards_kept']}/{m['guards_total']}"
+          f"   (must stay at {m['guards_total']}/{m['guards_total']})")
 
 
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("--ref", help="measure this git revision instead of the working tree")
     ap.add_argument("--compare", metavar="REF", help="measure REF and the working tree")
     ap.add_argument("--verdicts", action="store_true", help="print the per-title verdict")
+    ap.add_argument("--json", action="store_true", help="emit the working-tree result as JSON")
     args = ap.parse_args()
 
-    conn = sqlite3.connect(BASE / "data" / "profile.sqlite")
-    library = conn.execute("select title, abstract from items").fetchall()
+    here = measure(BASE)
+    if args.json:
+        print(json.dumps(here))
+        return 0
 
-    targets = []
     if args.compare:
-        targets.append((f"{args.compare} (before)", checkout(args.compare)))
-        targets.append(("working tree (after)", BASE))
-    elif args.ref:
-        targets.append((args.ref, checkout(args.ref)))
+        worktree = checkout(args.compare)
+        try:
+            before = measure_in(worktree)
+        finally:
+            release(worktree)
+        report(f"{args.compare} (before)", before)
+        report("working tree (after)", here)
+        delta = (here["library_kept"] - before["library_kept"]) / max(before["library_total"], 1)
+        print(f"\n  delta: off_blocked {before['off_blocked']} -> {here['off_blocked']}"
+              f" (semantic {before['off_blocked_semantic']} -> {here['off_blocked_semantic']}),"
+              f" library_kept {delta:+.1%}")
     else:
-        targets.append(("working tree", BASE))
+        report("working tree", here)
 
-    results = []
-    for label, root in targets:
-        gate = Gate(root)
-        m = measure(gate, library)
-        results.append((label, m))
-        report(label, m)
-        if args.verdicts:
-            print("  off-topic verdicts:")
-            for (t, _), v in zip(OFF_TOPIC, m["verdicts"]):
-                print(f"    {v:<28} {t[:78]}")
-        if root != BASE:
-            shutil.rmtree(root, ignore_errors=True)
-
-    if len(results) == 2:
-        (_, before), (_, after) = results
-        d_recall = (after["library_kept"] - before["library_kept"]) / before["library_total"]
-        print(f"\n  delta: off-topic blocked {before['off_blocked']} -> {after['off_blocked']}"
-              f" (semantic {before['off_blocked_semantic']} -> {after['off_blocked_semantic']}),"
-              f" library recall {d_recall:+.1%}")
+    if args.verdicts:
+        print("\n  off-topic verdicts:")
+        for (title, _), verdict in zip(OFF_TOPIC, here["verdicts"]):
+            print(f"    {verdict:<26} {title[:74]}")
     return 0
 
 

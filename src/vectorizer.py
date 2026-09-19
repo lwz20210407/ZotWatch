@@ -60,6 +60,10 @@ class RemoteVectorizer:
         self.text_separator = text_separator
         self.batch_size = batch_size
         self.dimensions = dimensions
+        # Describes the encoder that actually runs, so a profile can never claim a
+        # model it was not built with. build_vectorizer() overwrites this with
+        # config.cache_signature() on the remote path to keep existing caches valid.
+        self.signature = f"openai-compatible:{model_name}:{dimensions or 'native'}"
         self.timeout = timeout
         self._session = requests.Session()
         self._session.headers.update(
@@ -128,6 +132,9 @@ class LocalVectorizer:
         self.text_separator = text_separator
         self.batch_size = batch_size
         self._model = None
+        # Deliberately not probing self.dimension here -- that would download and
+        # load the model just to name it. The model name already pins the width.
+        self.signature = f"local:{model_name}"
 
     def load(self) -> None:
         if self._model is not None:
@@ -177,7 +184,7 @@ def build_vectorizer(config) -> RemoteVectorizer | LocalVectorizer:
                 "Embedding via %s using %s (%s dims)",
                 config.base_url, config.model_name, config.dimensions or "native",
             )
-            return RemoteVectorizer(
+            remote = RemoteVectorizer(
                 config.model_name,
                 config.base_url,
                 api_key,
@@ -186,6 +193,11 @@ def build_vectorizer(config) -> RemoteVectorizer | LocalVectorizer:
                 batch_size=config.batch_size,
                 timeout=config.timeout_seconds,
             )
+            # Keep the config-derived spelling on the remote path so the 4399
+            # vectors already cached under it stay valid. Only the fallback below
+            # gets a signature of its own, which is the case that was lying.
+            remote.signature = config.cache_signature()
+            return remote
         if not config.local_fallback_model:
             raise EmbeddingError(
                 f"Environment variable {config.api_key_env} is not set and no "

@@ -5,6 +5,9 @@ max_reference_candidates: 400
 dynamic_seed_count: 5
 max_classic_items: 5
 min_similarity: 0.40
+# Diagnostic only since 2026-09-19: recorded in the report, no longer added to
+# the score. It used to be applied after the bounded weighted sum, pushing the
+# total past 1.0 and quietly rescaling the must_read/consider thresholds.
 score_bonus: 0.06
 # Verified against the 2026-09-17 local-library/OpenAlex audit; not an author whitelist.
 seeds:

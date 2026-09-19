@@ -205,12 +205,26 @@ def send(msg: EmailMessage, config: SmtpConfig, *, attempts: int = SEND_ATTEMPTS
                     config.host, config.port, context=context, timeout=SMTP_TIMEOUT_SECONDS
                 ) as server:
                     server.login(config.username, config.password)
-                    server.send_message(msg)
+                    refused = server.send_message(msg)
             else:
                 with smtplib.SMTP(config.host, config.port, timeout=SMTP_TIMEOUT_SECONDS) as server:
                     server.starttls(context=context)
                     server.login(config.username, config.password)
-                    server.send_message(msg)
+                    refused = server.send_message(msg)
+            # send_message only RAISES when every recipient is refused; a partial
+            # refusal comes back as a dict and used to be discarded, so a run where one
+            # of several addresses got a 550 still recorded a clean delivery and marked
+            # those papers as sent. EMAIL_TO accepts a comma-separated list, so this is
+            # a real configuration, not a hypothetical.
+            if refused:
+                for address, (code, reason) in refused.items():
+                    logger.error("Recipient refused: %s (%s %s)", address, code,
+                                 reason.decode(errors="replace") if isinstance(reason, bytes) else reason)
+                delivered = [r for r in config.recipients if r not in refused]
+                raise RuntimeError(
+                    f"delivered to {len(delivered)} of {len(config.recipients)} recipients; "
+                    f"refused: {', '.join(sorted(refused))}"
+                )
             logger.info("Sent digest to %s", ", ".join(config.recipients))
             return
         except (smtplib.SMTPAuthenticationError, smtplib.SMTPRecipientsRefused):
