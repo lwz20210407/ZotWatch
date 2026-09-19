@@ -86,7 +86,10 @@ tracked_venues:
   - Fatigue & Fracture of Engineering Materials & Structures
   - Journal of Engineering Mechanics
   - Journal of Mechanical Science and Technology
-  - Materials Characterization
+  # Materials Characterization was tracked, i.e. crawled up to venue_max_pages every
+  # run. It is by definition a characterisation journal and so fed the exact papers
+  # the owner rejected on 2026-09-19. Dropped as a tracked venue; a genuinely relevant
+  # paper from it can still arrive through the query and semantic routes.
   - Materials Today Communications
   - Intermetallics
   - Journal of Dynamic Behavior of Materials
@@ -291,6 +294,13 @@ queries:
   - "titanium Taylor impact validation"
   - "aluminum alloy LS-OPT fracture"
   - "steel thermal softening fracture"
+# Coarse backstop (require_topic_match): a candidate must hit at least one. Naming a
+# characterisation technique is no longer enough on its own -- EBSD, electron
+# backscatter diffraction, scanning electron microscopy, X-ray computed tomography,
+# micro-CT, crystallographic texture, heat treatment, molecular dynamics, atomistic
+# simulation, fatigue performance, creep damage and lattice structure were removed.
+# They still appear inside the group sets below, where a mechanics anchor is required
+# alongside them, so a fractography paper about fracture still passes.
 include_keywords:
   - "micro-void shape"
   - "microvoid shape"
@@ -404,22 +414,14 @@ include_keywords:
   - "data-driven constitutive"
   - "machine learning"
   - "surrogate model"
+  - "fatigue performance"
+  - "creep damage"
+  - "lattice structure"
+  - "molecular dynamics"
+  - "atomistic simulation"
   - "porosity"
   - "lack of fusion"
-  - "crystallographic texture"
-  - "columnar grains"
-  - "prior beta grains"
-  - "alpha prime martensite"
-  - "deformation twinning"
-  - "slip system"
-  - "EBSD"
-  - "electron backscatter diffraction"
   - "fractography"
-  - "scanning electron microscopy"
-  - "X-ray computed tomography"
-  - "micro-CT"
-  - "heat treatment"
-  - "stress relief annealing"
   - "ballistic limit"
   - "V50"
   - "residual velocity"
@@ -435,11 +437,6 @@ include_keywords:
   - "constitutive modelling"
   - "constitutive parameters"
   - "electroplasticity"
-  - "fatigue performance"
-  - "creep damage"
-  - "lattice structure"
-  - "molecular dynamics"
-  - "atomistic simulation"
   - "inverse modeling"
   - "inverse modelling"
   - "finite element model updating"
@@ -698,6 +695,65 @@ include_keywords:
   - "compression torsion"
   - "load path change"
   - "loading path"
+# A candidate found by semantic facet search skips the group sets below (that is the
+# point of cross-circle discovery), but must still name one of these. Without it, a
+# facet phrased around microstructure pulled in characterisation papers that bypassed
+# the topic gate entirely -- see the comment in src/fetch_new.py:_filter_by_topic.
+# Keep this list broad: it is a floor, not a relevance judgement. Deliberately absent
+# are bare "impact" ("the impact of build orientation on ...") and "finite element".
+mechanics_anchor_keywords:
+  - constitutive
+  - plasticity
+  - plastic strain
+  - plastic deformation
+  - viscoplastic
+  - viscoplasticity
+  - elastoplastic
+  - yield
+  - hardening
+  - flow stress
+  - stress-strain
+  - stress strain
+  - true stress
+  - fracture
+  - damage
+  - failure
+  - ductility
+  - ductile
+  - necking
+  - strain localization
+  - strain localisation
+  - shear band
+  - adiabatic shear
+  - stress triaxiality
+  - triaxiality
+  - Lode
+  - strain rate
+  - Hopkinson
+  - dynamic loading
+  - impact loading
+  - Taylor impact
+  - ballistic
+  - penetration
+  - perforation
+  - spall
+  - Johnson-Cook
+  - Johnson Cook
+  - GISSMO
+  - Gurson
+  - GTN
+  - UMAT
+  - VUMAT
+  - LS-DYNA
+  - Abaqus
+  - 本构
+  - 塑性
+  - 屈服
+  - 硬化
+  - 断裂
+  - 损伤
+  - 应变率
+  - 侵彻
 required_keyword_groups:
   - ["Ti-6Al-4V", "Ti6Al4V", "TC4", "titanium alloy", "titanium alloys"]
   - ["stress state", "stress-state", "stress triaxiality", "triaxiality", "Lode", "ductile fracture", "fracture criterion", "fracture locus", "damage evolution", "damage initiation", "strain rate", "high strain rate", "temperature dependent", "dynamic constitutive", "constitutive model", "Johnson-Cook", "Johnson Cook", "modified Johnson-Cook", "MJC", "GISSMO", "DIEM", "MMC", "Modified Mohr-Coulomb", "Hosford-Coulomb", "GTN", "CDM", "UMAT", "VUMAT", "LS-DYNA", "ABAQUS", "penetration", "ballistic", "adiabatic shear", "thermo-viscoplastic", "thermoviscoplastic", "thermal softening", "adiabatic heating", "shear localization", "anisotropic ductile fracture", "load-path-dependent damage", "load path dependent damage"]
@@ -710,9 +766,26 @@ required_any_group_sets:
     - ["应力状态", "三轴度", "罗德", "本构", "塑性", "屈服", "损伤", "断裂", "应变率", "侵彻"]
   # Transferable methods require a metal context and a mechanical object.
   -
-    - &research_metals ["Ti-6Al-4V", "TC4", "titanium", "aluminum", "aluminium", "magnesium", "steel", "copper", "nickel", "Inconel", "metal", "alloy", "sheet metal"]
+    # Bare "alloy" was removed: it matched every alloy family there is, so
+    # "alloy" + "cryogenic" + "hardening" admitted atomic-scale HEA work. The named
+    # metals already cover what this project studies, and chain-following work on
+    # other metals still enters through the explicit high-entropy / steel / aluminium
+    # group set further down, which demands a specific mechanics term rather than
+    # bare "hardening". Measured: off-topic blocked 8/10 -> 9/10 for -1.0% library
+    # recall, with every on-topic guard intact. Bare "metal" was tried too and is
+    # kept -- dropping it as well bought nothing and cost an on-topic paper.
+    - &research_metals ["Ti-6Al-4V", "TC4", "titanium", "aluminum", "aluminium", "magnesium", "steel", "copper", "nickel", "Inconel", "metal", "sheet metal"]
     - ["inverse modeling", "inverse modelling", "finite element model updating", "parameter identifiability", "parameter sensitivity", "uncertainty quantification", "Bayesian calibration", "multi-objective calibration", "post-necking identification", "inverse finite element identification", "full-field identification", "virtual fields method", "integrated digital image correlation", "Bridgman correction", "mesh dependency", "mesh dependence", "mesh objectivity", "damage regularization", "characteristic length", "fracture energy", "nonlocal damage", "element size sensitivity"]
-    - &research_mechanics ["constitutive", "plasticity", "plastic", "hardening", "flow stress", "yield", "yielding", "fracture", "damage", "ductility", "ductile", "stress strain", "Johnson-Cook", "GISSMO", "mechanical properties", "mechanical behavior", "tensile strength", "elongation", "deformation behavior"]
+    # This anchor is what proves a candidate is about mechanical response. It used to
+    # end with "mechanical properties", "mechanical behavior", "tensile strength",
+    # "elongation" and "deformation behavior" -- boilerplate that appears in the
+    # abstract of essentially every materials paper. Measured on the owner's own
+    # 4399-paper library: 96 papers (2.2%) contain one of those five and no real
+    # mechanics term at all. Any metal + any microstructure word + that boilerplate
+    # satisfied the gate, which is how EBSD/TEM characterisation work reached the
+    # digest. The five are gone; terms that actually denote a measured or modelled
+    # mechanical response took their place.
+    - &research_mechanics ["constitutive", "plasticity", "plastic", "hardening", "flow stress", "yield", "yielding", "fracture", "damage", "ductility", "ductile", "stress strain", "stress-strain", "true stress", "necking", "strain localization", "strain localisation", "Johnson-Cook", "GISSMO"]
   # Temperature/rate/state, implementation and mechanism facets require mechanics.
   -
     - *research_metals
@@ -734,6 +807,22 @@ required_any_group_sets:
   -
     - *research_metals
     - ["constitutive modeling", "constitutive modelling", "constitutive parameters", "electroplasticity", "viscoplasticity", "viscoplastic", "elastoplastic"]
+  # The core object is allowed the boilerplate the strict anchor rejects. Naming
+  # Ti-6Al-4V *and* an LPBF process term already pins a paper to this project, so
+  # "mechanical properties" is enough evidence there; the strict anchor exists to stop
+  # other metals' characterisation work, not to reject work on the exact alloy under
+  # study. A characterisation-led paper on TC4 still enters by this route -- and is
+  # still demoted by 表征主导 in config/scoring.yaml, which reads the title. Gate
+  # decides "is this about my material at all"; the title decides "is it about
+  # characterisation". Keeping those two judgements separate is the point.
+  -
+    - ["Ti-6Al-4V", "Ti6Al4V", "TC4", "titanium"]
+    - ["LPBF", "additively manufactured", "build orientation", "build direction",
+       "porosity", "lack of fusion", "hot isostatic pressing", "heat treatment",
+       "as-built", "stress relief annealing"]
+    - ["mechanical properties", "mechanical behaviour", "mechanical behavior",
+       "tensile", "tensile strength", "fracture", "ductility", "elongation",
+       "anisotropy", "strength", "deformation", "flow stress", "plasticity", "damage"]
   # Mechanism and neighboring topics can enter ranking when mechanically relevant.
   -
     - *research_metals
@@ -818,6 +907,17 @@ exclude_keywords:
   - 陶瓷复合装甲
   - 陶瓷面板
   - 陶瓷空心球
+  # The armour phrases above miss ceramic *matrix composites*, which reached the
+  # digest as "SiCf/Si3N4 composite" and "fiber-reinforced ceramic matrix composites".
+  - ceramic matrix composite
+  - ceramic-matrix composite
+  - ceramic matrix composites
+  - fiber-reinforced ceramic
+  - fibre-reinforced ceramic
+  - SiC/SiC
+  - SiCf
+  - Si3N4
+  - silicon nitride
   # Only explicit off-topic phrases veto a paper; material subfields are ranked.
   - "gene expression"
   - "gene sequencing"

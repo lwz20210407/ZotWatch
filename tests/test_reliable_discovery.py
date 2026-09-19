@@ -123,11 +123,31 @@ class ReliableTests(unittest.TestCase):
         np.testing.assert_allclose(profiles[first]['centroid'], [1.0,0.0])
         self.assertEqual(profiles[second]['count'], 1)
 
-    def test_semantic_route_not_keyword_gated_but_retraction_still_filtered(self):
+    def test_semantic_route_skips_keyword_groups_but_still_needs_a_mechanics_anchor(self):
+        """Cross-circle discovery survives; characterisation no longer rides in on it.
+
+        A semantic facet hit skips the keyword group sets on purpose -- that is how
+        wording the keyword lists cannot anticipate gets found. But the hit alone used
+        to bypass the topic gate outright, and because facet queries are sentences,
+        OpenAlex returned the sentence's neighbours: a facet phrased around
+        microstructure delivered EBSD/TEM papers straight into the digest. The hit now
+        also has to name a mechanics-of-materials object.
+        """
         f = object.__new__(CandidateFetcher); f.settings = self.settings
-        candidate = CandidateWork(source='openalex',identifier='W1',title='Unusual new wording', extra={'semantic_facets': [facet_id(self.settings)]})
-        self.assertTrue(f._filter_by_topic([candidate]))
-        self.assertFalse(f._filter_by_topic([candidate.model_copy(update={'title':'Retraction: Unusual new wording'})]))
+        semantic = {'semantic_facets': [facet_id(self.settings)]}
+        # Wording no keyword group anticipates, but plainly about failure: still kept.
+        unusual = CandidateWork(source='openalex', identifier='W1',
+                                title='Unusual new wording for a damage model', extra=semantic)
+        self.assertTrue(f._filter_by_topic([unusual]))
+        # Same privileged route, nothing mechanical about it: no longer waved through.
+        characterisation = CandidateWork(
+            source='openalex', identifier='W2',
+            title='Microstructural evolution and texture of a gradient alloy',
+            abstract='Grain refinement and precipitation behaviour observed by EBSD and TEM.',
+            extra=semantic)
+        self.assertFalse(f._filter_by_topic([characterisation]))
+        self.assertFalse(f._filter_by_topic([unusual.model_copy(
+            update={'title': 'Retraction: Unusual new wording for a damage model'})]))
         raw = {'id':'https://openalex.org/W1','display_name':'New wording','publication_date':'2026-09-17'}
         f.session = Mock(); f.settings.research.facets = f.settings.research.facets[:1]
         with patch('src.fetch_new.request_with_retry',return_value=response({'results':[raw]})) as request:

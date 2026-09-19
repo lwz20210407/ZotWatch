@@ -38,19 +38,30 @@ def check(base_dir: Path) -> List[str]:
     if thresholds.must_read <= thresholds.consider:
         problems.append("scoring.thresholds.must_read must be greater than consider")
 
-    # research_priority() returns on the first matching rule, so multipliers must
-    # be non-increasing down the list; otherwise a demoting rule placed early
-    # shadows a core rule placed later.
+    # research_priority() returns on the first matching rule, so multipliers must be
+    # non-increasing down the list; otherwise a demoting rule placed early shadows a
+    # core rule placed later.
+    #
+    # Compared within a match scope, not across. A title-scoped rule reads a strict
+    # subset of what a title_abstract rule reads, so putting a low-multiplier
+    # title rule above a higher title_abstract rule is a deliberate narrowing: it can
+    # only fire when the marker is in the title itself. That is how 表征主导 (x0.55,
+    # title) sits above 机制参考 (x0.85) -- a paper merely using EBSD in its
+    # fractography still reaches 机制参考; one titled "EBSD characterization of ..."
+    # does not.
     priorities = settings.scoring.research_priorities
-    for index in range(1, len(priorities)):
-        current, earlier = priorities[index], priorities[index - 1]
-        if current.multiplier > earlier.multiplier:
-            problems.append(
-                f"research_priorities[{index}] '{current.name}' (x{current.multiplier}) ranks "
-                f"higher than the preceding rule '{earlier.name}' (x{earlier.multiplier}). "
-                f"First match wins, so the preceding rule shadows it. Order rules by "
-                f"descending multiplier."
-            )
+    for index, current in enumerate(priorities):
+        for earlier in priorities[:index]:
+            if earlier.match_fields != current.match_fields:
+                continue
+            if current.multiplier > earlier.multiplier:
+                problems.append(
+                    f"research_priorities[{index}] '{current.name}' (x{current.multiplier}) ranks "
+                    f"higher than the preceding rule '{earlier.name}' (x{earlier.multiplier}) at "
+                    f"the same match scope ({current.match_fields}). First match wins, so the "
+                    f"preceding rule shadows it. Order rules by descending multiplier."
+                )
+                break
 
     if settings.embedding.neighbors < 1:
         problems.append("embedding.neighbors must be at least 1")

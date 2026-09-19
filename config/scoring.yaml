@@ -78,17 +78,43 @@ research_priorities:
     required_groups:
       - ["aluminum", "aluminium", "magnesium", "steel", "copper", "nickel", "Inconel", "metal", "alloy"]
       - ["constitutive", "ductile fracture", "fracture criterion", "damage evolution", "stress triaxiality", "Lode", "flow stress", "hardening", "Gurson", "GTN", "MMC", "GISSMO", "Johnson-Cook"]
-  - name: "机制参考"
-    multiplier: 0.85
-    required_groups:
-      - ["Ti-6Al-4V", "TC4", "titanium", "aluminum", "aluminium", "magnesium", "steel", "copper", "nickel", "Inconel", "metal", "alloy"]
-      - ["crystal plasticity", "single crystal", "bicrystal", "process-microstructure", "microstructure engineering", "martensite decomposition", "texture-induced anisotropy", "hot isostatic pressing", "defect morphology", "lack of fusion", "porosity", "build orientation", "build direction", "crystallographic texture", "columnar grains", "prior beta grains", "deformation twinning", "slip system", "EBSD", "fractography", "heat treatment", "heat treated"]
-      - ["mechanical properties", "mechanical behavior", "deformation", "anisotropy", "ductility", "fracture", "damage", "plasticity", "strength", "hardening"]
+  # 以下两条只看标题，且都排在三条 ×1.0 之后——核心工作先被认走，不会被截胡。
+  # 这正是 外围方法参考 从前排在最顶上时踩过的坑（原注释见下）。
+  # 两条之间按倍率递减排：0.70 在前，0.55 在后。
   - name: "外围方法参考"
     multiplier: 0.70
     match_fields: title
     required_groups:
       - ["fatigue performance", "creep damage", "lattice structure", "molecular dynamics", "atomistic simulation", "corrosion", "coating", "machining", "welding", "concrete", "cement", "polymer", "ceramic", "biomedical", "implant", "混凝土", "水泥", "聚合物", "陶瓷", "生物医学"]
+  # 表征主导：标题本身讲的是表征手段或组织演变，而不是力学响应或模型。
+  # 2026-09-19 本人指出「研究各种表征手段、EBSD、TEM 这些东西的，太偏材料不偏力学」。
+  #
+  # 只看标题是刻意的：一篇真正相关的论文在断口分析里用 EBSD 很正常，不该因此降权；
+  # 标题就叫 "EBSD characterization of ..." 的，研究对象就是表征本身。
+  # 降权而非排除：万一某篇组织论文确实给了你要的断裂数据，它还排得进来，只是靠后。
+  - name: "表征主导"
+    multiplier: 0.55
+    match_fields: title
+    required_groups:
+      - ["EBSD", "electron backscatter", "TEM", "transmission electron", "SEM",
+         "scanning electron", "XRD", "X-ray diffraction", "atom probe", "electron microscopy",
+         "microstructural characterization", "microstructural characterisation",
+         "microstructure characterization", "microstructure characterisation",
+         "materials characterization", "materials characterisation",
+         "microstructural evolution", "microstructure evolution", "texture evolution",
+         "phase transformation", "precipitation behavior", "precipitation behaviour",
+         "grain refinement", "recrystallization", "recrystallisation",
+         "strength-ductility synergy", "strength-ductility trade-off",
+         "显微组织", "组织演变", "织构演化", "相变行为"]
+  - name: "机制参考"
+    multiplier: 0.85
+    required_groups:
+      - ["Ti-6Al-4V", "TC4", "titanium", "aluminum", "aluminium", "magnesium", "steel", "copper", "nickel", "Inconel", "metal", "alloy"]
+      - ["crystal plasticity", "single crystal", "bicrystal", "process-microstructure", "microstructure engineering", "martensite decomposition", "texture-induced anisotropy", "hot isostatic pressing", "defect morphology", "lack of fusion", "porosity", "build orientation", "build direction", "crystallographic texture", "columnar grains", "prior beta grains", "deformation twinning", "slip system", "EBSD", "fractography", "heat treatment", "heat treated"]
+      # "mechanical properties" / "mechanical behavior" / "strength" / bare "deformation"
+      # were removed for the same reason as in config/sources.yaml: they are boilerplate
+      # and proved nothing, so a microstructure paper landed here at only -15%.
+      - ["plastic deformation", "anisotropy", "ductility", "fracture", "damage", "plasticity", "hardening", "flow stress", "stress strain", "failure"]
 whitelist_venues:
   - Journal of Dynamic Behavior of Materials
   - Metallurgical and Materials Transactions A
@@ -136,5 +162,4 @@ whitelist_venues:
   - Fatigue & Fracture of Engineering Materials & Structures
   - Journal of Engineering Mechanics
   - Journal of Mechanical Science and Technology
-  - Materials Characterization
   - Intermetallics

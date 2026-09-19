@@ -446,6 +446,7 @@ class CandidateFetcher:
         ]
         required_any_group_sets = [group_set for group_set in required_any_group_sets if group_set]
         exclude = [term for term in self.settings.sources.exclude_keywords if term.strip()]
+        anchor = [term for term in self.settings.sources.mechanics_anchor_keywords if term.strip()]
         required_groups = [group for group in required_groups if group]
         kept: List[CandidateWork] = []
         for candidate in candidates:
@@ -459,9 +460,23 @@ class CandidateFetcher:
             )
             if exclude and matches_any(haystack, exclude):
                 continue
-            author_topic_match = bool(candidate.extra.get("semantic_facets")) or bool(candidate.extra.get("watched_authors") or
-                                      candidate.extra.get("cites_seeds") or candidate.extra.get("referenced_by")) and matches_any(
-                haystack, self.settings.author_watch.topic_keywords
+            # A semantic facet hit skips the keyword group sets on purpose: that is how
+            # cross-circle discovery finds work the keywords cannot name. But the hit
+            # itself is weaker than it looks. Facet queries are sentences, so OpenAlex
+            # returns the sentence's neighbours -- and a facet phrased around
+            # microstructure returns characterisation papers that share no research
+            # object with this project. Every such paper was skipping the topic gate
+            # outright. It must now at least name a mechanics-of-materials object;
+            # failing that it is not rejected, only stripped of the privilege, and has
+            # to earn its place through the same keyword gate as everything else.
+            semantic_hit = bool(candidate.extra.get("semantic_facets"))
+            if semantic_hit and anchor and not matches_any(haystack, anchor):
+                semantic_hit = False
+            cited_route = bool(candidate.extra.get("watched_authors")
+                               or candidate.extra.get("cites_seeds")
+                               or candidate.extra.get("referenced_by"))
+            author_topic_match = semantic_hit or (
+                cited_route and matches_any(haystack, self.settings.author_watch.topic_keywords)
             )
             if required_any_group_sets:
                 if not author_topic_match and not any(_matches_required_groups(haystack, group_set) for group_set in required_any_group_sets):
