@@ -1,0 +1,137 @@
+{
+"06e297eb3a0766cf": {
+"abstract_zh": "",
+"title_zh": "亚稳态高熵合金中耦合FCC→HCP→BCC相变与孔洞演化控制应变率相关加工硬化",
+"tldr": "研究亚稳态高熵合金中FCC→HCP→BCC相变与孔洞演化对加工硬化的影响"
+},
+"2c396d79559ec30d": {
+"abstract_zh": "",
+"title_zh": "对‘用于316L不锈钢纹理依赖塑性不确定性量化集成CPFE–PCE框架’的勘误",
+"tldr": "对316L不锈钢纹理依赖塑性不确定性量化框架的勘误"
+},
+"2c83ea754a21d39d": {
+"abstract_zh": "摘要 实验室测试与数值分析的协同是断裂力学领域的重要前沿。本文研究了一个非对齐预裂纹狗骨试样在EN AW-6060铝合金中的数值-实验对比。该研究的核心思想是展示一个脆性断裂相场模型，特别是第四阶AT2公式，在应用于延性断裂问题时，无需显式考虑塑性耗散即可提供物理上有意义且保守的预测。该研究旨在实现实验与模拟在裂纹模式（定性）和峰值反应力（定量）上的一致，同时评估关键相场参数（包括断裂韧性与内部长度）对整体响应的影响。结果表明，脆性模型的峰值载荷预测与实验测量值的误差在3.5%以内，并成功再现了实验观察到的裂纹模式，支持其在工程应用中作为保守设计工具的使用",
+"title_zh": "高阶等几何相场断裂建模：数值-实验研究",
+"tldr": "研究EN AW-6060铝合金非对齐预裂纹试样中高阶相场断裂模型的预测能力"
+},
+"37d6a579e44df0f1": {
+"abstract_zh": "The article deals with the effect of stress triaxiality on the inelastic deformation behavior of aluminum alloys. The proposed continuum model takes into account stress triaxiality dependence of the yield condition as well as of the damage criterion and the fracture condition with different branches corresponding to various damage and failure modes depending on the stress triaxiality and the Lode parameter. Results of numerical cell simulations on the microscale are presented and corresponding identification of micromechanically motivated material parameters is discussed. Furthermore, numerical results of three-dimensional macromechanical finite element analyses are compared with experimental data obtained from smooth and pre-notched tension specimens. The analyses allow verification of the continuum model and identification of further material parameters.",
+"title_zh": "基于不同微机制的延性损伤与断裂行为建模",
+"tldr": "对铝合金，研究应力三轴度对其非弹性变形行为的影响，建立考虑不同微机制的连续损伤模型。"
+},
+"3e3d6b6837d2350b": {
+"abstract_zh": "",
+"title_zh": "开环和闭环原位工艺控制对L-PBF Ti-6Al-4V微观结构和力学性能的影响",
+"tldr": "分析开环和闭环原位工艺控制对L-PBF Ti-6Al-4V微观结构和力学性能的影响。"
+},
+"48f985427a996aad": {
+"abstract_zh": "本文提出了一种新的方法用于识别板料成形本构模型参数。该方法基于机器学习模型与Levenberg-Marquardt优化算法的结合，并应用于Swift硬化定律和CPB06屈服准则参数的识别。所提出的方法利用了十字形双向拉伸试验结果数据，旨在克服使用CPB06屈服准则表征材料时的一些固有挑战。通过比较测试材料的应力-应变曲线和屈服面，获得的预测性能总体令人满意，突显了所提出方法的潜力。",
+"title_zh": "通过分类和回归机器学习算法联合应用识别板料成形本构模型的离散和连续参数",
+"tldr": "利用机器学习和Levenberg-Marquardt优化算法识别Swift硬化定律和CPB06屈服准则参数，结果与实验数据吻合良好。"
+},
+"4a2374ce1d4e57e7": {
+"abstract_zh": "单距离相位恢复技术被应用于对比增强成像，以观察具有仅1.4%密度差的铁素体/马氏体双相微观结构。每张高分辨率吸收对比图像与对应的相位对比图像进行配准，以分析损伤演化行为。通过追踪微孔洞在拉伸过程中的发展及其成核位置，确定了每个微孔洞的成核载荷步骤。在多个成核位点，如铁素体内部、马氏体内部和铁素体/马氏体界面，观察到微孔洞在相对较早阶段的提前损伤成核；然而，这些微孔洞的后续生长相对缓慢。另一方面，由于马氏体裂纹在最大载荷后产生的微孔洞随后表现出快速生长。马氏体裂纹诱导的损伤演化主要沿附近的铁素体/马氏体界面以及马氏体与铁素体晶界交界处发生。值得注意的是，源自马氏体裂纹的微孔洞在宏观拉伸下表现出以剪切为主的生长特征，而其他成核位点的微孔洞则表现出传统的三轴应力主导的生长特征。结论是，塑性断裂主要由位于形态特征马氏体颗粒上的微孔洞的显著生长力所主导。",
+"title_zh": "利用相位和吸收对比断层扫描研究双相钢的损伤微观机制",
+"tldr": "对双相钢材料，采用相位和吸收对比断层扫描技术，分析微孔洞损伤演化行为，发现微孔洞生长模式与形貌特征的马氏体颗粒有关。"
+},
+"4e1730af794d63f5": {
+"abstract_zh": "",
+"title_zh": "延性断裂的离散性和尺寸效应建模：应用于双相不锈钢的热脆性",
+"tldr": "对双相不锈钢，研究其热脆性下的延性断裂离散性和尺寸效应，建立相应的建模方法。"
+},
+"58258e525c09a5ae": {
+"abstract_zh": "",
+"title_zh": "超越经验模型：基于图的方程发现方法在固体材料本构规律中的应用",
+"tldr": "对合金钢、锂金属和填充橡胶材料，采用基于图的方程发现方法从多案例实验数据中自动获取本构模型，获得更准确的模型结果。"
+},
+"61e21cd4048cf1c7": {
+"abstract_zh": "",
+"title_zh": "激光熔覆增材制造316 L不锈钢板的循环行为与本构建模",
+"tldr": "研究不同各向异性取向下激光熔覆316 L不锈钢板的循环行为及本构模型。"
+},
+"6e06de2803ba3be7": {
+"abstract_zh": "",
+"title_zh": "通过比较颈缩区的内功与外功识别板料颈缩后硬化行为",
+"tldr": "对板料，通过比较颈缩区的内功与外功识别其颈缩后硬化行为，建立其硬化模型。"
+},
+"84967eb7afe7644d": {
+"abstract_zh": "",
+"title_zh": "考虑多种应力状态的电辅助AZ31镁合金薄板各向异性演化行为与本构模型",
+"tldr": "研究电辅助下AZ31镁合金薄板在多种应力状态下的各向异性演化行为与本构模型"
+},
+"951438be36e66696": {
+"abstract_zh": "",
+"title_zh": "通过激光粉末床熔融（LPBF）添加微量碳实现原位合金化Ti6Al4V合金的同时强度和延性增强",
+"tldr": "对Ti6Al4V合金，采用激光粉末床熔融技术添加微量碳，实现强度和延性的同时提升。"
+},
+"9d464c0170ac9647": {
+"abstract_zh": "",
+"title_zh": "用于预测金属合金位错塑性与应力-应变响应的不确定性感知机器学习框架，第II部分：BCC系统",
+"tldr": "研究BCC金属合金中不确定性感知的机器学习框架预测位错塑性与应力-应变响应"
+},
+"9e2cdac7bbdb932d": {
+"abstract_zh": "",
+"title_zh": "利用数字图像相关技术和有限元分析对平行竹材的I/II混合模式断裂特性进行表征",
+"tldr": "对平行竹材，采用数字图像相关技术和有限元分析研究其I/II混合模式断裂特性，获得其断裂行为的详细数据。"
+},
+"af4e4614f85209ca": {
+"abstract_zh": "摘要 血栓在机械取栓过程中发生碎片化可能导致远端栓塞，但其断裂机制因血栓经历大变形、纤维网络重排和成分依赖的力学响应而难以预测。本研究旨在开发一个连续断裂框架，用于分析血栓裂纹起始与扩展，同时考虑纤维网络各向异性随变形的演化。通过耦合超弹性基体响应、纤维诱导的各向异性增强、成分依赖的本构缩放、损伤退化和应变驱动的纤维重排定律，建立了有限变形各向异性相场断裂模型。主要创新点在于将优选纤维方向视为一个随变形演化的内部结构变量，其趋向于局部最大主应变方向，并影响各向异性储存能量和裂纹驱动历史场。该模型通过Abaqus的交错用户定义材料-用户定义单元程序实现。本构参数通过纤维凝胶拉伸数据进行标定，断裂响应与带缺口单轴断裂实验进行对比，使用实验驱动的断裂韧性值。此外，进行了额外的数值参数研究，以考察纤维分散性、重排参数和加载配置对断裂行为的影响。结果表明，纤维重排和分散性显著影响力-位移响应、损伤局部化和裂纹扩展路径。所提出的框架为研究大变形下的血栓断裂提供了基础，并可能支持未来涉及流体迁移、血管约束和血栓-器械相互作用的模型扩展。",
+"title_zh": "考虑纤维重排的大变形血栓断裂相场建模",
+"tldr": "建立大变形下血栓断裂的相场模型，考虑纤维网络各向异性演化，模拟断裂行为。"
+},
+"affb62655973fb40": {
+"abstract_zh": "",
+"title_zh": "不同动态压缩应变率下AZ31镁合金孪生演化准原位分析",
+"tldr": "通过准原位分析研究AZ31镁合金在不同动态压缩应变率下的孪生演化过程。"
+},
+"b896cf8cae1a9de9": {
+"abstract_zh": "",
+"title_zh": "铝中的弹塑性冲击波：晶粒、位错密度和孪生介导塑性的作用",
+"tldr": "研究铝中弹塑性冲击波的形成机制，分析晶粒、位错密度和孪生介导塑性的影响。"
+},
+"ba0cd13d5f20949d": {
+"abstract_zh": "",
+"title_zh": "具有应力状态依赖临界断裂能的弹塑性相场框架用于氢辅助失效研究",
+"tldr": "对氢辅助失效问题，建立具有应力状态依赖临界断裂能的弹塑性相场框架，分析氢对材料断裂行为的影响。"
+},
+"c679e147e39907b9": {
+"abstract_zh": "Despite their great potential for lightweight impact protection, the yield behavior of lattice materials under general stress states is complicated by factors such as loading orientation, hydrostatic stress, and strain rate, and a unified description has yet to be developed. Also, initial yield strength was commonly used to describe the yield surface of materials; however, it may be inaccurate for lattice materials and other cellular-based materials because of the presence of geometric nonlinearities (e.g., local strut buckling) and stochastic imperfections in manufacturing (like cell-wall thickness variations and nodal connectivity defects). Therefore, this work investigated the rate-dependent yielding and post-yield deformation behavior of lattice materials under dynamic loading. Body-centered cubic (BCC) lattice materials with four orientation angles (α = 0°, 15°, 30°, and 45°) were printed using 316L stainless steel. Quasi-static and dynamic compression tests were conducted, and finite element (FE) models were established and validated. During the long-stroke deformation of lattice materials, plateau stress reflects the steady-state performance of the whole sample and would be a more reliable metric for lattice's effective \"yield strength\" than a transient initial peak. Therefore, plateau stress was employed as the characteristic strength for yield-surface construction. The Hill 48 yield formulation was generalized by incorporating hydrostatic stress dependence and strain-rate sensitivity of plateau strength over a wide loading-rate range. Further, the post-yield collapse deformation and energy absorption of lattice materials were analyzed. The proposed model is able to capture the orientation-dependent collapse behavior and rate-induced strengthening while preserving a consistent yield-surface shape. The results elucidate the connection between hydrostatic-sensitive, rate-dependent yielding and energy absorption, providing guidance for the design of lattice materials with tailored performance.",
+"title_zh": "不同胞体取向的晶格材料在动态载荷下的屈服与屈服后行为研究",
+"tldr": "对不同取向的晶格材料，通过动态压缩试验和有限元分析研究其屈服及屈服后变形行为，提出基于平台应力的模型。"
+},
+"ca4f37f21316f55c": {
+"abstract_zh": "本文提出了一种实验高效的基于人工神经网络（ANN）的框架，用于表征AA6022-T4的各向异性，并从单次孔扩张（HE）实验中校准Yld2004-18p各向异性屈服函数。该框架利用HE实验中产生的异质变形场，训练数据来自使用随机分配Yld2004-18p参数进行有限元（FE）模拟的结果。开发了两种不同的ANN框架：一种预测各向异性参数（应力比和r值），另一种直接估计Yld2004-18p参数。探讨了三种ANN输入选择策略，即使用HE模拟中21个提取位置的所有应变分量、基于局部应力的选择和基于方差的方法。在晶体塑性方法中，仅基于测量的初始晶体学织构进行的CPFEM和ΔEVPSC模拟提供了虚拟的单轴和等双轴响应，随后拟合到Yld2004-18p屈服函数。比较评估表明，ANN框架以及基于CPFEM和ΔEVPSC的方法在再现材料的各向异性响应、屈服轨迹和HE减薄曲线方面与实验和传统校准方法总体一致，同时显著减少了实验时间、成本和材料消耗。",
+"title_zh": "利用机器学习实现Yld2004-18p的鲁棒参数识别",
+"tldr": "通过单孔扩张实验和ANN框架识别AA6022-T4的各向异性并校准Yld2004-18p屈服函数"
+},
+"ce6adcbbf22adf24": {
+"abstract_zh": "准确识别本构参数对于可靠模拟金属板成形过程至关重要。传统逆向识别技术，如有限元模型更新（FEMU），通常需要涉及大量有限元模拟的迭代优化过程，导致计算成本高。本文提出了一种基于双向长短期记忆（Bi-LSTM）神经网络的机器学习框架，用于从定制设计的反向弯曲试验中识别组合等向-随动强化参数。通过Sobol采样系统地变化Swift等向强化定律和Armstrong–Frederick随动强化定律的参数，生成了包含5000个有限元模拟的合成数据集。利用得到的力-位移历史训练Bi-LSTM网络，直接从力-位移响应中预测五个本构参数（K、σ0、n、C和γ）。为提高预测的物理可接受性，在训练过程中引入了物理约束损失函数，通过惩罚随动强化参数的负值来约束参数范围。所提出的模型在等向和随动强化参数上的决定系数R2超过0.98，将物理不可接受的预测案例从约30个减少到仅一个。在DP500和DP780先进高强度钢上进行了实验验证，使用Bi-LSTM预测的参数进行有限元模拟，其回弹角与实验测量值高度一致。该方法在训练后可实现近实时的本构参数识别，无需计算成本高昂的迭代优化，同时保持高预测精度和物理一致性。",
+"title_zh": "利用循环神经网络从反向弯曲试验中识别组合等向-随动强化参数",
+"tldr": "通过反向弯曲试验和Bi-LSTM网络实现组合等向-随动强化参数的快速识别"
+},
+"cee8cefbe0292a9e": {
+"abstract_zh": "",
+"title_zh": "脉冲电流辅助切割Inconel 718的热-非热电塑性效应",
+"tldr": "研究脉冲电流辅助切割Inconel 718时的热-非热电塑性效应及其对材料性能的影响。"
+},
+"db91a6e9a06119c1": {
+"abstract_zh": "",
+"title_zh": "双相钢中延性断裂早期演化的介观尺度模拟",
+"tldr": "对双相钢，采用介观尺度模拟研究其延性断裂的早期演化过程，分析断裂行为与材料参数的关系。"
+},
+"dd767c75036f39f5": {
+"abstract_zh": "",
+"title_zh": "对‘SLM打印Ti6Al4V薄板成形性与断裂’的勘误",
+"tldr": "对SLM打印Ti6Al4V薄板成形性与断裂研究的勘误"
+},
+"ed29d30f10425a17": {
+"abstract_zh": "",
+"title_zh": "耦合温度和应变率条件下的辐照依赖型Johnson–Cook本构模型",
+"tldr": "对辐照后的材料，建立耦合温度和应变率的Johnson–Cook本构模型，分析其在不同条件下的变形行为。"
+},
+"f1053f7b5ce8bed1": {
+"abstract_zh": "",
+"title_zh": "镁合金摩擦搅拌焊中织构分布的几何驱动现象学模型：变形路径与应变局部化的见解",
+"tldr": "建立几何驱动的镁合金摩擦搅拌焊织构分布现象学模型，分析变形路径与应变局部化。"
+}
+}
