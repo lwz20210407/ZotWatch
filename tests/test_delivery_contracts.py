@@ -120,6 +120,50 @@ class SourceFailureTests(unittest.TestCase):
         self.assertEqual(len(got), 1)
 
 
+class MetricSpamAbstractTests(unittest.TestCase):
+    """A list of impact factors is not an abstract.
+
+    Predatory journals put their citation-metric boasts in the abstract field. That is
+    worse than an empty abstract: the topic gate reads it as real text and judges the
+    paper as though its content had been examined. On 2026-09-24 a Kevlar ballistic
+    composite paper (DOI 10.15863/tas...) reached the digest that way, and the owner
+    marked it irrelevant in issue #5. Its entire abstract was:
+        "Impact Factor: ISRA (India) = 6.317ISI (Dubai, UAE) = 1.582GIF (Australia)
+         = 0.564 JIF = 1.500SIS (USA) = 0.912 ..."
+    """
+
+    SPAM = ("Impact Factor: ISRA (India) = 6.317ISI (Dubai, UAE) = 1.582GIF (Australia) "
+            "= 0.564 JIF = 1.500SIS (USA) = 0.912 РИНЦ (Russia) = 0.191 ESJI (KZ) = 8.100")
+
+    def test_a_metric_scoreboard_is_recognised(self):
+        from src.fetch_new import _looks_like_metric_spam
+        self.assertTrue(_looks_like_metric_spam(self.SPAM))
+
+    def test_a_real_abstract_mentioning_impact_is_not(self):
+        """"Impact" is an ordinary word in this field; one mention proves nothing."""
+        from src.fetch_new import _looks_like_metric_spam
+        real = ("We measure the impact factor of build orientation on the ductile fracture "
+                "of Ti-6Al-4V under dynamic loading, using notched specimens and a "
+                "calibrated damage model across stress triaxialities and Lode angles.")
+        self.assertFalse(_looks_like_metric_spam(real))
+        self.assertFalse(_looks_like_metric_spam(None))
+        self.assertFalse(_looks_like_metric_spam(""))
+
+    def test_the_openalex_extractor_returns_none_for_spam(self):
+        from src.fetch_new import _extract_openalex_abstract
+        self.assertIsNone(_extract_openalex_abstract({"abstract": self.SPAM}))
+
+    def test_the_crossref_cleaner_returns_none_for_spam(self):
+        from src.fetch_new import _clean_crossref_abstract
+        self.assertIsNone(_clean_crossref_abstract(f"<jats:p>{self.SPAM}</jats:p>"))
+
+    def test_a_real_crossref_abstract_survives(self):
+        from src.fetch_new import _clean_crossref_abstract
+        out = _clean_crossref_abstract(
+            "<jats:p>A ductile fracture criterion for Ti-6Al-4V is calibrated.</jats:p>")
+        self.assertEqual(out, "A ductile fracture criterion for Ti-6Al-4V is calibrated.")
+
+
 class RecipientRefusalTests(unittest.TestCase):
     """send_message only raises when EVERY recipient is refused."""
 

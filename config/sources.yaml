@@ -903,6 +903,22 @@ exclude_keywords:
   - alumina ceramics
   - boron carbide reinforced
   - UHMWPE
+  # 软质/纤维增强防弹材料，和陶瓷复合装甲同类，2026-09-24 本人在 issue #5 标为不相关。
+  # 原来只排了 UHMWPE，漏了芳纶系的牌号。
+  - Kevlar
+  - aramid
+  - Twaron
+  - Dyneema
+  - Spectra fiber
+  - soft armor
+  - soft armour
+  - bulletproof
+  - bullet-proof
+  - ballistic fabric
+  - ballistic laminate
+  - 芳纶
+  - 凯夫拉
+  - 防弹衣
   - 陶瓷装甲
   - 陶瓷复合装甲
   - 陶瓷面板

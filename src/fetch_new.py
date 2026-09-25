@@ -670,6 +670,30 @@ def _clean_title(value: str | None) -> str:
     return value.strip()
 
 
+# Some journals -- overwhelmingly the predatory ones -- put their citation-metric
+# boasts in the abstract field instead of an abstract. Seen on 2026-09-24 in
+# 10.15863/tas..., whose whole "abstract" was:
+#   "Impact Factor: ISRA (India) = 6.317 ISI (Dubai, UAE) = 1.582 GIF (Australia)
+#    = 0.564 JIF = 1.500 SIS (USA) = 0.912 ..."
+# That is worse than having no abstract: the topic gate reads it as real text, and the
+# paper is judged as though its content had been examined. A Kevlar ballistic-composite
+# paper reached the digest that way and the owner marked it irrelevant (issue #5).
+# Treat it as missing, so the candidate is judged on its title alone and the
+# abstract-less path applies.
+_METRIC_SPAM = re.compile(
+    r"impact\s+factor\s*:|(?:ISRA|ISI|GIF|JIF|SIS|SJIF|ICV|PIF|IBI|OAJI|ESJI|РИНЦ)\s*\([^)]*\)\s*=",
+    re.I,
+)
+
+
+def _looks_like_metric_spam(text: str | None) -> bool:
+    if not text:
+        return False
+    hits = len(_METRIC_SPAM.findall(text))
+    # One mention could be a legitimate sentence; a list of them is a scoreboard.
+    return hits >= 3 or (hits >= 1 and len(text) < 400)
+
+
 def _extract_openalex_abstract(item: dict) -> str | None:
     abstract = item.get("abstract")
     if isinstance(abstract, dict):
@@ -677,7 +701,7 @@ def _extract_openalex_abstract(item: dict) -> str | None:
         if text:
             return text
     if isinstance(abstract, str) and abstract.strip():
-        return abstract.strip()
+        return None if _looks_like_metric_spam(abstract) else abstract.strip()
     inverted = item.get("abstract_inverted_index")
     if isinstance(inverted, dict) and inverted:
         try:
@@ -690,6 +714,9 @@ def _extract_openalex_abstract(item: dict) -> str | None:
                 if 0 <= pos < size:
                     tokens[pos] = word
         summary = " ".join(filter(None, tokens)).strip()
+        if _looks_like_metric_spam(summary):
+            logger.info("Discarding a citation-metric blob posing as an abstract")
+            return None
         return summary or None
     return None
 
@@ -700,6 +727,9 @@ def _clean_crossref_abstract(value: str | None) -> str | None:
     text = html.unescape(value)
     text = re.sub(r"<[^>]+>", " ", text)
     text = re.sub(r"\s+", " ", text).strip()
+    if _looks_like_metric_spam(text):
+        logger.info("Discarding a citation-metric blob posing as an abstract")
+        return None
     return text or None
 
 

@@ -12,8 +12,17 @@ concurrency:
 # in the real Thursday digest. Code changes are validated by ci.yml instead.
 on:
   schedule:
-    # Beijing is UTC+8, so 16:35 Thursday Beijing = 08:35 Thursday UTC.
-    - cron: "35 8 * * 4"
+    # Beijing is UTC+8, so 15:30 Thursday Beijing = 07:30 Thursday UTC.
+    - cron: "30 7 * * 4"
+    # Two backups. GitHub's scheduled events are best-effort: they queue under load
+    # and are sometimes dropped outright. On 2026-09-24 the 08:35 UTC slot did not
+    # start until 13:44 UTC -- a 5h09m delay -- so the mail landed at 22:15 Beijing
+    # instead of the afternoon. These cannot beat a queue delay, but they do cover a
+    # slot that GitHub skips entirely, which would otherwise cost a whole week.
+    # The guard job below makes them harmless: whichever run actually starts first
+    # sends the digest, and the others exit in seconds.
+    - cron: "30 9 * * 4"
+    - cron: "30 11 * * 4"
   workflow_dispatch:
     inputs:
       dry_run:
@@ -22,7 +31,35 @@ on:
         default: false
 
 jobs:
+  # Cheap gate for the backup slots: has this Thursday's digest already gone out?
+  # The successful run commits reports/report-<Beijing date>.html, so its presence in
+  # a fresh checkout is the record. Costs a few seconds when it skips.
+  # workflow_dispatch is never gated -- a manual run is an explicit instruction.
+  guard:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      should_run: ${{ steps.check.outputs.should_run }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: check
+        run: |
+          set -euo pipefail
+          report="reports/report-$(TZ=Asia/Shanghai date +%Y%m%d).html"
+          if [ "${{ github.event_name }}" != "schedule" ]; then
+            echo "Manual run; not gated."
+            echo "should_run=true" >> "$GITHUB_OUTPUT"
+          elif [ -f "$report" ]; then
+            echo "::notice::$report already exists, so this Thursday's digest was already sent. Skipping."
+            echo "should_run=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "No $report yet; this run delivers."
+            echo "should_run=true" >> "$GITHUB_OUTPUT"
+          fi
+
   watch:
+    needs: guard
+    if: needs.guard.outputs.should_run == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 50
     permissions:
