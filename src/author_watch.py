@@ -76,6 +76,8 @@ def candidate_from_openalex(item: Dict[str, Any]) -> CandidateWork | None:
         published=published, venue=source.get("display_name"),
         metrics={"cited_by": float(item.get("cited_by_count") or 0)},
         extra={"openalex_authorships": authorship_identifiers(item), "discovery_route": "author_watch",
+               "openalex_source_id": (source.get("id") or "").rsplit("/", 1)[-1],
+               "issns": source.get('issn') or [],
                "referenced_works": item.get("referenced_works") or [], "work_type": item.get("type")},
     )
 

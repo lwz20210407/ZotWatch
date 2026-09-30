@@ -23,6 +23,11 @@ WEIGHT_SUM_TOLERANCE = 1e-6
 def check(base_dir: Path) -> List[str]:
     problems: List[str] = []
     settings = load_settings(base_dir)
+    from .entity_tracking import load_registry
+    try:
+        load_registry(base_dir)
+    except (OSError, ValueError, TypeError):
+        problems.append('Entity tracking registry is invalid; fix confirmed identities before publishing')
 
     weights = settings.scoring.weights
     total = sum(weights.model_dump().values())

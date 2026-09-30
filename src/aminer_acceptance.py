@@ -23,7 +23,7 @@ from .utils import atomic_json
 
 
 def profile_fingerprint(base):
-    names = ["data/profile.json", "data/faiss.index", "data/profile.sqlite", "data/watch-state/state.json", "config/feedback.yaml", "data/feedback-issues.json",
+    names = ["data/profile.json", "data/faiss.index", "data/profile.sqlite", "data/watch-state/state.json", "config/feedback.yaml", "data/feedback-issues.json", "config/entity-tracking.json",
              "config/scoring.yaml", "config/research.yaml", "config/embedding.yaml", "config/sources.yaml"]
     return {n: hashlib.sha256((base / n).read_bytes()).hexdigest() for n in names if (base / n).is_file()}
 
