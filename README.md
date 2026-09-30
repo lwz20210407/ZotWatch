@@ -192,6 +192,8 @@ Label counts: {'must_read': 68, 'consider': 716, 'ignore': 245}
 
 ## 相关文档
 
+- [按需高级学术研究](docs/aminer-advanced-research.md)：收费接口显式开关、持久预算、深检索/引文扩展、实体资料、实验记录与纯缓存模式。
+
 - [AMiner 能力接入边界](docs/aminer-capabilities.md)：区分 API、MCP、Skills、项目实现与实际验证；专利明确不接入。
 
 - [学者、机构与期刊追踪闭环](docs/entity-tracking.md)：确认身份、有限定向检索、匹配证据、反馈统计与停用。

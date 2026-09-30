@@ -225,7 +225,7 @@ jobs:
       - name: Test topic matching and ranking
         env:
           AMINER_API_KEY: ""  # Unit tests must not consume the production AMiner credential.
-        run: python -B -m unittest discover -s tests -v
+        run: python -B tools/run_offline_tests.py
 
       - name: Read owner feedback
         env:
