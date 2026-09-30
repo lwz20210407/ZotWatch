@@ -1,0 +1,41 @@
+{
+  "schema_version": 1,
+  "entries": [
+    {
+      "key": "person:611a3ad89e795e8d33c67994",
+      "kind": "person",
+      "aminer_id": "611a3ad89e795e8d33c67994",
+      "name": "Dirk Mohr",
+      "enabled": true,
+      "openalex_ids": ["A5110517133"],
+      "issns": [],
+      "reason": "Extends the existing authors.yaml identity A5110517133. AMiner candidate matches ETH affiliation and ductile-fracture research; seed DOI 10.1016/j.ijimpeng.2019.05.008 confirms author name and OpenAlex identity. See docs/entity-tracking-evidence.md.",
+      "review_sha256": "94739a984b8c09567eaa722cd4e8565188f08f21afc3464f42c6bcf7da2e5fb6",
+      "confirmed_at": "2026-10-01T01:33:53+08:00"
+    },
+    {
+      "key": "venue:5eade71cedb6e7d53c077e0f",
+      "kind": "venue",
+      "aminer_id": "5eade71cedb6e7d53c077e0f",
+      "name": "International Journal of Impact Engineering",
+      "enabled": true,
+      "openalex_ids": ["S9070569"],
+      "issns": ["0734-743X"],
+      "reason": "Existing tracked journal. Exact seed DOI 10.1016/j.ijimpeng.2019.05.008 returns this AMiner venue_id and OpenAlex source S9070569 with matching ISSN 0734-743X.",
+      "review_sha256": "9631b9dfffff8939a5d92a9ac4b12a85401b4692a1dcbe26b6295f3f218f3f56",
+      "confirmed_at": "2026-10-01T01:33:55+08:00"
+    },
+    {
+      "key": "organization:62331e350a6eb147dca8a805",
+      "kind": "organization",
+      "aminer_id": "62331e350a6eb147dca8a805",
+      "name": "Swiss Federal Institute of Technology in Zurich",
+      "enabled": true,
+      "openalex_ids": ["I35440088"],
+      "issns": [],
+      "reason": "Institution associated with the existing Dirk Mohr seed. AMiner canonical ETH Zurich organization search and seed DOI affiliation identify ETH Zurich, OpenAlex I35440088, ROR 05a28rw58. Differing AMiner department/legacy IDs are not automatically aliased. All papers still require the project topic gate.",
+      "review_sha256": "b5599c2886baca313f4edb168379a11ed849a07ea48efe2f79643d1e0405a975",
+      "confirmed_at": "2026-10-01T01:33:56+08:00"
+    }
+  ]
+}
