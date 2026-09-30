@@ -192,6 +192,8 @@ Label counts: {'must_read': 68, 'consider': 716, 'ignore': 245}
 
 ## 相关文档
 
+- [AMiner 限免发现与独立对照](docs/aminer-integration.md)：可选的方向推荐、短语搜索、批量信息补全；包含开关、凭据与故障回退说明。
+
 - [打分模型](docs/scoring-model.md)
 - [引文发现](docs/citation-discovery.md)
 - [研究助手功能](docs/research-assistant.md)

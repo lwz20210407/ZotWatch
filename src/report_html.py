@@ -107,7 +107,8 @@ def published_label(work: RankedWork) -> str:
     a full date for every paper would claim a day the publisher never stated.
     """
     if not work.published:
-        return ""
+        year = (work.extra or {}).get("publication_year")
+        return f"{year} · 日期待核实" if year else ""
     precision = (work.extra or {}).get("date_precision") or "day"
     if precision == "year":
         return work.published.strftime("%Y")
@@ -153,6 +154,12 @@ def rating_buttons(work: RankedWork) -> List[dict]:
 def citations(work: RankedWork) -> int:
     metrics = work.metrics or {}
     return int(metrics.get("cited_by", metrics.get("is-referenced-by", 0)) or 0)
+
+
+def citation_label(work: RankedWork) -> str:
+    if work.extra.get("aminer_id") and not any(k in work.metrics for k in ("cited_by", "is-referenced-by")):
+        return work.extra.get("aminer_citation_bucket") or "未提供"
+    return str(citations(work))
 
 
 # One hue per research direction, assigned by a stable hash of the name so the
@@ -693,6 +700,8 @@ _TEMPLATE = """
 
   {% if authors_line(work) %}<div class="line">{{ icon('user') }}<span>{{ authors_line(work) }}</span></div>{% endif %}
   {% if source_line(work) %}<div class="line">{{ icon('book') }}<span><em>{{ source_line(work) }}</em></span></div>{% endif %}
+  {% if work.extra.get('aminer_id') %}<div class="line"><span>AMiner 发现／补充信息{% if work.extra.get('abstract_is_partial') %} · 以下为摘要片段{% endif %}{% if work.extra.get('date_precision') != 'day' %} · 出版日期待核实{% endif %}</span></div>{% endif %}
+  {% if work.extra.get('aminer_applicability') %}<div class="line"><span>适用性：{{ work.extra.aminer_applicability.reason }}</span></div>{% endif %}
 
   {% if work.extra.get('tldr_zh') %}<div class="tldr">{{ work.extra.tldr_zh }}</div>{% endif %}
 
@@ -718,7 +727,7 @@ _TEMPLATE = """
     <span class="m rel" title="综合相关度，0–1">{{ icon('target', 14) }}相关度
       <b>{{ '%.2f'|format(work.score) }}</b>
       <span class="bar"><i style="width:{{ (work.score * 100)|round|int }}%"></i></span></span>
-    <span class="m">被引用 <b>{{ citations(work) }}</b></span>
+    <span class="m">被引用 <b>{{ citation_label(work) }}</b></span>
     {% if work.doi %}<span class="m">{{ icon('link', 14) }}<a href="https://doi.org/{{ work.doi }}"
        target="_blank" rel="noopener">{{ work.doi }}</a></span>{% endif %}
     {% set rates = rating_buttons(work) %}
@@ -754,7 +763,7 @@ _TEMPLATE = """
 
 {% if exploration_works %}
 <h2>跨圈方法发现 <em>{{ exploration_works|length }} 篇</em></h2>
-<p class="note">独立语义检索所得，不要求与种子有引文关系；超出近期窗口，不能当作新发表。</p>
+<p class="note">独立语义检索或 AMiner 补充发现，不要求与种子有引文关系；超出近期窗口或具体日期待核实，不能当作新发表。</p>
 <div class="cards">{% for work in exploration_works %}{{ card(work, 0) }}{% endfor %}</div>
 {% endif %}
 
@@ -771,10 +780,18 @@ _TEMPLATE = """
 {% endif %}
 
 {% if coverage_warnings or diagnostics.get('coverage') or diagnostics.get('proposals')
-      or diagnostics.get('collaboration_groups') or diagnostics.get('network') %}
+      or diagnostics.get('collaboration_groups') or diagnostics.get('network') or diagnostics.get('aminer') %}
 <h2>运行诊断</h2>
 <details class="diag">
   <summary>展开本轮运行详情（供排查用，不是推荐内容）</summary>
+  {% set aminer_review = diagnostics.get('aminer', {}).get('applicability', {}).get('review', []) %}
+  {% if aminer_review %}
+  <h3>AMiner 条件参考与待补证</h3>
+  <p class="note">以下条目达到评分阈值，但适用工况或原始摘要仍需核查；不进入自动推荐、RSS 或已推送记录。</p>
+  {% for item in aminer_review if item.status != 'exclude' and item.label in ['consider', 'must_read'] %}
+  <p><a href="{{ item.url or '#' }}" target="_blank" rel="noopener">{{ item.title }}</a><br>{{ item.reason }}</p>
+  {% endfor %}
+  {% endif %}
   {% for warning in coverage_warnings %}<div class="warn">{{ warning }}</div>{% endfor %}
   {% if diagnostics.get('coverage') %}
   <table>
@@ -1026,7 +1043,7 @@ def render_html(works: List[RankedWork], output_path: Path | str, *, watched_wor
         author_candidates=author_candidates(diagnostics, feedback_repository),
         library_directions=library_directions or [],
         quiet_directions=[n for n, _ in (library_directions or []) if n not in seen],
-        rating_buttons=rating_buttons, citations=citations,
+        rating_buttons=rating_buttons, citations=citations, citation_label=citation_label,
     )
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(rendered, encoding="utf-8")

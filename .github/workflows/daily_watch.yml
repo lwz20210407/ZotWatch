@@ -76,6 +76,7 @@ jobs:
       OPENALEX_MAILTO: ${{ secrets.OPENALEX_MAILTO }}
       OPENALEX_API_KEY: ${{ secrets.OPENALEX_API_KEY }}
       CROSSREF_MAILTO: ${{ secrets.CROSSREF_MAILTO }}
+      AMINER_API_KEY: ${{ secrets.AMINER_API_KEY }}
       # Secret rather than variable: this repository is public, so its Actions
       # logs are public too, and only secrets are masked there. A variable would
       # print the address in plain text. Accepts a comma-separated list.

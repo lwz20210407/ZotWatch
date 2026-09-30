@@ -36,6 +36,7 @@ from .problem_ranking import diverse_select
 from .network_budget import BudgetSession
 from .research_evidence import attach_evidence
 from .version_watch import VersionMonitor
+from .aminer_policy import aminer_only, screen_aminer_delivery, recent_delivery, select_backfill
 
 load_dotenv()  # Load default .env if present
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -251,10 +252,17 @@ def _run_watch(
     ranked = history.filter(ranked)
     if config.enabled:
         ranked = [w for w in ranked if not w.extra.get("feedback_read")]
+    aminer_applicability = {}
+    aminer_live = settings.sources.aminer.enabled and settings.sources.aminer.mode == "live"
+    if aminer_live:
+        ranked, aminer_applicability = screen_aminer_delivery(ranked, config)
     recent = _filter_recent(ranked, days=settings.sources.window_days)
+    if settings.sources.aminer.enabled and settings.sources.aminer.mode == "live":
+        recent = recent_delivery(recent, settings.sources.aminer)
     recent_keys = {work_key(w) for w in recent}
     now = datetime.now(timezone.utc)
     classics = [w for w in ranked if work_key(w) not in recent_keys and w.extra.get("referenced_by")
+                and not (aminer_live and aminer_only(w))
                 and w.published and w.published <= now and w.label != "ignore"
                 and w.similarity >= settings.citation_watch.min_similarity]
     classics = classics[:settings.citation_watch.max_classic_items] if settings.citation_watch.enabled else []
@@ -262,9 +270,13 @@ def _run_watch(
         work.extra["report_channel"] = "经典文献补漏"
     classic_keys = {work_key(w) for w in classics}
     exploration = [w for w in ranked if w.extra.get("semantic_facets") and work_key(w) not in recent_keys | classic_keys
+                   and not (aminer_live and aminer_only(w))
                    and w.label != "ignore" and w.published and w.published <= now][:config.semantic_backfill_items] if config.enabled else []
     for work in exploration:
         work.extra["report_channel"] = "跨圈方法发现（非近期新作）"
+    if settings.sources.aminer.enabled and settings.sources.aminer.mode == "live":
+        excluded = recent_keys | classic_keys | {work_key(w) for w in exploration}
+        exploration.extend(select_backfill(ranked, excluded, settings, now))
     ranked = recent
     # Kept in full at the owner's explicit instruction ("作者动向我没说要删，甚至让你
     # 好好做"), including the gap-filling and newly-emerging author candidates. Only
@@ -301,6 +313,8 @@ def _run_watch(
                  "topic": merged, "dedup": deduped, "delivered": combined},
         retrieval_warnings, history.state), []) if config.enabled else []
     diagnostics = {"coverage": coverage, "proposals": proposals,
+                   "aminer": {**(fetcher.aminer_summary if isinstance(getattr(fetcher, "aminer_summary", None), dict) else {}),
+                              "applicability": aminer_applicability},
                    "collaboration_groups": groups,
                    "network": fetcher.session.summary() if isinstance(fetcher.session, BudgetSession) else {},
                    "retrieval_warnings": retrieval_warnings, "version_warnings": monitor.warnings,
@@ -355,6 +369,17 @@ def _run_watch(
                 text, encoding="utf-8")
         (base_dir / "reports" / "research-diagnostics.json").write_text(
             json.dumps(diagnostics, ensure_ascii=False, indent=2), encoding="utf-8")
+        cohorts = getattr(fetcher, "discovery_comparison", None)
+        if isinstance(cohorts, dict):
+            comparison = {"description": "AMiner 与现有来源的主题筛选后候选对照；不是最终推送排名或人工相关性结论",
+                          "generated_at": datetime.now(timezone.utc).isoformat(),
+                          "mode": settings.sources.aminer.mode,
+                          "counts": {name: len(items) for name, items in cohorts.items()},
+                          "aminer_candidates": [{"title": w.title, "doi": w.doi, "url": w.url,
+                                                 "year": w.extra.get("publication_year")}
+                                                for w in cohorts.get("aminer", [])],
+                          "aminer": fetcher.aminer_summary}
+            (base_dir / "reports" / "aminer-candidates.json").write_text(json.dumps(comparison, ensure_ascii=False, indent=2), "utf-8")
         for name, works in (("baseline", baseline), ("candidate", ranked)):
             snapshot = {"ranking": [{"doi": w.doi, "title": w.title, "score": w.score,
                          "facets": w.extra.get("research_facets", [])} for w in works],
@@ -423,7 +448,8 @@ def _filter_recent(ranked: list[RankedWork], *, days: int) -> list[RankedWork]:
         return ranked
     now = datetime.now(timezone.utc)
     cutoff = now - timedelta(days=days)
-    kept = [work for work in ranked if work.published and cutoff <= work.published <= now]
+    kept = [work for work in ranked if work.published and work.extra.get("date_precision", "day") == "day"
+            and cutoff <= work.published <= now]
     removed = len(ranked) - len(kept)
     if removed > 0:
         logging.getLogger(__name__).info("Dropped %d items older than %d days", removed, days)

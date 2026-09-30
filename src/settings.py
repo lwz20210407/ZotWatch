@@ -104,6 +104,32 @@ class PublicCandidatesApiConfig(BaseModel):
         return key
 
 
+class AMinerConfig(BaseModel):
+    enabled: bool = False
+    mode: Literal["shadow", "live"] = "shadow"
+    delivery: Literal["backfill", "recent_and_backfill"] = "backfill"
+    free_only: Literal[True] = True
+    api_key_env: str = "AMINER_API_KEY"
+    recommendation_size: int = Field(10, ge=1, le=20)
+    max_recommendation_queries: int = Field(4, ge=0, le=20)
+    min_recommendation_novel_ratio: float = Field(0.25, ge=0, le=1)
+    redundant_recommendation_streak: int = Field(2, ge=1, le=5)
+    search_size: int = Field(20, ge=1, le=20)
+    phrases_per_facet: int = Field(2, ge=0, le=4)
+    search_pages: int = Field(1, ge=1, le=10)
+    max_requests: int = Field(48, ge=1, le=150)
+    timeout_seconds: float = Field(25, gt=0, le=60)
+    max_run_seconds: float = Field(300, gt=0, le=600)
+    max_attempts: int = Field(2, ge=1, le=3)
+    interval_seconds: float = Field(0.5, ge=0, le=10)
+    cache_hours: float = Field(24, gt=0, le=168)
+    metadata_batch_size: int = Field(100, ge=1, le=100)
+    max_enrich_items: int = Field(200, ge=0, le=600)
+    max_doi_resolutions: int = Field(10, ge=0, le=30)
+    max_identity_lookups: int = Field(8, ge=0, le=20)
+    backfill_items: int = Field(3, ge=0, le=10)
+
+
 class SourcesConfig(BaseModel):
     window_days: int = 30
     page_size: int = Field(100, ge=1, le=200)
@@ -128,6 +154,7 @@ class SourcesConfig(BaseModel):
     biorxiv: BioRxivConfig = Field(default_factory=BioRxivConfig)
     medrxiv: MedRxivConfig = Field(default_factory=MedRxivConfig)
     altmetric: AltmetricConfig = Field(default_factory=AltmetricConfig)
+    aminer: AMinerConfig = Field(default_factory=AMinerConfig)
 
 
 class EmbeddingConfig(BaseModel):
@@ -321,6 +348,7 @@ class CitationWatchConfig(BaseModel):
 
 
 class ResearchFacet(BaseModel):
+    aminer_phrases: List[str] = Field(default_factory=list)
     id: str
     name: str
     terms: List[str]
