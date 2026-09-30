@@ -4,6 +4,8 @@
 
 ## 启用与关闭
 
+当前部署配置进入首轮影子观察，详见 [发布与效果验收](aminer-rollout.md)。下列开关说明仍适用。
+
 在运行进程环境或 GitHub Actions repository secret 设置 `AMINER_API_KEY`，值为有效 Auth Token（不是签名用的原始 API Key）。不要写入 YAML、提交到 Git 或放进命令行参数。Windows 本机已配置用户环境变量时，可以先运行：
 
 ```powershell

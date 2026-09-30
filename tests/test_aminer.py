@@ -191,6 +191,21 @@ class CandidateTests(unittest.TestCase):
                 self.assertEqual(f.fetch_all()[0].title, base.title)
                 self.assertEqual(f.aminer_summary["warnings"], ["service_failure"])
 
+    def test_optional_aminer_cache_failure_does_not_break_baseline(self):
+        base = CandidateWork(source="test", identifier="1", title="TC4 ductile fracture")
+        with tempfile.TemporaryDirectory() as tmp:
+            f = CandidateFetcher(self.settings, Path(tmp))
+            f._fetch_existing = Mock(return_value=[base])
+            with patch("src.fetch_new.AMinerSource") as source:
+                source.return_value.fetch.return_value = []
+                source.return_value.stats = {}
+                source.return_value.record_topic_results.side_effect = OSError('cache unavailable')
+                self.assertEqual(f.fetch_all(), [base])
+                self.assertEqual(f.discovery_comparison['combined'], [base])
+                self.assertIn('source_processing_failure', f.aminer_summary['warnings'])
+            with patch('src.fetch_new.AMinerSource', side_effect=OSError('constructor failure')):
+                self.assertEqual(f.fetch_all(), [base])
+
     def test_baseline_day_precision_survives_year_only_overlay(self):
         a = CandidateWork(source="crossref", identifier="x", doi="10.1234/x", title="TC4 fracture", published=datetime.now(timezone.utc))
         b = normalize_paper({"id": "p", "doi": a.doi, "title": a.title, "year": 2026}, route="search")

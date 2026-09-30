@@ -981,21 +981,21 @@ altmetric:
   api_key_env: "ALTMETRIC_KEY"
 aminer:
   # Optional source: missing credentials or an outage never blocks the existing digest.
-  enabled: false
+  enabled: true  # First production rollout: collect shadow evidence, preserve existing delivery.
   mode: shadow  # shadow records a comparison; live joins candidates into the digest.
   delivery: backfill  # AMiner-only discoveries go to method backfill, not the main new-paper list.
   free_only: true
   api_key_env: AMINER_API_KEY
   recommendation_size: 10
-  max_recommendation_queries: 4
+  max_recommendation_queries: 2
   min_recommendation_novel_ratio: 0.25
   redundant_recommendation_streak: 2
   phrases_per_facet: 2
   search_size: 20
   search_pages: 1
-  max_requests: 48
-  max_run_seconds: 300
-  timeout_seconds: 25
+  max_requests: 24
+  max_run_seconds: 120
+  timeout_seconds: 15
   max_attempts: 2
   interval_seconds: 0.5
   cache_hours: 24

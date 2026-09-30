@@ -46,18 +46,24 @@ class CandidateFetcher:
         self.aminer_summary = {"enabled": self.settings.sources.aminer.enabled}
         if not self.settings.sources.aminer.enabled:
             return baseline
-        source = AMinerSource(self.settings, self.base_dir / "data" / "cache" / "aminer", feedback=getattr(self, "feedback", None))
+        source = None
         try:
+            source = AMinerSource(self.settings, self.base_dir / "data" / "cache" / "aminer", feedback=getattr(self, "feedback", None))
             self.aminer_candidates = source.fetch()
             self.aminer_candidates = align_identities(self.aminer_candidates, baseline)
             if self.settings.sources.aminer.mode == "live":
                 self.aminer_candidates = source.resolve_dates(self.aminer_candidates, self.session)
+            aminer_topic = self._filter_by_topic(self.aminer_candidates)
+            source.record_topic_results(aminer_topic)
+            self.aminer_summary.update(source.stats, mode=self.settings.sources.aminer.mode)
+            combined = self._filter_by_topic(merge_candidates([*baseline, *self.aminer_candidates]))
         except (requests.RequestException, ValueError, TypeError, OSError):
             logger.warning("AMiner discovery failed; existing sources continue")
-        aminer_topic = self._filter_by_topic(self.aminer_candidates)
-        source.record_topic_results(aminer_topic)
-        self.aminer_summary.update(source.stats, mode=self.settings.sources.aminer.mode)
-        combined = self._filter_by_topic(merge_candidates([*baseline, *self.aminer_candidates]))
+            stats = source.stats if source is not None else {}
+            self.aminer_summary.update(stats, mode=self.settings.sources.aminer.mode)
+            if not self.aminer_summary.get("warnings"):
+                self.aminer_summary["warnings"] = ["source_processing_failure"]
+            aminer_topic, combined = [], baseline
         self.discovery_comparison = {"baseline": baseline, "aminer": aminer_topic,
                                      "combined": combined}
         # AMiner candidates never enter the legacy aggregate cache; disabling the source is immediate.

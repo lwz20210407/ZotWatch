@@ -222,6 +222,8 @@ jobs:
             candidate-v1-${{ github.ref_name }}-${{ steps.model.outputs.slug }}-
 
       - name: Test topic matching and ranking
+        env:
+          AMINER_API_KEY: ""  # Unit tests must not consume the production AMiner credential.
         run: python -B -m unittest discover -s tests -v
 
       - name: Read owner feedback
@@ -315,6 +317,8 @@ jobs:
 
       - name: Build email preview only
         if: env.DRY_RUN == 'true'
+        env:
+          EMAIL_TO: dry-run@example.invalid
         run: python -m src.cli notify --dry-run
 
       - name: Commit successful delivery history

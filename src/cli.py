@@ -39,6 +39,7 @@ from .version_watch import VersionMonitor
 from .query_feedback import annotate_counts
 from .research_archive import attach_topics
 from .aminer_policy import aminer_only, screen_aminer_delivery, recent_delivery, select_backfill
+from .aminer_shadow import export_shadow
 
 load_dotenv()  # Load default .env if present
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -385,6 +386,12 @@ def _run_watch(
             json.dumps(diagnostics, ensure_ascii=False, indent=2), encoding="utf-8")
         cohorts = getattr(fetcher, "discovery_comparison", None)
         if isinstance(cohorts, dict):
+            def write_shadow_evidence():
+                cache_file = base_dir / "data/cache/candidate_cache.json"
+                cached_at = json.loads(cache_file.read_text("utf-8")).get("fetched_at") if cache_file.exists() else None
+                return export_shadow(cohorts, fetcher.aminer_summary, base_dir / "reports",
+                                     window_days=settings.sources.window_days, baseline_cached_at=cached_at)
+            _optional("AMiner shadow evidence", write_shadow_evidence, {})
             comparison = {"description": "AMiner 与现有来源的主题筛选后候选对照；不是最终推送排名或人工相关性结论",
                           "generated_at": datetime.now(timezone.utc).isoformat(),
                           "mode": settings.sources.aminer.mode,
