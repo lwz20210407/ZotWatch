@@ -61,6 +61,8 @@ class ResearchFlowTests(unittest.TestCase):
         self.client.query.side_effect=None; self.client.query.return_value={'data':[]}
         self.assertEqual(run(self.args('--resume'),self.client)['status'],'complete')
         with self.assertRaises(ValueError): run(self.args('--resume','--target','20'),self.client)
+        with self.assertRaises(ValueError): run(self.args('--resume','--api-run-dir',str(self.output/'other-budget')),self.client)
+        with self.assertRaises(ValueError): run(self.args('--resume','--budget-yuan','5'),self.client)
 
     def test_cursor_loop_stops_with_visible_incomplete_status(self):
         self.client.query.return_value={'data':{'items':[{'paper_id':'a','title':'Steel fracture','year':2025}]},'next_cursor':'x'*20}

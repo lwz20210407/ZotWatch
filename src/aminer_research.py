@@ -6,6 +6,7 @@ import html
 import json
 import re
 import time
+from decimal import Decimal
 from pathlib import Path
 
 from .aminer_advanced import ResearchClient, ResearchAPIError
@@ -93,6 +94,8 @@ def run(args, client=None):
     config_hash=hashlib.sha256((args.base_dir/'config/research.yaml').read_bytes()).hexdigest()
     spec={k:getattr(args,k) for k in ('query','mode','pages','page_size','target','year_from','year_to','depth','seeds_per_depth','details','experiments','seed_id')}
     spec['research_config_sha256']=config_hash
+    spec['api_directory']=str((args.api_run_dir or output/'api').resolve())
+    spec['budget_yuan']=str(Decimal(args.budget_yuan).normalize())
     if output.exists() and any(output.iterdir()) and not args.resume:
         raise ValueError('Use a new output directory or explicit --resume')
     output.mkdir(parents=True,exist_ok=True)

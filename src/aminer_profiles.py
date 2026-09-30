@@ -3,6 +3,7 @@ import argparse
 import html
 import json
 import re
+from decimal import Decimal
 from pathlib import Path
 
 from .aminer_advanced import ResearchClient, ResearchAPIError
@@ -78,6 +79,8 @@ def run(args,client=None):
     sections=args.section or DEFAULTS[args.kind]
     for section in sections: request_for(args.kind,section,args.id)
     spec={'kind':args.kind,'id':args.id,'sections':sections,'offset':args.offset,'limit':args.limit,'year':args.year}
+    spec['api_directory']=str((args.api_run_dir or output/'api').resolve())
+    spec['budget_yuan']=str(Decimal(args.budget_yuan).normalize())
     if output.exists() and any(output.iterdir()) and not args.resume: raise ValueError('Use a new directory or --resume')
     output.mkdir(parents=True,exist_ok=True)
     client=client or ResearchClient(args.api_run_dir or output/'api',budget_yuan=args.budget_yuan,allow_paid=args.allow_paid,cache_only=args.cache_only)
