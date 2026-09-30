@@ -37,6 +37,7 @@ from .network_budget import BudgetSession
 from .research_evidence import attach_evidence
 from .version_watch import VersionMonitor
 from .query_feedback import annotate_counts
+from .research_archive import attach_topics
 from .aminer_policy import aminer_only, screen_aminer_delivery, recent_delivery, select_backfill
 
 load_dotenv()  # Load default .env if present
@@ -303,6 +304,7 @@ def _run_watch(
                                    session=fetcher.session)
     if config.enabled:
         combined = [attach_evidence(work, config) for work in combined]
+    combined = attach_topics(combined, base_dir / "reports/research")
     enriched_by_key = {work_key(work): work for work in combined}
     ranked = [enriched_by_key[work_key(work)] for work in ranked]
     watched = [enriched_by_key[work_key(work)] for work in watched]

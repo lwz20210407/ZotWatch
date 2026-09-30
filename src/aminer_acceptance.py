@@ -19,14 +19,7 @@ from .settings import load_settings
 from .storage import ProfileStorage
 from .vectorizer import EmbeddingError
 from .watch_history import WatchHistory
-
-
-def atomic_json(path, value):
-    path = Path(path)
-    path.parent.mkdir(parents=True, exist_ok=True)
-    temp = path.with_suffix(".tmp")
-    temp.write_text(json.dumps(value, ensure_ascii=False, indent=2), "utf-8")
-    temp.replace(path)
+from .utils import atomic_json
 
 
 def profile_fingerprint(base):

@@ -675,7 +675,7 @@ _TEMPLATE = """
 
     <p class="lede">
       本期 <b>{{ counts.total }}</b> 篇{% if counts.must_read %}，其中 <b>{{ counts.must_read }}</b> 篇必读{% endif %}，
-      从近 {{ window_days }} 天的{% if funnel %} <b>{{ funnel.raw }}</b> {% else %} {% endif %}篇候选中筛出，
+      近期检索窗口为 {{ window_days }} 天{% if classic_works or exploration_works %}，另含历史或日期待核实的方法补充{% endif %}{% if funnel %}；共检索 <b>{{ funnel.raw }}</b> 篇候选{% endif %}，
       按你 Zotero 文库{% if library_size %} <b>{{ library_size }}</b> {% endif %}的兴趣画像排序。
     </p>
   </header>
@@ -702,6 +702,7 @@ _TEMPLATE = """
   {% if source_line(work) %}<div class="line">{{ icon('book') }}<span><em>{{ source_line(work) }}</em></span></div>{% endif %}
   {% if work.extra.get('aminer_id') %}<div class="line"><span>AMiner 发现／补充信息{% if work.extra.get('abstract_is_partial') %} · 以下为摘要片段{% endif %}{% if work.extra.get('date_precision') != 'day' %} · 出版日期待核实{% endif %}</span></div>{% endif %}
   {% if work.extra.get('aminer_applicability') %}<div class="line"><span>适用性：{{ work.extra.aminer_applicability.reason }}</span></div>{% endif %}
+  {% for topic in work.extra.get('research_topics', []) %}<div class="line"><a href="{{ topic.url }}">专题概览：{{ topic.title }}</a></div>{% endfor %}
 
   {% if work.extra.get('tldr_zh') %}<div class="tldr">{{ work.extra.tldr_zh }}</div>{% endif %}
 

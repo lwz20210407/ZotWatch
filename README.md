@@ -192,6 +192,8 @@ Label counts: {'must_read': 68, 'consider': 716, 'ignore': 245}
 
 ## 相关文档
 
+- [专题归档与周报关联](docs/research-archive.md)：本地证据包、显式公开目录、身份关联与撤回。
+
 - [反馈驱动的检索调度](docs/feedback-scheduling.md)：明确偏好、轮换探索和查询效果记录。
 
 - [候选向量恢复与独立验收](docs/ranking-resilience.md)：跨运行缓存、超时恢复、可选来源失败隔离。
@@ -209,7 +211,7 @@ Label counts: {'must_read': 68, 'consider': 716, 'ignore': 245}
 - [作者追踪](docs/author-tracking.md)
 - [主题监测](docs/topic-monitoring.md)
 
-全流程只使用标题、摘要和引文元数据，**不获取正文**。
+自动周报只使用标题、摘要和引文元数据，**不获取正文**。按需证据工作台可读取用户明确提供的本地全文。
 
 ## 许可证
 
