@@ -98,6 +98,18 @@ def normalize_paper(raw, *, route, facet="", query=""):
         "field_sources": {"title": "aminer", "abstract": "aminer" if abstract else None,
                           "published": "aminer" if published else None},
     }
+    valid_id = lambda value: isinstance(value, str) and bool(re.fullmatch(r'[a-zA-Z0-9_-]{1,128}', value))
+    extra['aminer_author_ids'] = sorted({x['id'] for x in names if isinstance(x, dict) and valid_id(x.get('id'))})
+    orgs = []
+    for author in names:
+        if isinstance(author, dict):
+            value = author.get('org_id', [])
+            orgs.extend(value if isinstance(value, list) else [value])
+    extra['aminer_org_ids'] = sorted({value for value in orgs if valid_id(value)})
+    venue_record = raw.get('venue') if isinstance(raw.get('venue'), dict) else {}
+    venue_id = raw.get('venue_id') or venue_record.get('id')
+    if valid_id(venue_id):
+        extra['aminer_venue_id'] = venue_id
     doi = clean_doi(raw.get("doi"))
     if doi:
         extra["external_ids"]["doi"] = doi
@@ -107,11 +119,14 @@ def normalize_paper(raw, *, route, facet="", query=""):
         venue=venue or text(raw.get("venue_name")) or None, extra=extra)
 
 
-def query_plan(settings):
+def query_plan(settings, entities=()):
     """Round-robin stages prevent the first facet from consuming all search pages."""
     cfg = settings.sources.aminer
     facets = settings.research.facets
     recommendations = [(f.id, "recommend", {"topics": [f.semantic_query or f.name], "size": cfg.recommendation_size}) for f in facets]
+    entity_recommendations = [('entity:' + e['key'], 'recommend', {'aminer_author_id': e['aminer_id'],
+        'author_name': e['name'], 'topics': [(f.semantic_query or f.name)[:600] for f in facets[:3]],
+        'size': cfg.recommendation_size}) for e in entities if e['enabled'] and e['kind'] == 'person']
     plan = []
     for page in range(1, cfg.search_pages + 1):
         for slot in range(cfg.phrases_per_facet):
@@ -124,15 +139,15 @@ def query_plan(settings):
                     plan.append((f.id, "search", {"title": phrases[slot], "page": page, "size": cfg.search_size}))
     # One short-phrase pass for every direction before any slow recommendation call.
     first_pass = min(len(facets), len(plan))
-    return plan[:first_pass] + recommendations + plan[first_pass:]
+    return plan[:first_pass] + entity_recommendations + recommendations + plan[first_pass:]
 
 
 class AMinerSource:
-    def __init__(self, settings, cache_dir, *, client=None, feedback=None):
+    def __init__(self, settings, cache_dir, *, client=None, feedback=None, entities=()):
         self.settings = settings
         self.config = settings.sources.aminer
         self.cache_dir = Path(cache_dir)
-        self.plan = query_plan(settings)
+        self.plan = query_plan(settings, entities)
         self.fingerprint = hashlib.sha256(json.dumps(self.plan, sort_keys=True, ensure_ascii=False).encode()).hexdigest()
         self.client = client if client is not None else AMinerClient(self.config, self.cache_dir, query_version=self.fingerprint)
         self.stats = {}
@@ -199,15 +214,18 @@ class AMinerSource:
                     break
                 continue
             next_index = (index + 1) % len(self.plan)
-            query = params.get("title") or params["topics"][0]
+            query = params.get("title") or next(iter(params.get("topics", [])), '') or params.get('author_name', '')
             if len(rows) >= params["size"]:
                 self.client.warn("candidate_cap")
             batch = []
             ident = query_id(endpoint, params)
             for row in rows:
-                work = normalize_paper(row, route=endpoint, facet=facet, query=query)
+                work = normalize_paper(row, route=endpoint, facet='' if facet.startswith('entity:') else facet, query=query)
                 if work:
                     work.extra["provenance"][-1]["query_id"] = ident
+                    if facet.startswith('entity:'):
+                        work.extra['provenance'][-1]['entity_key'] = facet.removeprefix('entity:')
+                        work.extra['entity_discovery_note'] = '由已确认学者触发的推荐线索；并不证明该学者署名。'
                     works.append(work)
                     batch.append(work)
                 else:

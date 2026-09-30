@@ -217,6 +217,7 @@ jobs:
           path: |
             data/cache/aminer
             data/cache/candidate-vectors
+            data/cache/entity-tracking
           key: candidate-v1-${{ github.ref_name }}-${{ steps.model.outputs.slug }}-${{ github.run_id }}-${{ github.run_attempt }}
           restore-keys: |
             candidate-v1-${{ github.ref_name }}-${{ steps.model.outputs.slug }}-
@@ -276,6 +277,7 @@ jobs:
           path: |
             data/cache/aminer
             data/cache/candidate-vectors
+            data/cache/entity-tracking
           key: candidate-v1-${{ github.ref_name }}-${{ steps.model.outputs.slug }}-${{ github.run_id }}-${{ github.run_attempt }}
 
       - name: Prepare Pages

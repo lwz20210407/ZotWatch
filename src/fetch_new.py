@@ -23,6 +23,7 @@ from .source_paging import crossref_publication_date, crossref_publication_date_
 from .settings import Settings
 from .topic_matching import matches_any, matches_groups
 from .utils import ensure_isoformat, iso_to_datetime, utc_now
+from .entity_tracking import load_registry, mark_entities, fetch_entities
 
 logger = logging.getLogger(__name__)
 ARXIV_REQUEST_DELAY_SECONDS = 3.1
@@ -35,6 +36,11 @@ class CandidateFetcher:
         self.session = BudgetSession(Path(base_dir) / "data" / "network-state", settings.network)
         self.session.headers.update({"User-Agent": "ZotWatcher/0.1 (https://github.com/Yorks0n/ZotWatch)"})
         self.base_dir = Path(base_dir)
+        try:
+            self.tracked_entities = load_registry(self.base_dir)['entries']
+        except (OSError, ValueError, TypeError):
+            logger.warning('Entity registry invalid; existing sources continue without entity tracking')
+            self.tracked_entities = []
         self.cache_path = self.base_dir / "data" / "cache" / "candidate_cache.json"
         self.cache_path.parent.mkdir(parents=True, exist_ok=True)
         self.profile_path = self.base_dir / "data" / "profile.json"
@@ -48,7 +54,7 @@ class CandidateFetcher:
             return baseline
         source = None
         try:
-            source = AMinerSource(self.settings, self.base_dir / "data" / "cache" / "aminer", feedback=getattr(self, "feedback", None))
+            source = AMinerSource(self.settings, self.base_dir / "data" / "cache" / "aminer", feedback=getattr(self, "feedback", None), entities=getattr(self, 'tracked_entities', []))
             self.aminer_candidates = source.fetch()
             self.aminer_candidates = align_identities(self.aminer_candidates, baseline)
             if self.settings.sources.aminer.mode == "live":
@@ -74,6 +80,9 @@ class CandidateFetcher:
         since = now - timedelta(days=self.settings.sources.window_days)
         semantic = self._fetch_semantic(since) if self.settings.research.enabled and self.settings.research.semantic_enabled else []
         watched = fetch_author_works(self.session, self.settings, since)
+        entity_works = fetch_entities(self.session, self.settings, getattr(self, 'tracked_entities', []), since,
+                                     getattr(self, 'base_dir', Path('.')) / 'data/cache/entity-tracking')
+        watched = merge_candidates([*watched, *entity_works])
         stale_candidates: List[CandidateWork] | None = None
         cached = self._load_cache()
         if cached:
@@ -382,6 +391,7 @@ class CandidateFetcher:
                         metrics={"cited_by": float(item.get("cited_by_count", 0))},
                         extra={"concepts": [c.get("display_name") for c in item.get("concepts", [])], "query": query,
                                "openalex_authorships": authorship_identifiers(item), "is_retracted": bool(item.get("is_retracted")),
+                               "openalex_source_id": (source_info.get('id') or '').rsplit('/', 1)[-1], 'issns': source_info.get('issn') or [],
                                "referenced_works": item.get("referenced_works") or [], "work_type": item.get("type")},
                     )
                 )
@@ -430,7 +440,7 @@ class CandidateFetcher:
                         published=published,
                         venue=(item.get("container-title") or [None])[0],
                         metrics={"is-referenced-by": float(item.get("is-referenced-by-count", 0))},
-                        extra={"type": item.get("type"), "query": query,
+                        extra={"type": item.get("type"), "query": query, "issns": item.get('ISSN') or [],
                                "date_precision": precision},
                     )
                 )
@@ -505,6 +515,7 @@ class CandidateFetcher:
             if candidate.extra.get("is_retracted") or re.search(r"\b(?:retracted|retraction)\b|撤稿", candidate.title, re.I):
                 continue
             candidate = mark_watched_authors(candidate, self.settings.author_watch)
+            candidate = mark_entities(candidate, getattr(self, 'tracked_entities', []))
             haystack = " ".join(
                 part for part in [candidate.title, candidate.abstract] if part
             )
@@ -595,6 +606,7 @@ class CandidateFetcher:
                         metrics={"is-referenced-by": float(item.get("is-referenced-by-count", 0))},
                         extra={
                             "source": "top_venue",
+                            "issns": item.get('ISSN') or [],
                             "type": item.get("type"),
                             "date_precision": precision,
                         },

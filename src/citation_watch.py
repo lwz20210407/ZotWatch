@@ -59,7 +59,7 @@ def merge_candidates(works):
             continue
         old = merged[key]
         extra = {**work.extra, **old.extra}
-        for field in ("cites_seeds", "referenced_by", "watched_authors", "provenance"):
+        for field in ("cites_seeds", "referenced_by", "watched_authors", "provenance", "aminer_author_ids", "aminer_org_ids", "issns"):
             rows = old.extra.get(field, []) + work.extra.get(field, [])
             if field == "provenance" and not work.extra.get(field):
                 rows.append({"provider": work.source})

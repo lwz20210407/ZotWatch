@@ -192,6 +192,8 @@ Label counts: {'must_read': 68, 'consider': 716, 'ignore': 245}
 
 ## 相关文档
 
+- [学者、机构与期刊追踪闭环](docs/entity-tracking.md)：确认身份、有限定向检索、匹配证据、反馈统计与停用。
+
 - [统一专题研究流程](docs/research-workflow.md)：限免发现、画像去重/评分、恢复运行、证据与私有归档。
 
 - [专题归档与周报关联](docs/research-archive.md)：本地证据包、显式公开目录、身份关联与撤回。

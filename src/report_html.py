@@ -703,6 +703,8 @@ _TEMPLATE = """
   {% if work.extra.get('aminer_id') %}<div class="line"><span>AMiner 发现／补充信息{% if work.extra.get('abstract_is_partial') %} · 以下为摘要片段{% endif %}{% if work.extra.get('date_precision') != 'day' %} · 出版日期待核实{% endif %}</span></div>{% endif %}
   {% if work.extra.get('aminer_applicability') %}<div class="line"><span>适用性：{{ work.extra.aminer_applicability.reason }}</span></div>{% endif %}
   {% for topic in work.extra.get('research_topics', []) %}<div class="line"><a href="{{ topic.url }}">专题概览：{{ topic.title }}</a></div>{% endfor %}
+  {% for entity in work.extra.get('watched_entities', []) %}<div class="line">已确认实体匹配：{{ entity.name }}（{{ {'person':'学者','organization':'机构','venue':'期刊/会议'}.get(entity.kind, entity.kind) }}）</div>{% endfor %}
+  {% if work.extra.get('entity_discovery_note') %}<div class="line">{{ work.extra.entity_discovery_note }}</div>{% endif %}
 
   {% if work.extra.get('tldr_zh') %}<div class="tldr">{{ work.extra.tldr_zh }}</div>{% endif %}
 
@@ -789,11 +791,17 @@ _TEMPLATE = """
 {% endif %}
 
 {% if coverage_warnings or diagnostics.get('coverage') or diagnostics.get('proposals')
-      or diagnostics.get('collaboration_groups') or diagnostics.get('network') or diagnostics.get('aminer') %}
+      or diagnostics.get('collaboration_groups') or diagnostics.get('network') or diagnostics.get('aminer') or diagnostics.get('entity_tracking') %}
 <h2>运行诊断</h2>
 <details class="diag">
   <summary>展开本轮运行详情（供排查用，不是推荐内容）</summary>
   {% set aq = diagnostics.get('aminer', {}) %}
+  {% if diagnostics.get('entity_tracking') %}
+  <h3>确认实体的追踪情况</h3>
+  <p>按稳定身份匹配；零命中不等于没有新作，入选报告不等于发送成功。</p>
+  <table><tr><th>实体</th><th>状态</th><th>候选命中</th><th>报告入选</th><th>已有反馈</th></tr>
+  {% for row in diagnostics.entity_tracking %}<tr><td>{{ row.name }}</td><td>{{ '启用' if row.enabled else '停用' }}</td><td>{{ row.candidate_matches }}</td><td>{{ row.selected_for_report }}</td><td>{{ row.feedback }}</td></tr>{% endfor %}</table>
+  {% endif %}
   {% if aq.get('queries') %}
   <h3>AMiner 查询效果</h3>
   {% if aq.get('query_schedule', {}).get('feedback_active') %}
