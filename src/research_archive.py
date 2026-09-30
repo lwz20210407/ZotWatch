@@ -120,6 +120,9 @@ def validate_ledger(ledger):
         if (not isinstance(edge, dict) or edge.get("from") not in ids or edge.get("to") not in ids or edge.get("relation") != "cites" or
                 not all(isinstance(edge.get(k), str) for k in ("marker", "locator", "quote", "reference_locator", "reference_quote"))):
             raise ValueError("Invalid citation relation")
+    if len(ledger["unresolved_citations"]) > 500 or not all(isinstance(row, dict) and
+            all(isinstance(row.get(k, ""), str) for k in ("from", "locator", "reason")) for row in ledger["unresolved_citations"]):
+        raise ValueError("Invalid unresolved citation records")
     documents = ledger.get("documents", {})
     if not isinstance(documents, dict) or not set(documents) <= set(ids) or not all(isinstance(v, dict) for v in documents.values()):
         raise ValueError("Invalid document inventory")
