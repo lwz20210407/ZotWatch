@@ -27,19 +27,7 @@ def write_rankings(base_dir, settings, cohorts, output_dir):
     status = {"status": "complete"}
     try:
         load_dotenv(base_dir / ".env", override=False)
-        ranker = WorkRanker(base_dir, settings)
-        underlying = ranker.vectorizer
-        class MemoizedVectorizer:
-            def __init__(self):
-                self.text_separator = underlying.text_separator
-                self.memo = {}
-            def encode(self, texts):
-                texts = list(texts)
-                missing = list(dict.fromkeys(t for t in texts if t not in self.memo))
-                if missing:
-                    self.memo.update(zip(missing, underlying.encode(missing)))
-                return np.asarray([self.memo[t] for t in texts])
-        ranker.vectorizer = MemoizedVectorizer()
+        ranker = WorkRanker(base_dir, settings, cache_dir=output_dir / "vector-cache")
         for name in ("baseline", "combined"):
             ranked = ranker.rank(cohorts[name])
             (output_dir / f"ranking-{name}.json").write_text(json.dumps([w.model_dump(mode="json") for w in ranked[:20]], ensure_ascii=False, indent=2), "utf-8")

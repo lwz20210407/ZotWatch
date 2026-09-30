@@ -254,7 +254,7 @@ class RetrievalWarnings(logging.Handler):
         self.messages = []
 
     def emit(self, record):
-        if record.name.startswith(("src.fetch_new", "src.source_paging", "src.ingest_zotero_api", "src.author_watch", "src.citation_watch", "src.aminer")):
+        if record.name.startswith(("src.fetch_new", "src.source_paging", "src.ingest_zotero_api", "src.author_watch", "src.citation_watch", "src.aminer", "src.score_rank")):
             # Avoid copying raw URLs, API parameters or credentials into a public report.
             text = record.getMessage().lower()
             if "retrying" in text:

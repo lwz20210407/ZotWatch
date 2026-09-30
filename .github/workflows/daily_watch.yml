@@ -211,6 +211,16 @@ jobs:
             echo "::warning::No delivery history in the repository: first run, or it was removed. Historical repeats are possible this run."
           fi
 
+      - name: Restore discovery and candidate vectors
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            data/cache/aminer
+            data/cache/candidate-vectors
+          key: candidate-v1-${{ github.ref_name }}-${{ steps.model.outputs.slug }}-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            candidate-v1-${{ github.ref_name }}-${{ steps.model.outputs.slug }}-
+
       - name: Test topic matching and ranking
         run: python -B -m unittest discover -s tests -v
 
@@ -256,6 +266,15 @@ jobs:
         with:
           path: data/network-state
           key: network-v1-${{ github.ref_name }}-${{ github.run_id }}-${{ github.run_attempt }}
+
+      - name: Save discovery and candidate vectors even on failure
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: |
+            data/cache/aminer
+            data/cache/candidate-vectors
+          key: candidate-v1-${{ github.ref_name }}-${{ steps.model.outputs.slug }}-${{ github.run_id }}-${{ github.run_attempt }}
 
       - name: Prepare Pages
         if: env.DRY_RUN != 'true'

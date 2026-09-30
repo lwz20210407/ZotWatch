@@ -17,8 +17,29 @@ from .settings import ScoreScales, Settings
 from .research_features import facet_ids
 from .topic_matching import normalize_text, research_priority
 from .vectorizer import TextVectorizer
+from .vectorizer import EmbeddingError
+from .candidate_vectors import CandidateVectors
+import requests
 
 logger = logging.getLogger(__name__)
+
+
+def rank_with_optional_aminer(ranker, candidates, enabled, deferred):
+    """A failed optional AMiner batch never discards the required baseline ranking."""
+    if not enabled:
+        return ranker.rank(candidates)
+    from .aminer_policy import aminer_only
+    from .author_watch import work_key
+    baseline = [w for w in candidates if not aminer_only(w)]
+    optional = [w for w in candidates if aminer_only(w) and work_key(w) not in deferred]
+    ranked = ranker.rank(baseline)
+    if optional:
+        try:
+            ranked += ranker.rank(optional)
+        except (requests.RequestException, EmbeddingError):
+            deferred.update(work_key(w) for w in optional)
+            logger.warning("AMiner candidate embedding batch deferred; existing source ranking continues")
+    return sorted(ranked, key=lambda w: w.score, reverse=True)
 
 
 @dataclass
@@ -28,7 +49,7 @@ class RankerArtifacts:
 
 
 class WorkRanker:
-    def __init__(self, base_dir: Path | str, settings: Settings, vectorizer: TextVectorizer | None = None):
+    def __init__(self, base_dir: Path | str, settings: Settings, vectorizer: TextVectorizer | None = None, *, cache_dir=None):
         self.base_dir = Path(base_dir)
         self.settings = settings
         self.vectorizer = vectorizer or TextVectorizer.from_settings(settings)
@@ -38,7 +59,16 @@ class WorkRanker:
         )
         self.index = FaissIndex.load(self.artifacts.index_path)
         self.profile = self._load_profile()
+        signature = getattr(self.vectorizer, "signature", settings.embedding.cache_signature())
+        if self.profile.get("embedding_signature") and self.profile["embedding_signature"] != signature:
+            raise EmbeddingError("Candidate encoder does not match the frozen profile")
+        dim = self.profile.get("vector_dim") or settings.embedding.dimensions
+        identity = json.dumps([signature, settings.embedding.base_url], sort_keys=True)
+        self.vectorizer = CandidateVectors(self.vectorizer, cache_dir or self.base_dir / "data/cache/candidate-vectors",
+            identity, dim, batch_size=settings.embedding.candidate_batch_size,
+            split_budget=settings.embedding.candidate_split_budget)
         self.journal_metrics = self._load_journal_metrics()
+
 
     def _load_profile(self) -> dict:
         path = self.artifacts.profile_path

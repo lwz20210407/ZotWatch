@@ -172,6 +172,8 @@ class EmbeddingConfig(BaseModel):
     text_separator: str = "\n"
     neighbors: int = Field(5, ge=1, le=50)
     batch_size: int = Field(32, ge=1, le=256)
+    candidate_batch_size: int = Field(8, ge=1, le=32)
+    candidate_split_budget: int = Field(2, ge=0, le=4)
 
     def cache_signature(self) -> str:
         """Identity of the vector space, for invalidating stored embeddings.

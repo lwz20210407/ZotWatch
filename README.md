@@ -192,6 +192,8 @@ Label counts: {'must_read': 68, 'consider': 716, 'ignore': 245}
 
 ## 相关文档
 
+- [候选向量恢复与独立验收](docs/ranking-resilience.md)：跨运行缓存、超时恢复、可选来源失败隔离。
+
 - [按需专题证据工作台](docs/research-dossiers.md)：候选选择、本地全文定位、方法线索比较与可核验引用。
 
 - [AMiner 身份反馈与实体核查](docs/aminer-feedback-quality.md)：无 DOI 反馈、适用性确认、原因统计与限免实体查询。
