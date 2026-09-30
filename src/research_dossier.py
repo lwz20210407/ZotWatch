@@ -73,6 +73,8 @@ def read_snapshot(path, cohort="combined"):
         match = re.fullmatch(r"/pub/([a-zA-Z0-9_-]{1,128})/?", parsed.path)
         if parsed.hostname in {"aminer.cn", "www.aminer.cn"} and match:
             extra.setdefault("aminer_id", match.group(1))
+            if not row.get("source"):
+                data["source"] = "aminer"
         data["extra"] = extra
         data.setdefault("identifier", row.get("doi") or ("aminer:" + extra["aminer_id"] if extra.get("aminer_id") else "snapshot:" + digest(row["title"])[:20]))
         result.append(CandidateWork(**data))

@@ -125,6 +125,7 @@ class DossierTests(unittest.TestCase):
         path = self.root / "snapshot.json"
         path.write_text(json.dumps({"aminer_candidates": [{"title": "A paper", "url": "https://www.aminer.cn/pub/abc"}]}), "utf-8")
         rows = read_snapshot(path)
+        self.assertEqual(rows[0].source, "aminer")
         self.assertEqual(paper_id(rows[0]), "aminer:abc")
         self.assertEqual(select_papers(rows, ["aminer:abc"], 10), rows)
         with self.assertRaises(ValueError): select_papers(rows, ["aminer:missing"], 10)

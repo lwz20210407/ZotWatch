@@ -28,14 +28,9 @@ def profile_fingerprint(base):
     return {n: hashlib.sha256((base / n).read_bytes()).hexdigest() for n in names if (base / n).is_file()}
 
 
-def evaluate_snapshot(base, snapshot, cohort, output, max_new, deadline, cache_only=False):
-    from dotenv import load_dotenv
-    load_dotenv(base / ".env", override=False)
-    started = time.monotonic()
-    before = profile_fingerprint(base)
-    settings = load_settings(base)
-    settings.embedding.timeout_seconds = min(settings.embedding.timeout_seconds, 20)
-    works = read_snapshot(snapshot, cohort)
+def eligible_candidates(base, works, settings):
+    """Read-only topic, frozen-library and sent-history filtering shared by research runs."""
+    base = Path(base).resolve()
     gate = object.__new__(CandidateFetcher); gate.settings = settings
     topic = gate._filter_by_topic(works)
     storage = object.__new__(ProfileStorage); storage.path = base / "data/profile.sqlite"
@@ -46,7 +41,18 @@ def evaluate_snapshot(base, snapshot, cohort, output, max_new, deadline, cache_o
     finally:
         storage.close()
     history = WatchHistory(base / "data/watch-state")
-    fresh = history.filter(fresh)
+    return history.filter(fresh), history, len(topic)
+
+
+def evaluate_snapshot(base, snapshot, cohort, output, max_new, deadline, cache_only=False):
+    from dotenv import load_dotenv
+    load_dotenv(base / ".env", override=False)
+    started = time.monotonic()
+    before = profile_fingerprint(base)
+    settings = load_settings(base)
+    settings.embedding.timeout_seconds = min(settings.embedding.timeout_seconds, 20)
+    works = read_snapshot(snapshot, cohort)
+    fresh, history, topic_count = eligible_candidates(base, works, settings)
     ranker = WorkRanker(base, settings, cache_dir=output / "vector-cache")
     cache = ranker.vectorizer
     ready, failed = [], []
@@ -80,7 +86,7 @@ def evaluate_snapshot(base, snapshot, cohort, output, max_new, deadline, cache_o
     backfill = select_backfill(allowed, set(), settings, datetime.now(timezone.utc))
     unchanged = before == profile_fingerprint(base)
     result = {"status": "complete" if not failed and unchanged else "partial" if unchanged else "inputs_changed",
-        "input_candidates": len(works), "topic_pass": len(topic), "library_history_filtered": len(fresh),
+        "input_candidates": len(works), "topic_pass": topic_count, "library_history_filtered": len(fresh),
         "scored": len(ranked), "new_text_attempts": new, "failed": failed,
         "above_threshold": len(above), "applicable": len(allowed), "precise_recent": len(_filter_recent(allowed, days=settings.sources.window_days)),
         "review": review, "backfill": [w.model_dump(mode="json") for w in backfill],

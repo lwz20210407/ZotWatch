@@ -192,6 +192,8 @@ Label counts: {'must_read': 68, 'consider': 716, 'ignore': 245}
 
 ## 相关文档
 
+- [统一专题研究流程](docs/research-workflow.md)：限免发现、画像去重/评分、恢复运行、证据与私有归档。
+
 - [专题归档与周报关联](docs/research-archive.md)：本地证据包、显式公开目录、身份关联与撤回。
 
 - [反馈驱动的检索调度](docs/feedback-scheduling.md)：明确偏好、轮换探索和查询效果记录。
