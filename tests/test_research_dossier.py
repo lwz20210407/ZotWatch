@@ -1,4 +1,5 @@
 import json
+import importlib.util
 import tempfile
 import unittest
 from pathlib import Path
@@ -62,6 +63,7 @@ class DossierTests(unittest.TestCase):
         for name in ["../outside.md", "file.py"]:
             with self.assertRaises(ValueError): read_document(name, self.root)
 
+    @unittest.skipUnless(importlib.util.find_spec('pypdf'), 'optional PDF dependency; covered by research CI')
     def test_blank_pdf_is_not_reported_as_successful_fulltext(self):
         from pypdf import PdfWriter
         writer = PdfWriter(); writer.add_blank_page(width=100, height=100)
@@ -69,6 +71,7 @@ class DossierTests(unittest.TestCase):
         d = read_document("blank.pdf", self.root)
         self.assertEqual(d["status"], "no_extractable_text")
 
+    @unittest.skipUnless(importlib.util.find_spec('pypdf'), 'optional PDF dependency; covered by research CI')
     def test_pdf_text_has_real_page_anchor(self):
         from pypdf import PdfWriter
         from pypdf.generic import DictionaryObject, NameObject, DecodedStreamObject
