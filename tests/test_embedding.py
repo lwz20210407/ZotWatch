@@ -32,7 +32,7 @@ class RemoteVectorizerTests(unittest.TestCase):
             "test-model", "https://api.test/v1", "k", dimensions=4, batch_size=2
         )
 
-    def _fake_post(self, session, method, url, *, logger, context, json, timeout):
+    def _fake_post(self, session, method, url, *, logger, context, json, timeout, **kwargs):
         self.calls.append((url, json))
         # Return in shuffled index order to prove the client re-sorts.
         data = [
@@ -57,7 +57,7 @@ class RemoteVectorizerTests(unittest.TestCase):
         self.assertTrue(self.calls[0][0].endswith("/embeddings"))
 
     def test_output_is_unit_norm(self) -> None:
-        def post(session, method, url, *, logger, context, json, timeout):
+        def post(session, method, url, *, logger, context, json, timeout, **kwargs):
             return FakeResponse({"data": [{"index": 0, "embedding": [3.0, 4.0, 0.0, 0.0]}]})
 
         with patch("src.vectorizer.request_with_retry", post):

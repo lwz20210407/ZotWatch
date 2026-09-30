@@ -54,6 +54,7 @@ class RemoteVectorizer:
         text_separator: str = DEFAULT_SEPARATOR,
         batch_size: int = 32,
         timeout: float = 120.0,
+        retry_attempts: int = 3,
     ):
         self.model_name = model_name
         self.base_url = base_url.rstrip("/")
@@ -65,6 +66,7 @@ class RemoteVectorizer:
         # config.cache_signature() on the remote path to keep existing caches valid.
         self.signature = f"openai-compatible:{model_name}:{dimensions or 'native'}"
         self.timeout = timeout
+        self.retry_attempts = retry_attempts
         self._session = requests.Session()
         self._session.headers.update(
             {"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}
@@ -92,10 +94,16 @@ class RemoteVectorizer:
             context=f"embeddings({len(texts)} texts)",
             json=payload,
             timeout=self.timeout,
+            attempts=self.retry_attempts,
         )
-        body = response.json()
-        rows = sorted(body["data"], key=lambda row: row.get("index", 0))
-        return [row["embedding"] for row in rows]
+        try:
+            body = response.json()
+            rows = sorted(body["data"], key=lambda row: row["index"])
+            if [row["index"] for row in rows] != list(range(len(texts))):
+                raise ValueError("Invalid embedding indices")
+            return [row["embedding"] for row in rows]
+        except (ValueError, KeyError, TypeError):
+            raise EmbeddingError("Malformed embedding response") from None
 
     def encode(self, texts: Iterable[str]) -> np.ndarray:
         batch = [text if text and text.strip() else " " for text in texts]
@@ -112,7 +120,15 @@ class RemoteVectorizer:
             vectors.extend(embeddings)
             if len(batch) > self.batch_size:
                 logger.info("Embedded %d/%d texts", min(start + self.batch_size, len(batch)), len(batch))
-        return _normalize(np.asarray(vectors, dtype=np.float32))
+        try:
+            matrix = np.asarray(vectors, dtype=np.float32)
+        except (ValueError, TypeError):
+            raise EmbeddingError("Invalid embedding values") from None
+        if (matrix.ndim != 2 or not np.isfinite(matrix).all() or
+                (self.dimensions and matrix.shape[1] != self.dimensions) or
+                np.any(np.linalg.norm(matrix, axis=1) == 0)):
+            raise EmbeddingError("Invalid embedding shape or values")
+        return _normalize(matrix)
 
     def encode_single(self, text: str) -> np.ndarray:
         return self.encode([text])[0]

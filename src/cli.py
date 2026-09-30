@@ -24,7 +24,7 @@ from .models import RankedWork
 from .notify_email import notify
 from .push_to_zotero import ZoteroPusher
 from .rss_writer import write_rss, site_url
-from .score_rank import WorkRanker
+from .score_rank import WorkRanker, rank_with_optional_aminer
 from .settings import Settings, load_settings
 from .storage import ProfileStorage
 from .report_html import render_html
@@ -233,7 +233,9 @@ def _run_watch(
     dedupe = DedupeEngine(storage)
     filtered = dedupe.filter(candidates)
     ranker = WorkRanker(base_dir, settings, vectorizer=builder.vectorizer)
-    preliminary = ranker.rank(filtered)
+    aminer_ranking_enabled = settings.sources.aminer.enabled and settings.sources.aminer.mode == "live"
+    deferred_aminer = set()
+    preliminary = rank_with_optional_aminer(ranker, filtered, aminer_ranking_enabled, deferred_aminer)
     if config.enabled:
         preliminary = feedback.apply(preliminary, settings.scoring.thresholds)
     dynamic = [w for w in _filter_recent(preliminary, days=settings.sources.window_days)
@@ -243,7 +245,7 @@ def _run_watch(
     discovered = fetcher._filter_by_topic(discovered)
     merged = discovery.annotate(merge_candidates([*discovered, *filtered]))
     deduped = dedupe.filter(merged)
-    ranked = ranker.rank(deduped)
+    ranked = rank_with_optional_aminer(ranker, deduped, aminer_ranking_enabled, deferred_aminer)
     if config.enabled:
         ranked = feedback.apply(ranked, settings.scoring.thresholds)
     _log_score_distribution(ranked, settings.scoring.thresholds)
@@ -291,7 +293,7 @@ def _run_watch(
 
     baseline = sorted(ranked, key=lambda w: w.extra.get("legacy_score", w.score), reverse=True)[:top or len(ranked)]
     if config.enabled:
-        ranked = diverse_select(ranked, top, config, builder.vectorizer)
+        ranked = diverse_select(ranked, top, config, ranker.vectorizer)
     elif top:
         ranked = ranked[:top]
 
@@ -317,6 +319,8 @@ def _run_watch(
                  "topic": merged, "dedup": deduped, "delivered": combined},
         retrieval_warnings, history.state), []) if config.enabled else []
     diagnostics = {"coverage": coverage, "proposals": proposals,
+                   "candidate_vectors": ranker.vectorizer.stats if isinstance(getattr(ranker.vectorizer, "stats", None), dict) else {},
+                   "aminer_ranking_deferred": len(deferred_aminer),
                    "aminer": {**(fetcher.aminer_summary if isinstance(getattr(fetcher, "aminer_summary", None), dict) else {}),
                               "applicability": aminer_applicability},
                    "collaboration_groups": groups,
