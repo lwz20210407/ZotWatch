@@ -5,7 +5,7 @@ import re
 from collections import Counter
 
 from .author_watch import work_key
-from .research_features import facet_ids
+from .research_features import facet_ids, feedback_links
 from .topic_matching import matches_any
 
 
@@ -15,7 +15,7 @@ def aminer_only(work):
     return work.source == "aminer" and bool(work.extra.get("aminer_id"))
 
 
-def applicability(work, research):
+def _base_applicability(work, research):
     title = work.title
     if re.match(r"^\s*(?:preface\b|editorial\b|introduction to (?:the )?special issue\b|编者按|序言)", title, re.I):
         return {"status": "exclude", "reason": "前言或编辑内容，不作为方法研究论文推送"}
@@ -41,6 +41,18 @@ def applicability(work, research):
     return {"status": "suitable", "reason": "题名摘要提供研究方向线索；参数和工况仍需全文核对"}
 
 
+def applicability(work, research):
+    assessment = _base_applicability(work, research)
+    if assessment["status"] == "exclude":
+        return assessment
+    decision = work.extra.get("feedback_applicability", "auto")
+    if decision == "hold":
+        return {"status": "conditional", "reason": "用户要求暂缓自动推荐；" + assessment["reason"]}
+    if decision == "approve" and assessment["status"] == "conditional" and work.abstract and facet_ids(work, research):
+        return {"status": "suitable", "reason": "用户已确认方法可迁移；保留原工况提醒：" + assessment["reason"]}
+    return assessment
+
+
 def screen_aminer_delivery(works, research):
     """Hold uncertain AMiner-only items for review, preserving other sources and scores."""
     allowed, held, counts = [], [], Counter()
@@ -55,6 +67,7 @@ def screen_aminer_delivery(works, research):
             allowed.append(tagged)
         else:
             held.append({"title": work.title, "doi": work.doi, "url": work.url,
+                         "feedback_links": feedback_links(work, research),
                          "score": getattr(work, "score", None), "label": getattr(work, "label", None), **assessment})
     return allowed, {"counts": dict(counts), "held_count": len(held), "review": held[:50]}
 

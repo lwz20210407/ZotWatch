@@ -72,6 +72,9 @@ def main(argv: Optional[list[str]] = None) -> None:
     parser.add_argument("--defer-history", action="store_true", help="Commit delivery history separately after publication/email")
     parser.add_argument("--dry-run", action="store_true", help="Build the email without sending it (notify command)")
     parser.add_argument("--doi", help="Paper DOI for explicit feedback")
+    parser.add_argument("--work-id", help="Stable aminer:<id> for feedback without a DOI")
+    parser.add_argument("--reason", default="", choices=["", "off_topic", "wrong_material", "wrong_conditions", "already_known", "metadata_error", "useful_method"])
+    parser.add_argument("--applicability", default="auto", choices=["auto", "approve", "hold"])
     parser.add_argument("--rating", choices=["direct", "transferable", "mechanism", "irrelevant", "read", "later", "reading", "reset"])
     parser.add_argument("--scope", default="", help="Apply relevance feedback to one research problem")
     parser.add_argument("--facets", nargs="*", default=[], help="Explicit method facets to learn from")
@@ -89,9 +92,10 @@ def main(argv: Optional[list[str]] = None) -> None:
         return
     settings = load_settings(base_dir)
     if args.command == "feedback":
-        if not args.doi or not args.rating:
-            parser.error("feedback requires --doi and --rating")
-        save_feedback(base_dir, {"doi": args.doi, "rating": args.rating, "facets": args.facets, "scope": args.scope}, settings.research)
+        if not (args.doi or args.work_id) or not args.rating:
+            parser.error("feedback requires --doi or --work-id, and --rating")
+        save_feedback(base_dir, {"doi": args.doi or "", "work_id": args.work_id or "", "rating": args.rating,
+            "facets": args.facets, "scope": args.scope, "reason": args.reason, "applicability": args.applicability}, settings.research)
         return
     if args.command == "verify-profile":
         problems = verify_profile(base_dir, settings)
@@ -318,7 +322,7 @@ def _run_watch(
                    "collaboration_groups": groups,
                    "network": fetcher.session.summary() if isinstance(fetcher.session, BudgetSession) else {},
                    "retrieval_warnings": retrieval_warnings, "version_warnings": monitor.warnings,
-                   "feedback_count": len(feedback.entries), "evidence_mode": "title_abstract_only"}
+                   "feedback_count": len(feedback.entries), "feedback_reasons": feedback.reason_summary(), "evidence_mode": "title_abstract_only"}
 
     if not combined:
         logging.getLogger(__name__).info("No ranked results available")

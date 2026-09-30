@@ -16,6 +16,9 @@ ENDPOINTS = {
     "recommend": ("POST", "/api/v3/paper/rec5"),
     "search": ("GET", "/api/paper/search"),
     "info": ("POST", "/api/paper/info"),
+    "person_search": ("POST", "/api/person/search"),
+    "organization_search": ("POST", "/api/organization/search"),
+    "venue_search": ("POST", "/api/venue/search"),
 }
 
 
