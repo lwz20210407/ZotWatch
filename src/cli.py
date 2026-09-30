@@ -326,8 +326,12 @@ def _run_watch(
         config, {"raw": list(raw.values()) if isinstance(raw, dict) else candidates,
                  "topic": merged, "dedup": deduped, "delivered": combined},
         retrieval_warnings, history.state), []) if config.enabled else []
+    entity_pool = list(merged)
+    entity_cohorts = getattr(fetcher, 'discovery_comparison', None)
+    if isinstance(entity_cohorts, dict):
+        entity_pool.extend(entity_cohorts.get('aminer', []))
     diagnostics = {"coverage": coverage, "proposals": proposals,
-                   "entity_tracking": tracking_report(getattr(fetcher, 'tracked_entities', []) if isinstance(getattr(fetcher, 'tracked_entities', []), list) else [], merged, combined, feedback),
+                   "entity_tracking": tracking_report(getattr(fetcher, 'tracked_entities', []) if isinstance(getattr(fetcher, 'tracked_entities', []), list) else [], entity_pool, combined, feedback),
                    "candidate_vectors": ranker.vectorizer.stats if isinstance(getattr(ranker.vectorizer, "stats", None), dict) else {},
                    "aminer_ranking_deferred": len(deferred_aminer),
                    "aminer": {**(fetcher.aminer_summary if isinstance(getattr(fetcher, "aminer_summary", None), dict) else {}),
