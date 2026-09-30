@@ -36,6 +36,7 @@ from .problem_ranking import diverse_select
 from .network_budget import BudgetSession
 from .research_evidence import attach_evidence
 from .version_watch import VersionMonitor
+from .query_feedback import annotate_counts
 from .aminer_policy import aminer_only, screen_aminer_delivery, recent_delivery, select_backfill
 
 load_dotenv()  # Load default .env if present
@@ -228,6 +229,7 @@ def _run_watch(
         builder.run()
 
     fetcher = CandidateFetcher(settings, base_dir)
+    fetcher.feedback = feedback
     candidates = fetcher.fetch_all()
 
     dedupe = DedupeEngine(storage)
@@ -313,6 +315,8 @@ def _run_watch(
     alerts = _optional("Version monitoring", lambda: monitor.check(
         combined, history.state), []) if config.enabled else []
     retrieval_warnings = list(getattr(warning_recorder, "messages", [])) + discovery.warnings
+    if isinstance(getattr(fetcher, "aminer_summary", None), dict):
+        fetcher.aminer_summary = annotate_counts(fetcher.aminer_summary, combined, "selected_for_report")
     raw = getattr(fetcher, "coverage_raw", None)
     coverage = _optional("Coverage diagnostics", lambda: coverage_report(
         config, {"raw": list(raw.values()) if isinstance(raw, dict) else candidates,

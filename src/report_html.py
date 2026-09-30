@@ -792,6 +792,16 @@ _TEMPLATE = """
 <h2>运行诊断</h2>
 <details class="diag">
   <summary>展开本轮运行详情（供排查用，不是推荐内容）</summary>
+  {% set aq = diagnostics.get('aminer', {}) %}
+  {% if aq.get('queries') %}
+  <h3>AMiner 查询效果</h3>
+  {% if aq.get('query_schedule', {}).get('feedback_active') %}
+  <p class="note">本轮推荐顺序参考明确反馈；轮换探索方向：{{ problem_names.get(aq.query_schedule.exploration_facet, aq.query_schedule.exploration_facet) }}。</p>
+  {% endif %}
+  <table><tr><th>方向</th><th>查询</th><th>返回</th><th>主题通过</th><th>报告选入</th></tr>
+  {% for q in aq.queries %}<tr><td>{{ problem_names.get(q.facet, q.facet) }}</td><td>{{ '短语检索' if q.endpoint == 'search' else '主题推荐' }}</td><td>{{ q.returned }}</td><td>{{ q.get('topic_pass', 0) }}</td><td>{{ q.get('selected_for_report', 0) }}</td></tr>{% endfor %}
+  </table><p class="note">同一论文可由多个查询发现，列数不能相加作为独立文献数；报告选入不代表已经发送。</p>
+  {% endif %}
   {% set aminer_review = diagnostics.get('aminer', {}).get('applicability', {}).get('review', []) %}
   {% if aminer_review %}
   <h3>AMiner 条件参考与待补证</h3>
