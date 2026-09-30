@@ -113,5 +113,32 @@ class AdvancedClientTests(unittest.TestCase):
         for amount in ('NaN','Infinity','0','5.01','0.001','-1'):
             with self.assertRaises(ValueError): self.client(budget_yuan=amount)
 
+    def test_every_allowed_endpoint_uses_its_declared_method_and_price(self):
+        values={'id':'p','ids':['p'],'org_id':'i','venue_id':'v','org':'ETH Zurich',
+                'offset':0,'page':0,'size':1,'year':2025,'keywords':'["fracture"]','use_topic':True}
+        for name,spec in ENDPOINTS.items():
+            with self.subTest(endpoint=name):
+                params={key:values[key] for key in spec.required.split()}
+                if name=='paper_search_pro': params['title']='ductile fracture'
+                if name in {'paper_qa_search','paper_qa_search_pro'}: params['query']='How are fracture models calibrated?'
+                if name=='experiment_search': params['paper_id']='p'
+                session=Mock(); session.request.return_value=response([])
+                client=ResearchClient(self.root/name,session=session,token='test',allow_paid=True,budget_yuan=5)
+                self.assertEqual(client.query(name,params)['data'],[])
+                self.assertEqual(session.request.call_args.args[0],spec.method)
+                self.assertTrue(session.request.call_args.args[1].endswith(spec.path))
+                self.assertEqual(client.summary()['estimated_reserved_yuan'],spec.fen/100)
+
+    def test_missing_or_malformed_ledger_cannot_reset_spending(self):
+        self.session.request.return_value=response([])
+        client=self.client(allow_paid=True)
+        client.query('paper_detail',{'id':'p'})
+        ledger=self.root/'spending.json'
+        ledger.unlink()
+        with self.assertRaisesRegex(ResearchAPIError,'missing_budget_ledger'): client.query('paper_detail',{'id':'new'})
+        ledger.write_text('[]')
+        with self.assertRaises(ResearchAPIError): client.query('paper_detail',{'id':'new'})
+        self.assertEqual(self.session.request.call_count,1)
+
 
 if __name__=='__main__': unittest.main()

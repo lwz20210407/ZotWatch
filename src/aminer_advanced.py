@@ -139,14 +139,16 @@ class ResearchClient:
     def _ledger(self):
         path = self.directory / 'spending.json'
         if not path.exists():
+            if (self.directory/'responses').exists() and any((self.directory/'responses').iterdir()):
+                raise ResearchAPIError('missing_budget_ledger')
             return {'schema_version':1, 'cap_fen':self.cap, 'reserved_fen':0, 'attempts':[]}
         data = json.loads(path.read_text('utf-8'))
-        if data.get('schema_version') != 1 or data.get('cap_fen') != self.cap or not isinstance(data.get('attempts'), list):
+        if not isinstance(data,dict) or data.get('schema_version') != 1 or data.get('cap_fen') != self.cap or not isinstance(data.get('attempts'), list):
             raise ResearchAPIError('budget_ledger_mismatch')
-        if data.get('reserved_fen') != sum(row['estimated_fen'] for row in data['attempts']):
+        if any(not isinstance(row,dict) or row.get('endpoint') not in ENDPOINTS or type(row.get('estimated_fen')) is not int or row['estimated_fen']!=ENDPOINTS[row['endpoint']].fen for row in data['attempts']):
             raise ResearchAPIError('invalid_budget_ledger')
-        if (type(data['reserved_fen']) is not int or not 0 <= data['reserved_fen'] <= self.cap or
-                any(row.get('endpoint') not in ENDPOINTS or row.get('estimated_fen') != ENDPOINTS[row['endpoint']].fen for row in data['attempts'])):
+        if (type(data.get('reserved_fen')) is not int or not 0 <= data['reserved_fen'] <= self.cap or
+                data['reserved_fen'] != sum(row['estimated_fen'] for row in data['attempts'])):
             raise ResearchAPIError('invalid_budget_ledger')
         return data
 
