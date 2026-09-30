@@ -11,7 +11,7 @@ from pathlib import Path
 from urllib.parse import urlencode
 
 import yaml
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 from typing import Literal
 
 from .utils import iso_to_datetime
@@ -31,18 +31,39 @@ def normalize_doi(value):
 
 class FeedbackEntry(BaseModel):
     model_config = ConfigDict(extra="forbid")
-    doi: str
+    doi: str = ""
+    work_id: str = ""
     rating: Literal["direct", "transferable", "mechanism", "irrelevant", "read", "later", "reading", "reset"]
     facets: list[str] = Field(default_factory=list, max_length=20)
     scope: str = ""
+    reason: Literal["", "off_topic", "wrong_material", "wrong_conditions", "already_known", "metadata_error", "useful_method"] = ""
+    applicability: Literal["auto", "approve", "hold"] = "auto"
 
     @field_validator("doi")
     @classmethod
     def doi_valid(cls, value):
         value = normalize_doi(value)
+        if not value:
+            return ""
         if not re.fullmatch(r"10\.\d{4,9}/[^\s\"<>]+", value) or len(value) > 250:
             raise ValueError("Feedback requires a valid DOI")
         return value
+
+    @field_validator("work_id")
+    @classmethod
+    def work_id_valid(cls, value):
+        value = value.strip().casefold()
+        if value and not re.fullmatch(r"aminer:[a-z0-9_-]{1,128}", value):
+            raise ValueError("work_id must be a namespaced AMiner ID")
+        return value
+
+    @model_validator(mode="after")
+    def identity_required(self):
+        if not self.doi and not self.work_id:
+            raise ValueError("Feedback requires a DOI or AMiner work_id")
+        if self.applicability == "approve" and self.rating not in {"direct", "transferable", "mechanism"}:
+            raise ValueError("Applicability approval requires a positive rating")
+        return self
 
 
 def facet_ids(work, config):
@@ -64,7 +85,17 @@ def facet_ids(work, config):
 
 
 def feedback_key(entry):
-    return entry.doi + ("#" + entry.scope if entry.scope else "")
+    return (entry.doi or entry.work_id) + ("#" + entry.scope if entry.scope else "")
+
+
+def work_feedback_ids(work):
+    ids = [normalize_doi(work.doi)] if work.doi else []
+    aminer_id = work.extra.get("aminer_id")
+    if aminer_id and re.fullmatch(r"[a-zA-Z0-9_-]{1,128}", str(aminer_id)):
+        ids.append("aminer:" + str(aminer_id).casefold())
+    elif re.fullmatch(r"aminer:[a-zA-Z0-9_-]{1,128}", work.identifier or ""):
+        ids.append(work.identifier.casefold())
+    return ids
 
 
 def load_feedback(base_dir, config, saved=()):
@@ -76,15 +107,16 @@ def load_feedback(base_dir, config, saved=()):
         pages = json.loads(issues_path.read_text(encoding="utf-8"))
         issues = [issue for page in pages for issue in page] if pages and isinstance(pages[0], list) else pages
         for issue in sorted(issues, key=lambda i: i.get("updated_at", "")):
-            if issue.get("pull_request") or issue.get("user", {}).get("login", "").casefold() != config.feedback_owner.casefold():
+            if not config.feedback_owner or issue.get("pull_request") or issue.get("user", {}).get("login", "").casefold() != config.feedback_owner.casefold():
                 continue
-            match = re.search(r"<!-- zotwatch-feedback-v1 -->\s*```json\s*(.*?)\s*```", issue.get("body") or "", re.S)
+            match = re.search(r"<!-- zotwatch-feedback-v[12] -->\s*```json\s*(.*?)\s*```", issue.get("body") or "", re.S)
             if not match:
                 continue
             try:
                 entry = FeedbackEntry.model_validate_json(match.group(1))
                 if not set(entry.facets) <= allowed or (entry.scope and entry.scope not in allowed):
                     raise ValueError("Unknown feedback facet")
+                entries.pop(feedback_key(entry), None)
                 entries[feedback_key(entry)] = entry
             except ValueError:
                 logger.warning("Ignored malformed feedback in issue #%s", issue.get("number"))
@@ -94,6 +126,7 @@ def load_feedback(base_dir, config, saved=()):
             entry = FeedbackEntry.model_validate(row)
             if not set(entry.facets) <= allowed or (entry.scope and entry.scope not in allowed):
                 raise ValueError("Unknown facet in local feedback configuration")
+            entries.pop(feedback_key(entry), None)
             entries[feedback_key(entry)] = entry  # Explicit local configuration takes precedence.
     return list(entries.values())
 
@@ -104,13 +137,23 @@ def save_feedback(base_dir, entry, config):
         raise ValueError("Unknown feedback facet")
     path = Path(base_dir) / "config" / "feedback.yaml"
     data = yaml.safe_load(path.read_text(encoding="utf-8")) if path.exists() else {"entries": []}
-    entries = [r for r in data.get("entries", []) if (normalize_doi(r["doi"]), r.get("scope", "")) != (entry.doi, entry.scope)]
+    entries = [r for r in data.get("entries", []) if feedback_key(FeedbackEntry.model_validate(r)) != feedback_key(entry)]
     path.write_text(yaml.safe_dump({"entries": [*entries, entry.model_dump()]}, allow_unicode=True, sort_keys=False), encoding="utf-8")
 
 
 class FeedbackModel:
     def __init__(self, entries, config):
-        self.entries = {feedback_key(e): e for e in entries}
+        entries = list(entries)
+        pairs = defaultdict(set)
+        for entry in entries:
+            if entry.doi and entry.work_id:
+                pairs[entry.work_id].add(entry.doi)
+        self.aliases = {key: next(iter(dois)) for key, dois in pairs.items() if len(dois) == 1}
+        self.entries = {}
+        for entry in entries:
+            if not entry.doi and entry.work_id in self.aliases:
+                entry = entry.model_copy(update={"doi": self.aliases[entry.work_id]})
+            self.entries[feedback_key(entry)] = entry
         self.config = config
         votes = defaultdict(list)
         for entry in self.entries.values():
@@ -125,6 +168,24 @@ class FeedbackModel:
         doi = normalize_doi(doi)
         return self.entries.get(doi + "#" + scope) or self.entries.get(doi)
 
+    def entry_for_work(self, work, scope=""):
+        ids = work_feedback_ids(work)
+        for suffix in (["#" + scope, ""] if scope else [""]):
+            for ident in ids:
+                entry = self.entries.get(self.aliases.get(ident, ident) + suffix)
+                if entry and (not entry.doi or not work.doi or entry.doi == normalize_doi(work.doi)):
+                    return entry
+        return None
+
+    def reason_summary(self):
+        counts = defaultdict(lambda: defaultdict(int))
+        for entry in self.entries.values():
+            if entry.rating == "reset" or not entry.reason:
+                continue
+            for facet in ([entry.scope] if entry.scope else entry.facets or ["unscoped"]):
+                counts[facet][entry.reason] += 1
+        return {facet: dict(reasons) for facet, reasons in counts.items()}
+
     def is_positive(self, doi):
         return any(e.doi == normalize_doi(doi) and e.rating in {"direct", "transferable", "mechanism"} for e in self.entries.values())
 
@@ -133,8 +194,8 @@ class FeedbackModel:
         for work in works:
             facets = facet_ids(work, self.config)
             primary = work.extra.get("primary_problem") or next(iter(facets), "")
-            entry = self.entry_for(work.doi, primary)
-            global_entry = self.entries.get(normalize_doi(work.doi))
+            entry = self.entry_for_work(work, primary)
+            global_entry = self.entry_for_work(work)
             pref = self.preferences.get(primary, 0)
             if entry and entry.rating in RATINGS and (not entry.facets or primary in entry.facets or entry.scope == primary):
                 pref = (pref + RATINGS[entry.rating]) / 2
@@ -147,6 +208,9 @@ class FeedbackModel:
             if work.extra.get("semantic_gate_failed"):
                 label = "ignore"
             extra = {**work.extra, "research_facets": facets, "feedback_adjustment": delta,
+                     "feedback_reason": entry.reason if entry and entry.rating != "reset" else "",
+                     "feedback_applicability": entry.applicability if entry and entry.rating != "reset"
+                         and (not entry.scope or entry.scope in facets) else "auto",
                      "feedback_read": bool(global_entry and global_entry.rating == "read"),
                      "reading_state": global_entry.rating if global_entry and global_entry.rating in {"later", "reading", "read"} else ""}
             result.append(work.model_copy(update={"score": score, "label": label, "extra": extra}))
@@ -154,20 +218,33 @@ class FeedbackModel:
 
 
 def feedback_links(work, config):
-    if not work.doi or not config.feedback_repository:
+    ids = work_feedback_ids(work)
+    if not ids or not config.feedback_repository:
         return []
+    identity = {"doi": normalize_doi(work.doi)} if work.doi else {"work_id": ids[0]}
+    if work.doi and len(ids) > 1:
+        identity["work_id"] = ids[1]
+    marker = "v2" if "work_id" in identity else "v1"
     links = []
     for rating, name in RATING_NAMES.items():
-        payload = {"doi": normalize_doi(work.doi), "rating": rating, "facets": facet_ids(work, config)}
-        body = "<!-- zotwatch-feedback-v1 -->\n```json\n" + json.dumps(payload, ensure_ascii=False) + "\n```\n公开反馈，请勿填写私人笔记。"
+        payload = {**identity, "rating": rating, "facets": facet_ids(work, config)}
+        body = "<!-- zotwatch-feedback-" + marker + " -->\n```json\n" + json.dumps(payload, ensure_ascii=False) + "\n```\n公开反馈，请勿填写私人笔记。"
         query = urlencode({"title": "[ZotWatch feedback] " + name + " " + work.title[:90], "body": body})
         links.append({"name": name, "url": f"https://github.com/{config.feedback_repository}/issues/new?{query}"})
     for facet in [f for f in config.facets if f.id in facet_ids(work, config)][:2]:
         for rating in ("direct", "irrelevant", "reset"):
-            payload = {"doi": normalize_doi(work.doi), "rating": rating, "scope": facet.id, "facets": [facet.id]}
-            body = "<!-- zotwatch-feedback-v1 -->\n```json\n" + json.dumps(payload, ensure_ascii=False) + "\n```"
+            payload = {**identity, "rating": rating, "scope": facet.id, "facets": [facet.id]}
+            body = "<!-- zotwatch-feedback-" + marker + " -->\n```json\n" + json.dumps(payload, ensure_ascii=False) + "\n```"
             query = urlencode({"title": "[ZotWatch feedback] " + facet.name + " " + RATING_NAMES[rating], "body": body})
             links.append({"name": facet.name + "：" + RATING_NAMES[rating], "url": f"https://github.com/{config.feedback_repository}/issues/new?{query}"})
+    for name, rating, reason, decision in [("材料不符", "irrelevant", "wrong_material", "auto"),
+        ("工况不符", "irrelevant", "wrong_conditions", "auto"),
+        ("确认方法可迁移", "transferable", "useful_method", "approve"),
+        ("暂缓自动推荐", "later", "", "hold")]:
+        payload = {**identity, "rating": rating, "facets": facet_ids(work, config), "reason": reason, "applicability": decision}
+        body = "<!-- zotwatch-feedback-v2 -->\n```json\n" + json.dumps(payload, ensure_ascii=False) + "\n```\n公开反馈，请勿填写私人笔记。"
+        query = urlencode({"title": "[ZotWatch feedback] " + name + " " + work.title[:90], "body": body})
+        links.append({"name": name, "url": f"https://github.com/{config.feedback_repository}/issues/new?{query}"})
     return links
 
 

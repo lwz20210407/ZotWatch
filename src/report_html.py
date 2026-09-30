@@ -737,6 +737,14 @@ _TEMPLATE = """
     </span>
     {% endif %}
   </div>
+  {% if work.extra.get('feedback_links') %}
+  <details class="diag"><summary>反馈原因与适用性确认</summary>
+    <p class="note">打开公开反馈草稿，由你确认提交；请勿填写私人笔记。</p>
+    {% for link in work.extra.feedback_links if link.name in ['材料不符', '工况不符', '确认方法可迁移', '暂缓自动推荐'] %}
+    <a href="{{ link.url }}" target="_blank" rel="noopener">{{ link.name }}</a>
+    {% endfor %}
+  </details>
+  {% endif %}
 </article>
 {% endmacro %}
 
@@ -790,6 +798,9 @@ _TEMPLATE = """
   <p class="note">以下条目达到评分阈值，但适用工况或原始摘要仍需核查；不进入自动推荐、RSS 或已推送记录。</p>
   {% for item in aminer_review if item.status != 'exclude' and item.label in ['consider', 'must_read'] %}
   <p><a href="{{ item.url or '#' }}" target="_blank" rel="noopener">{{ item.title }}</a><br>{{ item.reason }}</p>
+  {% for link in item.get('feedback_links', []) if link.name in ['确认方法可迁移', '暂缓自动推荐', '材料不符', '工况不符'] %}
+  <a href="{{ link.url }}" target="_blank" rel="noopener">{{ link.name }}</a>
+  {% endfor %}
   {% endfor %}
   {% endif %}
   {% for warning in coverage_warnings %}<div class="warn">{{ warning }}</div>{% endfor %}

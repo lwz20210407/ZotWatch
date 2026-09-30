@@ -192,6 +192,8 @@ Label counts: {'must_read': 68, 'consider': 716, 'ignore': 245}
 
 ## 相关文档
 
+- [AMiner 身份反馈与实体核查](docs/aminer-feedback-quality.md)：无 DOI 反馈、适用性确认、原因统计与限免实体查询。
+
 - [AMiner 限免发现与独立对照](docs/aminer-integration.md)：可选的方向推荐、短语搜索、批量信息补全；包含开关、凭据与故障回退说明。
 
 - [打分模型](docs/scoring-model.md)

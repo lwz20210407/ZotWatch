@@ -18,7 +18,7 @@ def build_problem_profiles(items, vectors, config, feedback=()):
                        normalize_doi(item.doi) in {normalize_doi(d) for d in facet.seed_dois}) if explicit else facet.id in facet_ids(item, config)
             weight = 1.0
             for entry in feedback:
-                if normalize_doi(item.doi) != entry.doi or entry.rating in {"reset", "read", "later", "reading"}:
+                if not entry.doi or normalize_doi(item.doi) != entry.doi or entry.rating in {"reset", "read", "later", "reading"}:
                     continue
                 if getattr(entry, "scope", "") not in {"", facet.id}:
                     continue
