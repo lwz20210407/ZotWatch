@@ -1,0 +1,2 @@
+# Optional local PDF extraction for the on-demand dossier command, not the weekly job.
+pypdf>=5.0
