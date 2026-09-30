@@ -87,6 +87,15 @@ class FeedbackV2Tests(unittest.TestCase):
             save_feedback(tmp, {"work_id": "aminer:p1", "rating": "reset"}, self.config)
             self.assertEqual(FeedbackModel(load_feedback(tmp, self.config), self.config).reason_summary(), {})
 
+    def test_missing_owner_does_not_authorize_anonymous_feedback(self):
+        config = self.config.model_copy(update={"feedback_owner": ""})
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp); (root / "data").mkdir()
+            payload = {"work_id": "aminer:p1", "rating": "direct", "applicability": "approve"}
+            issue = {"body": "<!-- zotwatch-feedback-v2 -->\n```json\n" + json.dumps(payload) + "\n```"}
+            (root / "data/feedback-issues.json").write_text(json.dumps([issue]), "utf-8")
+            self.assertEqual(load_feedback(root, config), [])
+
     def test_no_doi_links_use_v2_without_fake_doi(self):
         links = feedback_links(work(), self.config)
         body = parse_qs(urlparse(links[0]["url"]).query)["body"][0]

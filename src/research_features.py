@@ -107,7 +107,7 @@ def load_feedback(base_dir, config, saved=()):
         pages = json.loads(issues_path.read_text(encoding="utf-8"))
         issues = [issue for page in pages for issue in page] if pages and isinstance(pages[0], list) else pages
         for issue in sorted(issues, key=lambda i: i.get("updated_at", "")):
-            if issue.get("pull_request") or issue.get("user", {}).get("login", "").casefold() != config.feedback_owner.casefold():
+            if not config.feedback_owner or issue.get("pull_request") or issue.get("user", {}).get("login", "").casefold() != config.feedback_owner.casefold():
                 continue
             match = re.search(r"<!-- zotwatch-feedback-v[12] -->\s*```json\s*(.*?)\s*```", issue.get("body") or "", re.S)
             if not match:
