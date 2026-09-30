@@ -26,7 +26,7 @@ def request_for(kind, section, ident, offset=0, limit=10, year=None):
 
 
 def render(state, output):
-    esc=lambda value:html.escape(str(value or ''),quote=True)
+    esc=lambda value:html.escape(str('' if value is None else value),quote=True)
     label={'detail':'基本资料','figure':'研究画像','papers':'论文列表','people':'学者列表','projects':'科研项目'}
     field_names={'name':'姓名/名称','name_en':'英文名称','name_zh':'中文名称','bio':'研究简介','bio_zh':'研究简介（中文）',
         'position':'职务','position_zh':'职务（中文）','orgs':'所属机构','org_zhs':'所属机构（中文）','edu':'教育经历','edu_zh':'教育经历（中文）',

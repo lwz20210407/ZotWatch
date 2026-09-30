@@ -56,6 +56,8 @@ python -m src.aminer_profiles --kind person --id <id> --cache-only --api-run-dir
 ```
 
 缓存未命中只记录 `cache_miss`，绝不会转成真实请求。此模式不需要 Token，适合开发和界面验收。
+本地单元测试用 `python -B tools/run_offline_tests.py`，统一禁止实际 requests HTTP 调用；CI 与
+每周任务的单元测试步骤也使用这一入口。它不会阻止正式 watch 阶段正常检索。
 
 ## 原子接口入口
 

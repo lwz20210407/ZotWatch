@@ -30,4 +30,4 @@ jobs:
       - name: Validate configuration files
         run: python -m src.check_config
       - name: Unit tests
-        run: python -B -m unittest discover -s tests -v
+        run: python -B tools/run_offline_tests.py
