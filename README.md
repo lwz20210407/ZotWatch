@@ -192,6 +192,8 @@ Label counts: {'must_read': 68, 'consider': 716, 'ignore': 245}
 
 ## 相关文档
 
+- [AMiner 能力接入边界](docs/aminer-capabilities.md)：区分 API、MCP、Skills、项目实现与实际验证；专利明确不接入。
+
 - [学者、机构与期刊追踪闭环](docs/entity-tracking.md)：确认身份、有限定向检索、匹配证据、反馈统计与停用。
 
 - [统一专题研究流程](docs/research-workflow.md)：限免发现、画像去重/评分、恢复运行、证据与私有归档。
