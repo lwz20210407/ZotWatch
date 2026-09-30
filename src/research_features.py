@@ -159,6 +159,8 @@ class FeedbackModel:
         for entry in self.entries.values():
             if entry.rating not in RATINGS:
                 continue
+            if entry.reason in {"wrong_material", "wrong_conditions", "metadata_error", "already_known"}:
+                continue  # Retrieval/data errors do not mean disinterest in the whole research direction.
             for facet in ({entry.scope} if entry.scope else set(entry.facets)):
                 votes[facet].append(RATINGS[entry.rating])
         # Two neutral pseudo-observations: a single click cannot dominate the profile.

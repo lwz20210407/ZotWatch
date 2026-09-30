@@ -46,7 +46,7 @@ class CandidateFetcher:
         self.aminer_summary = {"enabled": self.settings.sources.aminer.enabled}
         if not self.settings.sources.aminer.enabled:
             return baseline
-        source = AMinerSource(self.settings, self.base_dir / "data" / "cache" / "aminer")
+        source = AMinerSource(self.settings, self.base_dir / "data" / "cache" / "aminer", feedback=getattr(self, "feedback", None))
         try:
             self.aminer_candidates = source.fetch()
             self.aminer_candidates = align_identities(self.aminer_candidates, baseline)
@@ -54,9 +54,11 @@ class CandidateFetcher:
                 self.aminer_candidates = source.resolve_dates(self.aminer_candidates, self.session)
         except (requests.RequestException, ValueError, TypeError, OSError):
             logger.warning("AMiner discovery failed; existing sources continue")
+        aminer_topic = self._filter_by_topic(self.aminer_candidates)
+        source.record_topic_results(aminer_topic)
         self.aminer_summary.update(source.stats, mode=self.settings.sources.aminer.mode)
         combined = self._filter_by_topic(merge_candidates([*baseline, *self.aminer_candidates]))
-        self.discovery_comparison = {"baseline": baseline, "aminer": self._filter_by_topic(self.aminer_candidates),
+        self.discovery_comparison = {"baseline": baseline, "aminer": aminer_topic,
                                      "combined": combined}
         # AMiner candidates never enter the legacy aggregate cache; disabling the source is immediate.
         return combined if self.settings.sources.aminer.mode == "live" else baseline

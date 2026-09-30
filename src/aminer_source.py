@@ -16,6 +16,7 @@ from .models import CandidateWork
 from .topic_matching import matches_any
 from .author_watch import candidate_from_openalex
 import requests
+from .query_feedback import schedule, query_id, annotate_counts
 
 logger = logging.getLogger(__name__)
 
@@ -127,7 +128,7 @@ def query_plan(settings):
 
 
 class AMinerSource:
-    def __init__(self, settings, cache_dir, *, client=None):
+    def __init__(self, settings, cache_dir, *, client=None, feedback=None):
         self.settings = settings
         self.config = settings.sources.aminer
         self.cache_dir = Path(cache_dir)
@@ -135,6 +136,7 @@ class AMinerSource:
         self.fingerprint = hashlib.sha256(json.dumps(self.plan, sort_keys=True, ensure_ascii=False).encode()).hexdigest()
         self.client = client if client is not None else AMinerClient(self.config, self.cache_dir, query_version=self.fingerprint)
         self.stats = {}
+        self.feedback = feedback
 
     def fetch(self):
         if not self.config.enabled:
@@ -161,16 +163,21 @@ class AMinerSource:
         works = []
         rec_positions = [i for i, (_, endpoint, _) in enumerate(self.plan) if endpoint == "recommend"]
         plan = list(self.plan)
+        scheduling = {"feedback_active": False}
         if rec_positions:
             rec_start %= len(rec_positions)
             rec_rows = [self.plan[i] for i in rec_positions]
-            for slot, index in enumerate(rec_positions):
-                plan[index] = rec_rows[(rec_start + slot) % len(rec_rows)]
+            ordered, scheduling = schedule(rec_rows, rec_start, self.config.max_recommendation_queries,
+                                           getattr(self.feedback, "preferences", {}) or {})
+            visit_positions = sorted(rec_positions, key=lambda i: (i - start) % len(plan))
+            for slot, index in enumerate(visit_positions):
+                plan[index] = ordered[slot]
         rec_seen = set()
         rec_attempts = 0
         rec_low_novelty = 0
         rec_observations = []
         rec_skipped = 0
+        outcomes = []
         next_index = start
         for offset in range(len(plan)):
             index = (start + offset) % len(plan)
@@ -196,13 +203,16 @@ class AMinerSource:
             if len(rows) >= params["size"]:
                 self.client.warn("candidate_cap")
             batch = []
+            ident = query_id(endpoint, params)
             for row in rows:
                 work = normalize_paper(row, route=endpoint, facet=facet, query=query)
                 if work:
+                    work.extra["provenance"][-1]["query_id"] = ident
                     works.append(work)
                     batch.append(work)
                 else:
                     self.client.warn("invalid_candidate_record")
+            outcomes.append({"query_id": ident, "facet": facet, "endpoint": endpoint, "returned": len(rows), "valid_candidates": len(batch)})
             if endpoint == "recommend":
                 ids = {w.extra["aminer_id"] for w in batch}
                 novel = ids - rec_seen
@@ -214,7 +224,7 @@ class AMinerSource:
         try:
             self.cache_dir.mkdir(parents=True, exist_ok=True)
             cursor_path.write_text(json.dumps({"fingerprint": self.fingerprint, "next": next_index,
-                "recommendation_next": (rec_start + rec_attempts) % max(1, len(rec_positions))}), "utf-8")
+                "recommendation_next": (rec_start + (int(rec_attempts > 0) if scheduling["feedback_active"] else rec_attempts)) % max(1, len(rec_positions))}), "utf-8")
         except OSError:
             self.client.warn("rotation_write_failed")
         works = merge_candidates(works)
@@ -271,9 +281,21 @@ class AMinerSource:
                       "planned_queries": len(self.plan), "raw_candidates": len(result),
                       "metadata_enriched": len(details), "identity_lookups": identity_count}
         self.stats.update(recommendation_queries=rec_attempts, recommendation_skipped=rec_skipped,
+                          query_schedule=scheduling, queries=outcomes,
                           recommendation_observations=rec_observations,
                           recommendation_redundancy_stop=rec_low_novelty >= self.config.redundant_recommendation_streak)
         return result
+
+    def record_topic_results(self, works):
+        self.stats = annotate_counts(self.stats, works, "topic_pass")
+        try:
+            path = self.cache_dir / "query-results.json"
+            path.parent.mkdir(parents=True, exist_ok=True)
+            temp = path.with_suffix(".tmp")
+            temp.write_text(json.dumps(self.stats, ensure_ascii=False, indent=2), "utf-8")
+            temp.replace(path)
+        except OSError:
+            self.client.warn("query_observation_write_failed")
 
     def resolve_dates(self, works, session):
         """Bounded exact-DOI metadata lookup using the existing OpenAlex budget/cache."""
