@@ -21,6 +21,7 @@ class AuthorWatchTests(unittest.TestCase):
         self.settings = load_settings(Path(__file__).resolve().parents[1])
         self.settings.author_watch = self.config
         self.settings.research.semantic_enabled = False
+        self.settings.sources.aminer.enabled = False  # This fixture isolates the existing author source.
 
     def work(self, aid="A123", institution="I456", title="TC4 ductile fracture") -> CandidateWork:
         return CandidateWork(source="test", identifier="w", title=title, authors=["Researcher"],

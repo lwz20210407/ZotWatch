@@ -20,6 +20,7 @@ class ResearchWorkflowTests(unittest.TestCase):
         self.tmp = tempfile.TemporaryDirectory(); self.addCleanup(self.tmp.cleanup)
         self.root = Path(self.tmp.name); self.base = self.root / 'repo'; self.output = self.root / 'run'
         self.settings = load_settings(ROOT)
+        self.settings.sources.aminer.enabled = False  # Test an explicit disabled configuration, independently of rollout defaults.
         storage = ProfileStorage(self.base / 'data/profile.sqlite'); storage.initialize(); storage.close()
         self.paper = CandidateWork(source='aminer', identifier='aminer:a', doi='10.1234/a',
             title='Steel ductile fracture damage model', abstract='Steel GTN damage evolution under dynamic loading.',

@@ -45,6 +45,7 @@ class AMinerRefinementTests(unittest.TestCase):
         self.settings = load_settings(ROOT)
         cfg = self.settings.sources.aminer
         cfg.enabled = True
+        cfg.max_recommendation_queries = 4  # Exercise redundancy independently of production rollout quota.
         cfg.max_enrich_items = 0
         cfg.max_identity_lookups = 0
 
