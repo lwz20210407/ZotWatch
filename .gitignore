@@ -19,6 +19,7 @@ __pycache__/
 /reports/research-diagnostics.json
 /data/cache/
 /data/cache/*
+/data/research-archive/
 
 # Delivery history is tracked on purpose: it is what stops already-read papers
 # from being pushed again, and it used to live only in a 90-day CI artifact.

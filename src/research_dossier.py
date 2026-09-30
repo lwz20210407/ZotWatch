@@ -237,6 +237,7 @@ def build_dossier(topic, works, research, *, evidence_map=None, evidence_root=No
             fields[dimension] = {"status": "mentioned", "label": label, "mentions": mentioned, "evidence_ids": [eid]}
         evidence.extend(evidence_by_sentence.values())
         rows.append({"work_id": key, "title": work.title, "doi": work.doi, "url": safe_url(work.url),
+                     "external_ids": {"doi": clean_doi(work.doi), "aminer": str(work.extra["aminer_id"]).casefold() if work.extra.get("aminer_id") else None},
                      "evidence_level": level, "document_status": document["status"] if document else "not_supplied",
                      "fields": fields, "next_checks": [f.verify for f in research.facets if matches_any(work.title + " " + (work.abstract or ""), f.terms)][:3]})
     annotations = mapping.get("citations", [])
@@ -255,7 +256,7 @@ def build_dossier(topic, works, research, *, evidence_map=None, evidence_root=No
                         "No full-text upload, model call, mail or weekly delivery state update"]}
 
 
-def export_dossier(ledger, output_dir):
+def export_dossier(ledger, output_dir, *, archive_notice=""):
     output_dir = Path(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
     esc = lambda value: html.escape(str(value), quote=True)
@@ -277,7 +278,8 @@ def export_dossier(ledger, output_dir):
         cards.append(f'<section><h2>{esc(paper["title"])}</h2><p>{esc(level + warning)} · {link}</p><table>{"".join(fields)}</table><details><summary>原文证据定位</summary>{quotes or "未提供可用原始证据"}</details><p>下一步核对：{esc("；".join(paper["next_checks"]) or "补充原始全文与实验条件")}</p></section>')
     citations = "".join(f'<li>{esc(e["from"])} → {esc(e["to"])}：{esc(e["marker"])}，{esc(e["locator"])}</li>' for e in ledger["citations"])
     page = '<!doctype html><meta charset="utf-8"><title>研究证据工作台</title><style>body{font:16px/1.7 sans-serif;max-width:1100px;margin:40px auto;padding:0 20px;color:#223}section{margin:32px 0;padding:20px;border:1px solid #ddd;border-radius:12px}table{border-collapse:collapse;width:100%}th,td{border-bottom:1px solid #eee;text-align:left;vertical-align:top;padding:10px}th{width:180px}td p{font-size:13px;color:#667}</style>'
-    page += f'<h1>{esc(ledger["topic"])}</h1><p>线索比较与原文定位，不是自动生成的已验证研究结论。未提供证据的项目保持未知。</p>{"".join(cards)}<h2>已核验的本地引用</h2><ul>{citations or "<li>未提供可核验的引用上下文及参考文献对应关系</li>"}</ul><p>未核验引用记录：{len(ledger["unresolved_citations"])}</p>'
+    heading = "原证据包记录的引用" if archive_notice else "已核验的本地引用"
+    page += f'<h1>{esc(ledger["topic"])}</h1><p>{esc(archive_notice)}</p><p>线索比较与原文定位，不是自动生成的已验证研究结论。未提供证据的项目保持未知。</p>{"".join(cards)}<h2>{heading}</h2><ul>{citations or "<li>未提供可核验的引用上下文及参考文献对应关系</li>"}</ul><p>未核验引用记录：{len(ledger["unresolved_citations"])}</p>'
     (output_dir / "dossier.html").write_text(page, "utf-8")
     (output_dir / "evidence-ledger.json").write_text(json.dumps(ledger, ensure_ascii=False, indent=2), "utf-8")
     handoff = {"task": ledger["topic"], "ledger": "evidence-ledger.json", "questions": ["哪些方法可能迁移到当前课题？", "标定与验证条件有哪些证据缺口？"],

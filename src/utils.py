@@ -2,6 +2,9 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
+import tempfile
+from pathlib import Path
 from datetime import datetime, timedelta, timezone
 from typing import Any, Dict
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
@@ -9,6 +12,20 @@ from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 def json_dumps(data: Any, *, indent: int | None = None) -> str:
     return json.dumps(data, ensure_ascii=False, indent=indent, sort_keys=True)
+
+
+def atomic_json(path, value):
+    path = Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    temporary = None
+    try:
+        with tempfile.NamedTemporaryFile(mode="w", encoding="utf-8", dir=path.parent, suffix=".tmp", delete=False) as f:
+            temporary = Path(f.name)
+            json.dump(value, f, ensure_ascii=False, indent=2)
+        os.replace(temporary, path)
+    finally:
+        if temporary and temporary.exists():
+            temporary.unlink()
 
 
 def hash_content(*parts: str) -> str:
