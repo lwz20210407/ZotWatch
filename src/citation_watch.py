@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import logging
+import json
 import math
 import re
 import time
@@ -32,21 +33,69 @@ def evidence(item):
 
 def merge_candidates(works):
     """Merge provenance BEFORE DOI deduplication can discard a discovery route."""
-    merged = {}
+    works = list(works)
+    # The same AMiner paper can have a DOI in search but omit it in recommendation.
+    aliases = {}
     for work in works:
+        if work.extra.get("aminer_id") and work.doi:
+            aliases.setdefault(work.extra["aminer_id"], set()).add(work_key(work))
+    merged = {}
+    def source_metadata(work):
+        return {work.source: {"title": work.title, "doi": work.doi,
+                "published": work.published.isoformat() if work.published else None,
+                "year": work.extra.get("publication_year"), "venue": work.venue}}
+    for work in works:
+        ids = aliases.get(work.extra.get("aminer_id"), set())
+        if not work.doi and len(ids) == 1:
+            work = work.model_copy(update={"doi": next(iter(ids))})
         key = work_key(work)
         if key not in merged:
-            merged[key] = work.model_copy(deep=True)
+            saved = work.model_copy(deep=True)
+            saved.extra.setdefault("provenance", [{"provider": work.source}])
+            saved.extra.setdefault("external_ids", {work.source: work.identifier})
+            saved.extra.setdefault("source_metrics", {work.source: dict(work.metrics)})
+            saved.extra.setdefault("source_metadata", source_metadata(work))
+            merged[key] = saved
             continue
         old = merged[key]
-        extra = {**old.extra, **work.extra}
-        for field in ("cites_seeds", "referenced_by", "watched_authors"):
+        extra = {**work.extra, **old.extra}
+        for field in ("cites_seeds", "referenced_by", "watched_authors", "provenance"):
             rows = old.extra.get(field, []) + work.extra.get(field, [])
-            extra[field] = list({str(sorted(row.items())): row for row in rows}.values())
+            if field == "provenance" and not work.extra.get(field):
+                rows.append({"provider": work.source})
+            extra[field] = list({json.dumps(row, sort_keys=True, ensure_ascii=False, default=str): row for row in rows}.values())
+        extra["external_ids"] = {**work.extra.get("external_ids", {work.source: work.identifier}),
+                                 **old.extra.get("external_ids", {old.source: old.identifier})}
+        extra["source_metrics"] = {**work.extra.get("source_metrics", {work.source: dict(work.metrics)}),
+                                   **old.extra.get("source_metrics", {old.source: dict(old.metrics)})}
+        extra["source_metadata"] = {**work.extra.get("source_metadata", source_metadata(work)),
+                                     **old.extra.get("source_metadata", source_metadata(old))}
+        extra["aminer_facets"] = sorted(set(old.extra.get("aminer_facets", [])) | set(work.extra.get("aminer_facets", [])))
+        extra["is_retracted"] = bool(old.extra.get("is_retracted") or work.extra.get("is_retracted"))
         extra["referenced_works"] = sorted(set(old.extra.get("referenced_works", [])) |
                                            set(work.extra.get("referenced_works", [])))
         extra["semantic_facets"] = sorted(set(old.extra.get("semantic_facets", [])) | set(work.extra.get("semantic_facets", [])))
-        merged[key] = old.model_copy(update={"extra": extra, "abstract": old.abstract or work.abstract})
+        updates = {"authors": old.authors or work.authors, "venue": old.venue or work.venue,
+                   "doi": old.doi or work.doi, "metrics": {**work.metrics, **old.metrics}}
+        fields = dict(old.extra.get("field_sources", {}))
+        use_abstract = work.abstract and (not old.abstract or (old.extra.get("abstract_is_partial")
+                                                             and not work.extra.get("abstract_is_partial")))
+        if use_abstract:
+            updates["abstract"] = work.abstract
+            extra["abstract_is_partial"] = bool(work.extra.get("abstract_is_partial"))
+            extra["abstract_source"] = work.extra.get("abstract_source", work.source)
+            fields["abstract"] = extra["abstract_source"]
+        old_precision = old.extra.get("date_precision", "day")
+        new_precision = work.extra.get("date_precision", "day")
+        if old.published:
+            extra["date_precision"] = old_precision
+        extra["publication_year"] = old.extra.get("publication_year") or work.extra.get("publication_year")
+        if work.published and (not old.published or (old_precision != "day" and new_precision == "day")):
+            updates["published"] = work.published
+            extra["date_precision"] = new_precision
+            fields["published"] = work.source
+        extra["field_sources"] = fields
+        merged[key] = old.model_copy(update={**updates, "extra": extra})
     return list(merged.values())
 
 

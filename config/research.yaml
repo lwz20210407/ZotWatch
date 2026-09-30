@@ -42,6 +42,7 @@ facets:
   #
   # 现在锚点放在力学响应上，组织与缺陷只作为解释力学行为的机制项出现。
   - id: lpbf_tc4
+    aminer_phrases: [Ti6Al4V, Ti-6Al-4V]
     semantic_query: "Mechanical response of laser powder bed fusion Ti-6Al-4V: anisotropic plasticity, ductile fracture and damage evolution, and how build orientation, porosity and lack-of-fusion defects change the flow and failure behaviour."
     name: 增材 TC4 缺陷与力学响应
     # 这条方向断言的是「材料事实」，所以必须真的提到钛，不能只靠 LPBF/孔隙这些通用词。
@@ -58,6 +59,7 @@ facets:
 
   # ---------- 载荷条件：三个自变量，彼此独立 ----------
   - id: temperature
+    aminer_phrases: [thermal softening, adiabatic heating]
     semantic_query: "Temperature dependence of metal flow stress: elevated and cryogenic temperature, thermal softening, adiabatic heating, hot deformation."
     name: 温度效应与热软化
     terms: [elevated temperature, high temperature, cryogenic, low temperature, temperature dependence,
@@ -67,6 +69,7 @@ facets:
     verify: 核对温度区间、加热方式、是否等温、绝热升温是否已修正
 
   - id: strain_rate
+    aminer_phrases: [strain rate, split Hopkinson]
     semantic_query: "Strain-rate dependent plasticity of metals from quasi-static to high rate: split Hopkinson bar, dynamic tension and compression, rate sensitivity."
     name: 应变率效应
     terms: [strain rate, strain-rate dependent, high strain rate, rate sensitivity, quasi-static,
@@ -76,6 +79,7 @@ facets:
     verify: 核对率区间、波形是否平衡、是否与准静态同一试样构型
 
   - id: stress_state
+    aminer_phrases: [stress triaxiality, Lode angle]
     semantic_query: "Stress-state dependent metal plasticity: stress triaxiality, Lode angle, yield surfaces, non-associated flow, anisotropy, nonproportional loading."
     name: 复杂应力状态与屈服准则
     terms: [stress triaxiality, Lode, Lode angle, yield criterion, yield surface, flow potential,
@@ -88,6 +92,7 @@ facets:
 
   # ---------- 现象与模型 ----------
   - id: plasticity_hardening
+    aminer_phrases: [strain hardening, post-necking]
     semantic_query: "Strain hardening laws and post-necking extrapolation for metals: Swift, Voce, Hockett-Sherby, Ludwik, Bauschinger effect, evolving anisotropy."
     name: 塑性变形与硬化律
     terms: [strain hardening, flow stress, hardening extrapolation, post-necking, saturation hardening,
@@ -98,6 +103,7 @@ facets:
     verify: 核对标定应变范围、外推是否有独立验证、是否混用不同试样
 
   - id: ductile_fracture
+    aminer_phrases: [ductile fracture, fracture locus]
     semantic_query: "Ductile fracture initiation criteria for metals under multiaxial loading: fracture locus, MMC, Johnson-Cook fracture, failure strain."
     name: 延性断裂准则
     terms: [ductile fracture, fracture criterion, fracture locus, failure locus, fracture strain,
@@ -107,6 +113,7 @@ facets:
     verify: 核对标定试样组合、是否覆盖你的应力状态区间、有无独立验证试样
 
   - id: damage_evolution
+    aminer_phrases: [damage evolution, Gurson]
     semantic_query: "Damage evolution and void mechanics in ductile metals: GISSMO, Gurson, GTN, void nucleation growth and coalescence, porous plasticity."
     name: 损伤演化与孔洞机制
     terms: [damage evolution, damage accumulation, GISSMO, Gurson, GTN, porous plasticity,
@@ -116,6 +123,7 @@ facets:
     verify: 核对损伤变量定义、是否与塑性耦合、单元尺寸依赖是否处理
 
   - id: calibration
+    aminer_phrases: [inverse identification, virtual fields]
     semantic_query: "Inverse identification and calibration of constitutive and fracture parameters using full-field measurement and finite element model updating."
     name: 参数标定与反演
     terms: [parameter identification, inverse identification, inverse calibration, parameter calibration,
@@ -129,6 +137,7 @@ facets:
 
   # ---------- 实现与验证 ----------
   - id: umat_implementation
+    aminer_phrases: [return mapping, VUMAT]
     semantic_query: "User material subroutine implementation of metal plasticity and damage in explicit finite element codes: UMAT, VUMAT, LS-DYNA, Abaqus, stress integration, mesh objectivity."
     name: 用户子程序与数值实现
     terms: [UMAT, VUMAT, UMAT41, user-defined material, LS-DYNA, Abaqus, MAT_224, MAT_ADD_DAMAGE_DIEM,
@@ -140,6 +149,7 @@ facets:
     verify: 核对单元类型与尺寸、耗散能、稳定性与网格收敛性
 
   - id: impact_validation
+    aminer_phrases: [ballistic limit, residual velocity]
     semantic_query: "Validating metal plasticity and failure models against impact and ballistic perforation experiments: residual velocity, ballistic limit, failure mode transition."
     name: 冲击侵彻与模型验证
     terms: [ballistic, ballistic limit, penetration, perforation, V50, residual velocity,
@@ -155,6 +165,7 @@ facets:
   # 读。区别只在材料体系不同、参数不能直接套用，而不在价值高低——因此 scoring.yaml 里它与
   # TC4 核心研究同为 ×1.0。
   - id: other_metals
+    aminer_phrases: [metal plasticity, ductile damage]
     semantic_query: "Temperature, strain-rate and stress-state dependent plasticity, ductile fracture and damage evolution of structural metals other than titanium: constitutive calibration, user material subroutines and ballistic validation."
     name: 其他金属的同链研究
     terms: [aluminum, aluminium, magnesium, high strength steel, dual phase, advanced high strength steel,

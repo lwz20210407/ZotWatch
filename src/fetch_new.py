@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import logging
 import json
+import hashlib
 import html
 import re
 import time
@@ -15,6 +16,7 @@ import requests
 from .http_utils import request_with_retry
 from .author_watch import authorship_identifiers, candidate_from_openalex, fetch_author_works, mark_watched_authors, work_key
 from .network_budget import BudgetSession
+from .aminer_source import AMinerSource, align_identities
 from .citation_watch import merge_candidates
 from .models import CandidateWork
 from .source_paging import crossref_publication_date, crossref_publication_date_precise, iter_works
@@ -39,6 +41,27 @@ class CandidateFetcher:
         self.top_venues = self._load_top_venues()
 
     def fetch_all(self) -> List[CandidateWork]:
+        baseline = self._fetch_existing()
+        self.aminer_candidates = []
+        self.aminer_summary = {"enabled": self.settings.sources.aminer.enabled}
+        if not self.settings.sources.aminer.enabled:
+            return baseline
+        source = AMinerSource(self.settings, self.base_dir / "data" / "cache" / "aminer")
+        try:
+            self.aminer_candidates = source.fetch()
+            self.aminer_candidates = align_identities(self.aminer_candidates, baseline)
+            if self.settings.sources.aminer.mode == "live":
+                self.aminer_candidates = source.resolve_dates(self.aminer_candidates, self.session)
+        except (requests.RequestException, ValueError, TypeError, OSError):
+            logger.warning("AMiner discovery failed; existing sources continue")
+        self.aminer_summary.update(source.stats, mode=self.settings.sources.aminer.mode)
+        combined = self._filter_by_topic(merge_candidates([*baseline, *self.aminer_candidates]))
+        self.discovery_comparison = {"baseline": baseline, "aminer": self._filter_by_topic(self.aminer_candidates),
+                                     "combined": combined}
+        # AMiner candidates never enter the legacy aggregate cache; disabling the source is immediate.
+        return combined if self.settings.sources.aminer.mode == "live" else baseline
+
+    def _fetch_existing(self) -> List[CandidateWork]:
         now = datetime.now(timezone.utc)
         since = now - timedelta(days=self.settings.sources.window_days)
         semantic = self._fetch_semantic(since) if self.settings.research.enabled and self.settings.research.semantic_enabled else []
@@ -271,6 +294,8 @@ class CandidateFetcher:
         except Exception as exc:
             logger.warning("Failed to read candidate cache: %s", exc)
             return None
+        if payload.get("config_fingerprint") != self._cache_fingerprint():
+            return None
         fetched_at = iso_to_datetime(payload.get("fetched_at"))
         if not fetched_at:
             return None
@@ -288,12 +313,18 @@ class CandidateFetcher:
             return
         payload = {
             "fetched_at": ensure_isoformat(utc_now()),
+            "config_fingerprint": self._cache_fingerprint(),
             "candidates": [self._serialize_candidate(c) for c in candidates],
         }
         try:
             self.cache_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
         except Exception as exc:
             logger.warning("Failed to write candidate cache: %s", exc)
+
+    def _cache_fingerprint(self):
+        # AMiner has its own cache and is always joined AFTER the legacy cache read.
+        cfg = self.settings.sources.model_dump(exclude={"aminer"})
+        return hashlib.sha256(json.dumps(cfg, sort_keys=True).encode()).hexdigest()
 
     @staticmethod
     def _serialize_candidate(candidate: CandidateWork) -> dict:
