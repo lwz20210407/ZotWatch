@@ -1,4 +1,14 @@
 {
+"0167c468ac374cb8": {
+"abstract_zh": "",
+"title_zh": "塑性力学中一致切线刚度的通用方法及其在GLD多孔材料模型中的应用",
+"tldr": "提出一种通用方法用于塑性力学中一致切线刚度的计算，并应用于GLD多孔材料模型。"
+},
+"0228955ba913ebf2": {
+"abstract_zh": "",
+"title_zh": "一种VFM方法用于识别软生物组织双相超弹性材料参数和数据驱动本构模型",
+"tldr": "利用VFM方法识别软生物组织的双相超弹性材料参数，建立数据驱动的本构模型以预测其力学行为。"
+},
 "029e68c03e446725": {
 "abstract_zh": "This study investigated the hot deformation behavior of a novel ultra-low carbon high-strength stainless steel through single-pass isothermal hot compression tests using a Gleeble-3800 thermomechanical simulator. The hot deformation behavior were examined under deformation temperatures ranging from 900 to 1150 °C, true strains of 0.2 to 0.8, and strain rates of 0.01 to 10 s−1. The differences in recrystallization mechanisms under various strain rates were analyzed. Based on the Dynamic Materials Model (DMM) theory, hot processing maps at true strains of 0.2, 0.4, 0.6, and 0.8 were constructed. And the applicability of the Prasad and Murty instability criteria to this new steel was compared. The results indicate that different recrystallization mechanisms operate at different strain rates. Compared to the commonly used Prasad criterion, the Murty instability criterion aligns better with the experimental observations for this steel. The optimal hot processing window for this new steel is identified as a temperature range of 1100–1150 °C with strain rates of 0.1–1 s−1 and 10 s−1, which is consistent with the microstructure of the deformed specimens. This work offers fundamental insights into the microstructural evolution, which is essential for optimizing the hot-working properties of next-generation high-strength stainless steels.",
 "title_zh": "新型超低碳高强度不锈钢的流变行为与热加工图研究",
@@ -49,6 +59,11 @@
 "title_zh": "非关联流动规则对金属薄板断裂预测的影响研究",
 "tldr": "基于新型各向同性韧性断裂准则，研究非关联流动规则对金属薄板断裂预测的影响。"
 },
+"2b1a867e3fa13801": {
+"abstract_zh": "",
+"title_zh": "从微裂纹到断裂：准脆性失效的统一微力学框架",
+"tldr": "提出一个基于微力学的统一框架，用于描述准脆性材料从微裂纹到断裂的失效过程。"
+},
 "2c396d79559ec30d": {
 "abstract_zh": "",
 "title_zh": "对‘用于316L不锈钢纹理依赖塑性不确定性量化集成CPFE–PCE框架’的勘误",
@@ -93,6 +108,11 @@
 "abstract_zh": "本文提出了一种新的方法用于识别板料成形本构模型参数。该方法基于机器学习模型与Levenberg-Marquardt优化算法的结合，并应用于Swift硬化定律和CPB06屈服准则参数的识别。所提出的方法利用了十字形双向拉伸试验结果数据，旨在克服使用CPB06屈服准则表征材料时的一些固有挑战。通过比较测试材料的应力-应变曲线和屈服面，获得的预测性能总体令人满意，突显了所提出方法的潜力。",
 "title_zh": "通过分类和回归机器学习算法联合应用识别板料成形本构模型的离散和连续参数",
 "tldr": "利用机器学习和Levenberg-Marquardt优化算法识别Swift硬化定律和CPB06屈服准则参数，结果与实验数据吻合良好。"
+},
+"4a047457fccd306b": {
+"abstract_zh": "随着氢管道的发展，氢脆已成为影响管道钢安全服役的关键问题。然而，氢诱导韧性-脆性转变的临界氢浓度及其与晶粒尺寸的关系仍不清楚。通过分子动力学模拟，研究了氢浓度和晶粒尺寸对多晶α-Fe氢诱导韧性-脆性转变的影响，分析了氢扩散、位错发射和断裂演化过程。结果表明，随着氢浓度增加，氢原子优先沿晶界扩散，并逐渐达到分离饱和，导致机械性能持续退化。细晶粒和粗晶粒模型的初始断裂应变均下降超过40%，断裂能下降超过50%。裂纹表面面积分别增加2.48倍和1.86倍，表明细晶粒模型对氢更为敏感。当晶界氢浓度约为7–9%时，抑制的晶界位错发射触发了从塑性变形到脆性晶间断裂的转变，标志着氢诱导韧性-脆性转变的开始。建立了晶粒尺寸与晶界原子分数之间的定量关系，以预测该转变的临界氢浓度。本研究揭示了氢浓度在调节位错发射和晶间断裂中的作用，为氢脆评估和管道材料设计提供了见解。",
+"title_zh": "不同氢浓度和晶粒尺寸下多晶α-Fe中氢诱导韧性-脆性转变的原子尺度研究",
+"tldr": "通过分子动力学模拟研究不同氢浓度和晶粒尺寸对多晶α-Fe氢诱导韧性-脆性转变的影响。"
 },
 "4a2374ce1d4e57e7": {
 "abstract_zh": "单距离相位恢复技术被应用于对比增强成像，以观察具有仅1.4%密度差的铁素体/马氏体双相微观结构。每张高分辨率吸收对比图像与对应的相位对比图像进行配准，以分析损伤演化行为。通过追踪微孔洞在拉伸过程中的发展及其成核位置，确定了每个微孔洞的成核载荷步骤。在多个成核位点，如铁素体内部、马氏体内部和铁素体/马氏体界面，观察到微孔洞在相对较早阶段的提前损伤成核；然而，这些微孔洞的后续生长相对缓慢。另一方面，由于马氏体裂纹在最大载荷后产生的微孔洞随后表现出快速生长。马氏体裂纹诱导的损伤演化主要沿附近的铁素体/马氏体界面以及马氏体与铁素体晶界交界处发生。值得注意的是，源自马氏体裂纹的微孔洞在宏观拉伸下表现出以剪切为主的生长特征，而其他成核位点的微孔洞则表现出传统的三轴应力主导的生长特征。结论是，塑性断裂主要由位于形态特征马氏体颗粒上的微孔洞的显著生长力所主导。",
@@ -194,10 +214,20 @@
 "title_zh": "基于损失函数和激活函数的物理信息机器学习架构预测增材制造材料的应力-应变行为",
 "tldr": "通过物理信息机器学习架构预测增材制造材料的应力-应变行为，提高预测性能和物理一致性。"
 },
+"91831887e9542fc8": {
+"abstract_zh": "铁素体-马氏体EP-450钢因其对辐照诱导肿胀的高抗性，广泛用于快中子反应堆燃料组件包裹材料。然而，其在低温高剂量中子辐照下形成的辐射硬化状态可能在后续热暴露过程中演变。本研究考察了从两个BN-350乏燃料组件包裹材料中取样的EP-450钢在约351 °C辐照至61和71 dpa后的热恢复行为。样品在静态氩气中于470 °C退火，累计退火时间分别为10、30和100小时。对两种包裹材料进行了维氏硬度测试，对71 dpa材料进行了微型拉伸试验。初始硬度值相似，分别为356和360 HV0.2，但热响应差异显著：退火100小时后，硬度分别下降了10.2%和17.9%。对于71 dpa材料，0.2%屈服强度从815 MPa下降至752 MPa，总应变和局部应变分别从15.33%增加至17.94%和从8.84%增加至11.45%。这些结果表明，在470 °C下辐照硬化随时间逐渐减弱，并揭示了初始硬度相似的材料可能表现出显著不同的热稳定性。",
+"title_zh": "EP-450钢在470 °C等温退火过程中辐照硬化的时间依赖性热恢复研究",
+"tldr": "研究EP-450钢在470 °C等温退火过程中辐照硬化的时间依赖性热恢复行为。"
+},
 "951438be36e66696": {
 "abstract_zh": "",
 "title_zh": "通过激光粉末床熔融（LPBF）添加微量碳实现原位合金化Ti6Al4V合金的同时强度和延性增强",
 "tldr": "对Ti6Al4V合金，采用激光粉末床熔融技术添加微量碳，实现强度和延性的同时提升。"
+},
+"95396539c3665c5a": {
+"abstract_zh": "",
+"title_zh": "单晶镍基高温合金在宽温域和应变率范围内的异常行为",
+"tldr": "研究单晶镍基高温合金在宽温域和应变率范围内的异常力学行为，分析蓝脆效应的影响。"
 },
 "99d9e8c0ddb242dd": {
 "abstract_zh": "",
@@ -228,6 +258,11 @@
 "abstract_zh": "",
 "title_zh": "颈缩后硬化行为与等效应力-应变曲线对基于M–K模型的成形极限图精度的影响",
 "tldr": "分析颈缩后硬化行为和等效应力-应变曲线对基于M–K模型的成形极限图精度的影响。"
+},
+"a732a04ebead1bf1": {
+"abstract_zh": "金属环网是柔性落石防护网的核心拦截组件，其力学行为的准确表征对整个系统的安全性评估至关重要。为克服现有计算模型在反映环网大变形状态和能量耗散器激活方面的局限性，首先对五种规格的环网（R8至R19，共30个样本）进行了系统的单轴拉伸试验和穿刺试验。结果揭示了两种加载情况下的两阶段变形特征（初始低力拉伸阶段后为刚度硬化快速上升阶段）和并行叠加的承载机制。在此基础上，将实验数据归一化处理，即通过将力除以钢丝数量并进行无量纲化位移，建立了一个统一的分段两阶段本构模型，包含线性拉伸段和幂律硬化段，以描述直至峰值点的响应；拉伸和穿刺情况共享相同的模型形式，仅通过不同的参数（决定系数R2不低于0.97，平均值分别为0.98和0.983）进行区分。随后，使用LS-DYNA建立了整体结构的全尺寸数值模型，其中两侧跨度采用拉伸本构模型，中间冲击跨度采用穿刺本构模型。该模型通过1500 kJ全尺寸冲击试验进行了验证。计算得到的支撑绳力时程、能量耗散器（减压环）的激活状态、最大拦截变形（计算值8.23 m，实测值8.8 m，相对误差约6.5%）以及减压环的能量耗散分布（平均相对误差约5.2%）均与实验结果良好吻合。因此，所提出的两阶段计算模型能够准确反映环网在实际结构中的力和变形状态，并正确描述冲击力的传递和能量耗散器的激活，为柔性落石防护网的精细化设计提供了可靠的理论基础。",
+"title_zh": "金属环网在柔性落石防护网中的两阶段计算模型研究",
+"tldr": "通过实验和模拟建立金属环网的两阶段计算模型，以准确描述其在柔性落石防护网中的力学行为。"
 },
 "a7e656d9d3df97c4": {
 "abstract_zh": "",
@@ -294,6 +329,11 @@
 "title_zh": "轻量化回映映射替代模型用于多尺度塑性：实用指南",
 "tldr": "针对多尺度塑性模拟中的回映映射过程，提出轻量化神经网络替代模型，通过简化结构降低计算成本，实现每分析从小时级到秒级的提升。"
 },
+"c185930b62c6a660": {
+"abstract_zh": "在Split Hopkinson Tension Bar (SHTB)试验中，自由切削钢50SiB8在高应变和高温下表现出断裂应变与温度之间的非线性关系，这是由于蓝脆效应所致。建议使用四次多项式函数来描述原始和修正Johnson-Cook (JC)断裂应变本构方程中的热部分，并识别相应的参数。文献中尚未报道50SiB8的断裂建模。使用光滑和带缺口的拉伸试样，在准静态、等温、高温和高应变率条件下对50SiB8进行表征。为了计算原始和修正JC断裂参数，分别进行了两种不同的参数识别方法，即正向和反向参数识别方法，并进行了比较和详细解释。对于原始和修正JC断裂模型的应力三轴度因子，建议使用正向参数识别方法用于原始JC断裂模型，而提出使用反向参数识别方法用于修正JC断裂模型。还展示了蓝脆效应对温度因子及其参数的影响。此外，将原始和基于蓝脆效应的JC断裂模型的有限元模拟结果与实验进行比较。在蓝脆温度范围内，新的调整JC模型在断裂直径和应变方面表现出更准确的结果。此外，本工作引入了一个结合Bai-Wierzbicki应力三轴度依赖模型、JC断裂模型和非线性温度因子的断裂模型，同时考虑蓝脆效应，但需要进一步实验以确定其参数。",
+"title_zh": "自由切削钢50SiB8原始和修正Johnson-Cook断裂应变参数的两种识别方法分析",
+"tldr": "通过SHTB试验分析自由切削钢50SiB8在高温和高应变下的断裂应变与温度的非线性关系，并提出结合蓝脆效应的断裂模型。"
+},
 "c679e147e39907b9": {
 "abstract_zh": "Despite their great potential for lightweight impact protection, the yield behavior of lattice materials under general stress states is complicated by factors such as loading orientation, hydrostatic stress, and strain rate, and a unified description has yet to be developed. Also, initial yield strength was commonly used to describe the yield surface of materials; however, it may be inaccurate for lattice materials and other cellular-based materials because of the presence of geometric nonlinearities (e.g., local strut buckling) and stochastic imperfections in manufacturing (like cell-wall thickness variations and nodal connectivity defects). Therefore, this work investigated the rate-dependent yielding and post-yield deformation behavior of lattice materials under dynamic loading. Body-centered cubic (BCC) lattice materials with four orientation angles (α = 0°, 15°, 30°, and 45°) were printed using 316L stainless steel. Quasi-static and dynamic compression tests were conducted, and finite element (FE) models were established and validated. During the long-stroke deformation of lattice materials, plateau stress reflects the steady-state performance of the whole sample and would be a more reliable metric for lattice's effective \"yield strength\" than a transient initial peak. Therefore, plateau stress was employed as the characteristic strength for yield-surface construction. The Hill 48 yield formulation was generalized by incorporating hydrostatic stress dependence and strain-rate sensitivity of plateau strength over a wide loading-rate range. Further, the post-yield collapse deformation and energy absorption of lattice materials were analyzed. The proposed model is able to capture the orientation-dependent collapse behavior and rate-induced strengthening while preserving a consistent yield-surface shape. The results elucidate the connection between hydrostatic-sensitive, rate-dependent yielding and energy absorption, providing guidance for the design of lattice materials with tailored performance.",
 "title_zh": "不同胞体取向的晶格材料在动态载荷下的屈服与屈服后行为研究",
@@ -324,6 +364,16 @@
 "title_zh": "柔性辊弯成型中延性断裂的预测研究",
 "tldr": "研究AA3105铝合金板在柔性辊弯成型过程中的断裂机制，提出减少损伤的方法。"
 },
+"d99743970441336f": {
+"abstract_zh": "",
+"title_zh": "阐明TB9钛合金的应变率与温度依赖塑性：一个集成本构与微观结构分析",
+"tldr": "通过集成本构与微观结构分析，研究TB9钛合金的应变率与温度依赖塑性行为。"
+},
+"db20c4cc67431336": {
+"abstract_zh": "本工作对钛、铁、铜和锡在高应变率压缩下的动态压缩响应进行了研究，探讨了绝热加热和应变率的影响。高应变率试验使用Split Hopkinson Pressure Bar (SHPB)进行，低应变率试验使用伺服液压试验机。在变形过程中，使用高速红外热成像技术测量试样的温度升高。结果表明，所有研究材料均表现出正的应变率敏感性，在高应变率实验（500–3100 s−1）中观察到最高达65 °C的温度升高。所有研究材料的绝热加热程度均随应变率增加。在应变率为1 s−1时，温度升高明显降低了铁和钛的应变硬化率，但似乎不足以影响铜和锡的力学行为。泰勒-金尼系数（βint和βdiff）被发现与应变和应变率有关。在较高应变率（1200–3100 s−1）下，测试初期的积分βint值较小（0.2到0.7），随着较大塑性应变增加到约0.8–0.9。微分βdiff作为应变函数呈现高斯曲线，其最大值在研究材料中为0.9到1.2。锡在较高应变硬化率下表现出较低的βint和βdiff，而铜在整个高应变率试验中表现出较高的βint和βdiff。这些结果表明，铜在变形过程中具有更稳定的微观结构，将大部分塑性功转化为热量，而锡具有更快演化的微观结构，在塑性变形过程中其微观结构储存了更多的塑性功。此外，这表明βint和βdiff可用于研究材料在高应变率塑性变形下的稳定性及微观结构演化。βdiff更适合描述材料的瞬时热机械行为，而βint更适合用于需要单一参数描述材料将塑性功转化为热量效率的应用。",
+"title_zh": "商用纯钛、铁、铜和锡在高率压缩下的泰勒-金尼系数与应变硬化",
+"tldr": "研究钛、铁、铜和锡在高应变率压缩下的动态响应，测量温度变化并分析应变率敏感性和泰勒-金尼系数变化。"
+},
 "db91a6e9a06119c1": {
 "abstract_zh": "",
 "title_zh": "双相钢中延性断裂早期演化的介观尺度模拟",
@@ -339,15 +389,35 @@
 "title_zh": "铝管在双向拉伸和纯剪切应力状态下的各向异性本构模型",
 "tldr": "建立铝管在双向拉伸和纯剪切应力状态下的各向异性本构模型，用于成形过程的模拟分析。"
 },
+"e2b45a8e320d55b2": {
+"abstract_zh": "本研究通过Split Hopkinson压力杆测试，分析了100Cr6轴承钢弹芯材料在奥氏体处理（300 °C，1或5小时）和随后的低温处理（-80 °C，1小时）后的高应变率行为。通过SEM和XRD评估了显微组织、相变和晶体学参数，同时通过HV1显微硬度和Split Hopkinson压力杆测试量化了力学性能。低温处理在长时间奥氏体处理后系统性地提高了显微硬度和动态屈服强度，同时降低了应变能力。5小时奥氏体处理并低温处理的试样最大显微硬度达到780 HV1，比初始状态提高了约250%。XRD分析显示，1小时奥氏体处理加低温处理的试样最大预冲击和后冲击位错密度分别为77.86 x 10¹⁴ lines/m²和154.06 x 10¹⁴ lines/m²。总体而言，奥氏体处理后的低温处理有效优化了100Cr6钢的动态力学响应。",
+"title_zh": "利用Split Hopkinson压力杆分析100Cr6弹芯材料的低温加工对动态力学性能的影响",
+"tldr": "研究100Cr6轴承钢弹芯材料在奥氏体处理和低温处理后的动态力学性能，采用Split Hopkinson压力杆进行测试。"
+},
 "e68a54e13d296474": {
 "abstract_zh": "氢脆钢因其在高温高压条件下具有高强度、高韧性以及优异的抗氢脆性能，是先进武器系统和核物理实验中核心部件的重要工程材料。在本研究中，采用高温Split Hopkinson压力棒（SHPB）系统对氢脆钢的动态力学响应进行表征。在不同应变、应变率和变形温度下获得了真实应力-应变曲线。结果表明，真实应力表现出非线性应变硬化行为，而热软化导致其随变形温度升高而降低。通过考虑比热容的温度依赖性，计算了塑性变形过程中的绝热温升。随后确定了实际变形温度，并利用热软化系数将非等温条件下的真实应力-应变曲线校正为等温条件下的真实应力-应变曲线。基于校正后的等温真实应力-应变曲线，建立了氢脆钢的Power-Law和Johnson-Cook本构模型。这些模型通过二维切削模拟进行了拟合和评估。它们能够捕捉测试条件下的主要切削力趋势，尽管在高速切削时存在偏差。因此，这些模型可能在所研究范围内作为现象学输入用于初步切削模拟。",
 "title_zh": "基于等温真实应力-应变曲线的氢脆钢动态本构模型",
 "tldr": "利用高温SHPB系统对氢脆钢进行动态力学响应表征，获得不同应变、应变率和变形温度下的真实应力-应变曲线，建立Power-Law和Johnson-Cook本构模型并评估其在切削模拟中的适用性。"
 },
+"e76147e405ebcbce": {
+"abstract_zh": "",
+"title_zh": "静水深滚对30CrNi2MoV钢表面完整性的影响：本构建模与模拟",
+"tldr": "研究静水深滚对30CrNi2MoV钢表面完整性的影响，采用本构建模与模拟方法，分析加工条件与力学性能的关系。"
+},
+"e777b340b846238e": {
+"abstract_zh": "",
+"title_zh": "包含各向同性延性损伤的硬化不对称热力学一致本构建模",
+"tldr": "建立包含各向同性延性损伤的热力学一致本构模型，用于描述镁合金的硬化不对称行为。"
+},
 "e863056919d9894c": {
 "abstract_zh": "",
 "title_zh": "低温下316L不锈钢塑性应变诱导马氏体相变的本构建模与参数识别",
 "tldr": "建立316L不锈钢在低温下塑性应变诱导马氏体相变的本构模型并进行参数识别。"
+},
+"e944ddf5b6aeafd6": {
+"abstract_zh": "温度和应变率对可锻铸铁在高温服役条件下的热机械行为和结构完整性产生深远影响。本研究在25至850 °C温度范围和1.8 × 10⁻⁴、9 × 10⁻⁴和4.5 × 10⁻³ s⁻¹应变率下进行了实验研究。拉伸试验表明，随着温度升高，抗拉强度显著下降，从室温下的761.5 MPa降至850 °C时低于100 MPa，而断裂应变增加至最大2.2%，表明高温下延性增强。通过实验验证的XFEM模拟评估了断裂韧性，结果显示其从室温下的54.66 kJ/m²降至850 °C时的23.9 kJ/m²。为建立加工条件与力学性能之间的预测关系，对Arrhenius型和Johnson–Cook本构模型进行了校准和系统比较。Johnson–Cook模型表现出显著更强的预测能力，其抗拉强度和屈服强度的决定系数R²分别为0.91和0.92，而Arrhenius模型的R²值低于0.52。基于校验的本构框架，开发了一种基于非支配排序遗传算法II（NSGA-II）的多目标优化策略，以同时优化强度、延性和断裂韧性。所得帕累托前沿量化了竞争力学性能之间的内在权衡，并实现了最优热机械加工窗口的识别。所提出的集成实验-计算框架为可锻铸铁在严苛热机械环境下的本构表征、性能预测和材料设计优化提供了验证的方法。研究结果表明，结合本构建模、断裂力学和进化多目标优化，有助于加速高性能工程合金的开发。",
+"title_zh": "基于Arrhenius和Johnson–Cook本构建模的高温下可锻铸铁多目标NSGA-II优化研究",
+"tldr": "在高温条件下对可锻铸铁进行实验与模拟，建立Arrhenius和Johnson–Cook本构模型并进行多目标优化，以优化强度、延性与断裂韧性。"
 },
 "e9b616075e1f5603": {
 "abstract_zh": "",
@@ -363,6 +433,11 @@
 "abstract_zh": "先进高强钢的孔扩展比（HER）由内在边延性（HER0）和冲孔诱导的退化（ΔHER）共同决定。然而，由于交互变量的影响和严重变形的局部区域，直接量化冲孔效应较为困难。本研究将HER解耦为内在边延性（HER0，定义为电火花加工孔的HER）和冲孔诱导的HER退化（ΔHER，定义为HER0到冲孔孔HER的相对降低），并建立了更简单的替代指标来表征这两个贡献。通过单轴拉伸和剪切试验分别获取HER0和ΔHER。有限元模拟显示，冲孔过程和剪切试验在局部变形区域表现出相似的低应力三轴度变形状态。微观硬度分析证实了两种过程的工作硬化行为相似。该框架通过两种具有相同化学成分但不同轧制减缩比的热轧马氏体钢进行了实验验证。值得注意的是，HER0较高的钢由于较大的ΔHER表现出较低的冲孔孔HER，表明ΔHER可以逆转HER性能。微观结构分析表明，原始奥氏体晶粒尺寸影响碳化物析出，导致HER0和ΔHER趋势相反。最后，一个基于机器学习的两阶段HER预测模型，结合单轴拉伸和剪切试验得到的参数，准确预测了HER0和HER，取得了高R²值。这些结果建立了一个基于替代试验的框架，通过分别考虑材料的固有响应和工艺诱导的孔边缘条件来预测HER。",
 "title_zh": "基于微观结构信息的先进高强钢孔扩展行为解耦与机器学习预测",
 "tldr": "通过解耦孔扩展行为的内在边延性和冲孔诱导的退化，结合机器学习方法预测先进高强钢的孔扩展性能。"
+},
+"ec2e08c3a2097e28": {
+"abstract_zh": "激光粉末床熔融（LPBF）技术能够制造具有可调控显微组织的钛合金，从而实现性能的定制化。本研究在不同制造条件下对Ti-20Nb-6Ta合金进行了加工。体积能量密度（VED）范围为66.1至175.8 J/mm³，扫描方向为双向，旋转角度为0°和90°。光学显微镜显示，根据 hatch 间距，熔池形态和轨迹相互作用效应存在显著差异，较高能量密度下观察到几何连续性降低。X射线衍射（XRD）结合Rietveld精修表明，显微组织主要为正交α″-Ti马氏体（72.9-90.7 wt.%），少量为α′-Ti马氏体（3.8-16.9 wt.%）和保留的β-Ti（4.0-10.2 wt.%）。电子背散射衍射（EBSD）分析显示，低能量条件（VED66/ROT90）具有最高的低角晶界比例（35.8%），表明存在显著的马氏体亚结构。相反，高能量条件（VED175/ROT90）表现出较低的低角晶界比例（约6%）和较高的高角晶界比例。极图分析显示高能量条件下具有更明确的晶体学织构。β母相的重建确认了这种各向异性来源于固相控制的β织构，并通过β-Ti → α″-Ti马氏体转变过程中的取向继承传递到马氏体结构中。压缩试验显示，随着VED增加，表观弹性模量从9.6增加至17.5 ± 2.1 GPa，压缩屈服强度从647 ± 53增加至818 ± 42 MPa。类似地，维氏硬度从约208增加至263 ± 29 HV 0.1。这些性能提升与Rietveld精修和EBSD揭示的相组成和晶体学织构演变相关。在磷酸盐缓冲盐水（PBS）溶液中的电化学测试显示，所有加工条件下均表现出稳定的被动行为，具有相似的被动电流密度，且在3 V相对于Ag/AgCl电极下未观察到局部腐蚀现象。这些结果表明，尽管观察到显微组织的变化，所研究的LPBF加工条件仍表现出相似的被动电化学行为。",
+"title_zh": "激光粉末床熔融制备的Ti-20Nb-6Ta合金加工、显微组织与性能关系研究",
+"tldr": "研究激光粉末床熔融加工条件下Ti-20Nb-6Ta合金的加工参数、显微组织与性能之间的关系。"
 },
 "ed29d30f10425a17": {
 "abstract_zh": "",
