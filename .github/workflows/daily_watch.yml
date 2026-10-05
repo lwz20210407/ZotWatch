@@ -306,6 +306,7 @@ jobs:
             data/cache/candidate-vectors
             data/cache/entity-tracking
             data/cache/method-compare
+            data/cache/aminer-abstracts
           key: candidate-v1-${{ github.ref_name }}-${{ steps.model.outputs.slug }}-${{ github.run_id }}-${{ github.run_attempt }}
           restore-keys: |
             candidate-v1-${{ github.ref_name }}-${{ steps.model.outputs.slug }}-
@@ -367,6 +368,7 @@ jobs:
             data/cache/candidate-vectors
             data/cache/entity-tracking
             data/cache/method-compare
+            data/cache/aminer-abstracts
           key: candidate-v1-${{ github.ref_name }}-${{ steps.model.outputs.slug }}-${{ github.run_id }}-${{ github.run_attempt }}
 
       - name: Prepare Pages

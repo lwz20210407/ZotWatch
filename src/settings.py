@@ -419,6 +419,10 @@ class ResearchConfig(BaseModel):
     method_deadline_seconds: int = Field(480, ge=60, le=1200)
     lineage: bool = True
     lineage_max_requests: int = Field(40, ge=0, le=80)
+    # Paid (0.01 yuan per filled paper). Off until the hit rate is measured.
+    aminer_abstract_fill: bool = False
+    aminer_abstract_limit: int = Field(10, ge=0, le=30)
+    aminer_abstract_budget_yuan: float = Field(0.20, gt=0, le=1.0)
 
 
 class NetworkConfig(BaseModel):

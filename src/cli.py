@@ -41,6 +41,7 @@ from .research_archive import attach_topics
 from .aminer_policy import aminer_only, screen_aminer_delivery, recent_delivery, select_backfill
 from .aminer_shadow import export_shadow, persist_week, scoreboard, trial_candidates
 from .entity_tracking import tracking_report
+from .abstract_fill import weekly_fill
 from .lineage import Lookup, build_lineage, resolve_week
 from .method_compare import MethodComparer
 
@@ -314,6 +315,13 @@ def _run_watch(
     watched = [enriched_by_key[work_key(work)] for work in watched]
     classics = [enriched_by_key[work_key(work)] for work in classics]
     exploration = [enriched_by_key[work_key(work)] for work in exploration]
+    # Missing abstracts from AMiner (paid, off by default). Before the translation so a
+    # filled abstract also gets its Chinese TLDR, and before the method comparison.
+    abstract_fill = None
+    if config.aminer_abstract_fill and settings.sources.aminer.enabled:
+        iso = beijing_now().isocalendar()
+        abstract_fill = _optional("AMiner abstract fill", lambda: weekly_fill(
+            combined, settings, base_dir, f"{iso[0]}-W{iso[1]:02d}"), None)
     # Chinese title + one-sentence TLDR for everything that will be shown.
     enrich_chinese(combined, settings.translation, base_dir / "data" / "zh-cache.json")
 
@@ -341,7 +349,8 @@ def _run_watch(
                    "collaboration_groups": groups,
                    "network": fetcher.session.summary() if isinstance(fetcher.session, BudgetSession) else {},
                    "retrieval_warnings": retrieval_warnings, "version_warnings": monitor.warnings,
-                   "feedback_count": len(feedback.entries), "feedback_reasons": feedback.reason_summary(), "evidence_mode": "title_abstract_only"}
+                   "feedback_count": len(feedback.entries), "feedback_reasons": feedback.reason_summary(), "evidence_mode": "title_abstract_only",
+                   "abstract_fill": abstract_fill}
 
     if not combined:
         logging.getLogger(__name__).info("No ranked results available")
