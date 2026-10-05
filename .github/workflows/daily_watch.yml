@@ -1,8 +1,12 @@
 name: Weekly Watch & RSS
 
 # Serialize delivery history and publication; never cancel an in-flight email.
+#
+# Dry runs get their own group. GitHub keeps one PENDING run per group and cancels the
+# older one when another arrives, so a dry run dispatched while a scheduled run was
+# queued behind a running one would silently cancel that week's delivery.
 concurrency:
-  group: zotwatch-delivery
+  group: ${{ inputs.dry_run && 'zotwatch-dry-run' || 'zotwatch-delivery' }}
   cancel-in-progress: false
 
 # Deliberately NOT triggered by `push`. A push trigger used to run the whole
@@ -74,9 +78,12 @@ jobs:
           SCHEDULE: ${{ github.event.schedule }}
           TRIGGER: ${{ inputs.trigger }}
           DRY: ${{ inputs.dry_run }}
-          BRANCH: ${{ github.event.repository.default_branch }}
+          # Not assumed present on every event payload; an empty branch made `git show
+          # origin/:...` fail, read as "no ledger", and let every fallback cron deliver.
+          BRANCH: ${{ github.event.repository.default_branch || 'main' }}
         run: |
           set -euo pipefail
+          BRANCH="${BRANCH:-main}"
           week="$(TZ=Asia/Shanghai date +%G-W%V)"
           echo "week=$week" >> "$GITHUB_OUTPUT"
           # GitHub's API does not say which cron slot fired a run, so the log has to.
@@ -96,11 +103,35 @@ jobs:
             echo "should_run=true" >> "$GITHUB_OUTPUT"
             exit 0
           fi
-          git fetch --quiet origin "$BRANCH"
-          ledger="$(git show "origin/$BRANCH:data/watch-state/scheduled-deliveries.json" 2>/dev/null || echo '{}')"
-          if printf '%s' "$ledger" | python3 -c "import json,sys; sys.exit(0 if '$week' in json.load(sys.stdin) else 1)"; then
+          # A failed fetch must not fail the guard -- that would skip the week outright.
+          # Fall back to the checked-out copy, which is older but still a ledger.
+          ledger_path=data/watch-state/scheduled-deliveries.json
+          if git fetch --quiet origin "$BRANCH" && git cat-file -e "origin/$BRANCH:$ledger_path" 2>/dev/null; then
+            ledger="$(git show "origin/$BRANCH:$ledger_path")"
+          elif [ -f "$ledger_path" ]; then
+            echo "::warning::Could not read the ledger from origin/$BRANCH; using the checked-out copy."
+            ledger="$(cat "$ledger_path")"
+          else
+            ledger='{}'
+          fi
+          # Exit codes: 0 delivered, 1 not delivered, 2 ledger unreadable.
+          set +e
+          printf '%s' "$ledger" | WEEK="$week" python3 -c "
+          import json, os, sys
+          try:
+              data = json.load(sys.stdin)
+          except ValueError:
+              sys.exit(2)
+          sys.exit(0 if isinstance(data, dict) and os.environ['WEEK'] in data else 1)"
+          status=$?
+          set -e
+          if [ "$status" -eq 0 ]; then
             echo "::notice::The $week digest was already delivered. Skipping this scheduled run."
             echo "should_run=false" >> "$GITHUB_OUTPUT"
+          elif [ "$status" -eq 2 ]; then
+            # Deliver rather than skip: a duplicate email is recoverable, a lost week is not.
+            echo "::warning::The delivery ledger is unreadable; delivering, which may duplicate this week's digest."
+            echo "should_run=true" >> "$GITHUB_OUTPUT"
           else
             echo "No delivery recorded for $week yet; this run delivers."
             echo "should_run=true" >> "$GITHUB_OUTPUT"
@@ -139,7 +170,12 @@ jobs:
       SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
       SMTP_FROM: ${{ secrets.SMTP_FROM }}
     steps:
+      # The branch head, not the SHA the run was queued with. A run that waited in the
+      # concurrency queue behind a manual delivery would otherwise start from history
+      # that predates it, and the final rebase of state.json would conflict.
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
@@ -367,6 +403,7 @@ jobs:
         if: env.DRY_RUN != 'true'
 
       - name: Email digest
+        id: email
         if: env.DRY_RUN != 'true'
         run: python -m src.cli notify
 
@@ -383,8 +420,10 @@ jobs:
       # The guard's ledger. Written only after the mail went out, only for a
       # scheduled-origin run, and keyed on the week the GUARD computed -- so a long run
       # that finishes after Sunday midnight still records the week it was started for.
+      # always() + the email outcome: once the mail is out, the week must be recorded
+      # even if commit-history failed, or the next fallback cron sends it again.
       - name: Record this week's scheduled delivery
-        if: env.DRY_RUN != 'true' && needs.guard.outputs.scheduled == 'true'
+        if: always() && steps.email.outcome == 'success' && needs.guard.outputs.scheduled == 'true'
         env:
           WEEK: ${{ needs.guard.outputs.week }}
         run: |
@@ -408,7 +447,7 @@ jobs:
       # re-sending papers already read, and losing the reports means every link in
       # an old email points at whatever the newest digest happens to be.
       - name: Persist history and reports
-        if: env.DRY_RUN != 'true'
+        if: always() && steps.email.outcome == 'success'
         run: |
           set -euo pipefail
           git config user.name "github-actions[bot]"
@@ -437,6 +476,9 @@ jobs:
                  && git push origin "HEAD:${{ github.ref_name }}"; then
                 break
               fi
+              # A conflicted rebase leaves the repo mid-rebase and every later attempt
+              # fails instantly; abort it so the next try starts clean.
+              git rebase --abort 2>/dev/null || true
               [ "$attempt" -lt 3 ] || { echo "::error::Delivery history could not be pushed after 3 attempts."; exit 1; }
               sleep $((attempt * 15))
             done
