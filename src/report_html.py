@@ -760,6 +760,7 @@ _TEMPLATE = """
   {% if authors_line(work) %}<div class="line">{{ icon('user') }}<span>{{ authors_line(work) }}</span></div>{% endif %}
   {% if source_line(work) %}<div class="line">{{ icon('book') }}<span><em>{{ source_line(work) }}</em></span></div>{% endif %}
   {% if work.extra.get('aminer_id') %}<div class="line"><span>AMiner 发现／补充信息{% if work.extra.get('abstract_is_partial') %} · 以下为摘要片段{% endif %}{% if work.extra.get('date_precision') != 'day' %} · 出版日期待核实{% endif %}</span></div>{% endif %}
+  {% if work.extra.get('abstract_filled_from') %}<div class="line"><span>摘要来源：{{ work.extra.abstract_filled_from }} 补全（原始来源未提供）</span></div>{% endif %}
   {% if work.extra.get('aminer_applicability') %}<div class="line"><span>适用性：{{ work.extra.aminer_applicability.reason }}</span></div>{% endif %}
   {% for topic in work.extra.get('research_topics', []) %}<div class="line"><a href="{{ topic.url }}">专题概览：{{ topic.title }}</a></div>{% endfor %}
   {% for entity in work.extra.get('watched_entities', []) %}<div class="line">已确认实体匹配：{{ entity.name }}（{{ {'person':'学者','organization':'机构','venue':'期刊/会议'}.get(entity.kind, entity.kind) }}）</div>{% endfor %}

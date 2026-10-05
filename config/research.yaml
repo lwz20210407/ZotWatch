@@ -26,6 +26,14 @@ method_deadline_seconds: 480
 # 每次约 30 次 OpenAlex 列表请求（按 network.yaml 计价约 0.003 美元）。
 lineage: true
 lineage_max_requests: 40
+# 摘要补全（2026-10-05 本人同意：默认关，先测命中率）。Elsevier 的摘要常常 OpenAlex 和 Crossref
+# 都没有，10-05 dry run 排名前两篇的卡片就是空的。打开后：本期入选且摘要不足 200 字的论文，
+# 免费标题检索找到 AMiner 记录（DOI 一致才算；一方没 DOI 时要求标题几乎一致），再花 0.01 元
+# 取完整摘要。每周最多 aminer_abstract_limit 篇、封顶 aminer_abstract_budget_yuan 元。
+# 测命中率：python -m src.abstract_fill reports/report-YYYYMMDD.html --budget 0.20
+aminer_abstract_fill: false
+aminer_abstract_limit: 10
+aminer_abstract_budget_yuan: 0.20
 
 # 方向划分依据本人 2026-09-19 给出的博士课题定义：
 #
