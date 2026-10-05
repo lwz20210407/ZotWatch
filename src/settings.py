@@ -195,6 +195,9 @@ class TranslationConfig(BaseModel):
     api_key_env: str = "EMBEDDING_API_KEY"
     batch_size: int = Field(20, ge=1, le=60)
     timeout_seconds: float = Field(90.0, gt=0)
+    # Batches translated at once. 1 restores the old serial behaviour, e.g. if the
+    # provider starts returning 429.
+    concurrency: int = Field(3, ge=1, le=6)
 
 
 class ScoreWeights(BaseModel):

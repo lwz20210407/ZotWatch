@@ -41,13 +41,53 @@ def _term_pattern(term: str) -> re.Pattern:
     return re.compile(r"(?<!\w)" + r"\s+".join(parts) + r"(?!\w)")
 
 
+@lru_cache(maxsize=4096)
+def _term_gate(term: str):
+    """Tokens of which at least one must be in the text for the term to match, or None.
+
+    Exact, not a heuristic: _term_pattern demands its first word as a whole word
+    (bounded by (?<!\\w) and by \\s+ or (?!\\w)), and normalize_text leaves running text
+    as single-space-separated \\w tokens, so that word must be one of the text's tokens.
+    A one-word term may carry the plural suffix. Chinese phrases are not tokenised, so
+    they have no gate and always go to the regex.
+    """
+    normalized = normalize_text(term)
+    if re.search(r"[㐀-鿿]", normalized):
+        return None
+    words = normalized.split()
+    if not words:
+        return frozenset()
+    if len(words) == 1 and _term_pattern(term).pattern.endswith("s?(?!\\w)"):
+        return frozenset({words[0], words[0] + "s"})
+    return frozenset({words[0]})
+
+
+@lru_cache(maxsize=16384)
+def _prepared(text: str) -> Tuple[str, frozenset]:
+    normalized = normalize_text(text)
+    return normalized, frozenset(normalized.split())
+
+
 def matches_term(text: str, term: str) -> bool:
     return bool(_term_pattern(term).search(normalize_text(text)))
 
 
 def matches_any(text: str, terms: List[str]) -> bool:
-    normalized = normalize_text(text)
-    return any(_term_pattern(term).search(normalized) for term in terms if term.strip())
+    # Hot path: on 2026-10-05 recomputing the facet centroids called this 535k times
+    # (4391 papers x 11 facets x term lists) and took 240 s, spent re-normalising the
+    # same abstract per call and running ~10M regex searches for terms whose first word
+    # does not occur at all. The text is now normalised once, and the token gate rejects
+    # those terms before any regex runs. Results are identical; see _term_gate.
+    normalized, tokens = _prepared(text)
+    for term in terms:
+        if not term.strip():
+            continue
+        gate = _term_gate(term)
+        if gate is not None and gate.isdisjoint(tokens):
+            continue
+        if _term_pattern(term).search(normalized):
+            return True
+    return False
 
 
 def matches_groups(text: str, groups: List[List[str]]) -> bool:

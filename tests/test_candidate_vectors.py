@@ -88,4 +88,55 @@ class CandidateVectorTests(unittest.TestCase):
             with self.assertRaises(EmbeddingError): vectorizer.encode(['a'])
 
 
+class ConcurrentBatchTests(unittest.TestCase):
+    """~90 serial batches cost ~6 minutes of the 2026-10-05 run; they now overlap."""
+
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory(); self.addCleanup(self.tmp.cleanup)
+        self.path = Path(self.tmp.name)
+
+    def test_batches_overlap_and_order_is_preserved(self):
+        import time
+
+        class Slow(Encoder):
+            def encode(self, texts):
+                time.sleep(0.2)
+                return super().encode(texts)
+        texts = [f"text {i}" * (i + 1) for i in range(32)]
+        vectors = CandidateVectors(Slow(), self.path, "m", 2, batch_size=8, workers=4)
+        started = time.monotonic()
+        result = vectors.encode(texts)
+        self.assertLess(time.monotonic() - started, 0.6, "4 batches of 0.2 s should overlap")
+        np.testing.assert_equal(result[:, 0], [len(t) for t in texts])
+
+    def test_a_failing_batch_still_raises(self):
+        class Broken(Encoder):
+            def encode(self, texts):
+                raise EmbeddingError("bad")
+        with self.assertRaises(EmbeddingError):
+            CandidateVectors(Broken(), self.path, "m", 2, batch_size=2, workers=4).encode(["a", "b", "c", "d"])
+
+    def test_the_split_budget_is_shared_across_workers(self):
+        class TimesOut(Encoder):
+            def encode(self, texts):
+                if len(texts) > 1:
+                    raise requests.Timeout()
+                return super().encode(texts)
+        vectors = CandidateVectors(TimesOut(), self.path, "m", 2, batch_size=2, split_budget=1, workers=4)
+        with self.assertRaises(requests.Timeout):
+            vectors.encode(["a", "bb", "ccc", "dddd"])
+        self.assertEqual(vectors.stats["splits"], 1, "one split in total, not one per worker")
+
+    def test_remote_encoders_get_a_session_per_thread(self):
+        import threading
+        remote = RemoteVectorizer("m", "https://example.invalid", "k", dimensions=2)
+        vectors = CandidateVectors(remote, self.path, "m", 2)
+        seen = []
+        worker = threading.Thread(target=lambda: seen.append(vectors._thread_encoder()._session))
+        worker.start(); worker.join()
+        mine = vectors._thread_encoder()._session
+        self.assertIsNot(seen[0], mine)
+        self.assertEqual(mine.headers.get("Authorization"), "Bearer k")
+
+
 if __name__ == '__main__': unittest.main()

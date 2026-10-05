@@ -17,6 +17,8 @@ import json
 import logging
 import os
 import re
+import threading
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 from typing import Dict, List, Optional, Sequence
 
@@ -107,20 +109,27 @@ class ChineseEnricher:
                 self.cache = json.loads(self.cache_path.read_text(encoding="utf-8"))
             except (OSError, ValueError) as exc:
                 logger.warning("Ignoring unreadable enrichment cache: %s", exc)
-        self._session: Optional[requests.Session] = None
+        self._local = threading.local()
         self._dirty = False
 
     @property
     def enabled(self) -> bool:
         return bool(self.config.enabled and os.getenv(self.config.api_key_env, ""))
 
-    def _post(self, batch: List[dict], attempts: int = 3) -> List[dict]:
-        if self._session is None:
-            self._session = requests.Session()
-            self._session.headers.update({
+    @property
+    def _http(self) -> requests.Session:
+        # One session per thread: chunks are translated concurrently, and a Session
+        # is not documented as safe to share between threads.
+        session = getattr(self._local, "session", None)
+        if session is None:
+            session = self._local.session = requests.Session()
+            session.headers.update({
                 "Authorization": f"Bearer {os.getenv(self.config.api_key_env, '')}",
                 "Content-Type": "application/json",
             })
+        return session
+
+    def _post(self, batch: List[dict], attempts: int = 3) -> List[dict]:
         # The abstract used to be cut to 2000 characters before being sent, so "full
         # abstract translation" was false for long ones: measured on a real issue, 51 of
         # 407 abstracts were truncated, the worst losing 46.9% of its text -- and the
@@ -136,7 +145,7 @@ class ChineseEnricher:
                 abstract = abstract[:ABSTRACT_LIMIT]
             payload.append({"i": i, "title": row["title"], "abstract": abstract})
         response = request_with_retry(
-            self._session, "POST",
+            self._http, "POST",
             f"{self.config.base_url.rstrip('/')}/chat/completions",
             logger=logger, context=f"enrich({len(batch)} papers)", attempts=attempts,
             json={
@@ -238,11 +247,16 @@ class ChineseEnricher:
             logger.info("Generating Chinese title + TLDR for %d papers (%d cached)",
                         len(pending), len(self.cache))
             size = self.config.batch_size
+            chunks = [pending[start : start + size] for start in range(0, len(pending), size)]
             done_total = 0
-            for start in range(0, len(pending), size):
-                chunk = pending[start : start + size]
-                done_total += self._enrich_chunk(chunk)
-                logger.info("  enriched %d/%d", done_total, len(pending))
+            # Chunks are independent, and each takes ~2 minutes because the model writes
+            # a full Chinese abstract per paper; run serially, 24 papers cost 5 minutes
+            # of the weekly run (2026-10-05). The executor is joined before returning --
+            # the page needs every translation -- and each request keeps its own timeout.
+            with ThreadPoolExecutor(max_workers=max(1, min(self.config.concurrency, len(chunks)))) as pool:
+                for done in as_completed([pool.submit(self._enrich_chunk, chunk) for chunk in chunks]):
+                    done_total += done.result()
+                    logger.info("  enriched %d/%d", done_total, len(pending))
             if done_total < len(pending):
                 logger.warning("%d of %d papers stay English-only",
                                len(pending) - done_total, len(pending))

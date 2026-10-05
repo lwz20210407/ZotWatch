@@ -11,3 +11,6 @@ api_key_env: EMBEDDING_API_KEY
 # Each item returns a full translated abstract, so keep batches small.
 batch_size: 8
 timeout_seconds: 180
+# Batches sent at once (2026-10-05: serial batches cost 5 of the weekly run's ~30 minutes).
+# Set to 1 if the provider starts rate-limiting.
+concurrency: 3
