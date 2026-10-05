@@ -64,13 +64,29 @@ def validate_request(endpoint, params):
         raise ResearchAPIError('oversized_parameters')
     if any(k not in params or params[k] is None or params[k] == '' or params[k] == [] for k in spec.required.split()):
         raise ResearchAPIError('missing_parameters')
+    # paper_qa_search documents year as []number and author_id/org_id as []string
+    # (catalogue snapshot 2026-10-05). Requests written the documented way used to be
+    # rejected here, so they are checked as lists for that one endpoint.
+    list_params = {'year': int, 'author_id': str, 'org_id': str} if endpoint == 'paper_qa_search' else {}
+    for key, kind in list_params.items():
+        if key not in params:
+            continue
+        values = params[key]
+        if (not isinstance(values, list) or not 1 <= len(values) <= 50
+                or not all(type(v) is kind for v in values)
+                or (kind is int and any(v < 0 for v in values))
+                or (kind is str and any(not v.strip() or len(v) > 128 for v in values))):
+            raise ResearchAPIError('invalid_list_parameter')
     for key in ('page', 'offset', 'size', 'limit', 'year', 'year_from', 'year_to', 'min_citations', 'max_citations'):
-        if key in params and (type(params[key]) is not int or params[key] < 0):
+        if key in params and key not in list_params and (type(params[key]) is not int or params[key] < 0):
             raise ResearchAPIError('invalid_numeric_parameter')
     for key in ('size', 'limit'):
-        if key in params and not 1 <= params[key] <= 100:
+        # paper_keywords caps size at 10 in the catalogue; the others at 100.
+        if key in params and not 1 <= params[key] <= (10 if endpoint == 'paper_keywords' else 100):
             raise ResearchAPIError('invalid_page_size')
     for key in ('id', 'org_id', 'venue_id', 'paper_id'):
+        if key in list_params:
+            continue
         if key in params and (not isinstance(params[key], str) or len(params[key]) > 128 or not params[key].strip()):
             if not (endpoint == 'experiment_search' and key == 'paper_id' and params[key] == ''):
                 raise ResearchAPIError('invalid_identity')
