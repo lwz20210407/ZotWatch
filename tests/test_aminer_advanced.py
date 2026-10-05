@@ -84,6 +84,20 @@ class AdvancedClientTests(unittest.TestCase):
             with self.assertRaises(ResearchAPIError): self.client(allow_paid=True).query(endpoint,params)
         self.assertFalse((self.root/'spending.json').exists())
 
+    def test_documented_list_parameters_are_accepted(self):
+        """The catalogue types paper_qa_search year as []number and the ids as []string."""
+        validate_request('paper_qa_search', {'use_topic': True, 'query': 'x', 'year': [2025, 2026],
+                                             'author_id': ['a1'], 'org_id': ['o1', 'o2']})
+        validate_request('paper_keywords', {'page': 0, 'size': 10, 'keywords': '["x"]'})
+        for params in ({'use_topic': True, 'query': 'x', 'year': 2026},
+                       {'use_topic': True, 'query': 'x', 'year': [-1]},
+                       {'use_topic': True, 'query': 'x', 'author_id': 'a1'},
+                       {'use_topic': True, 'query': 'x', 'org_id': ['']}):
+            with self.assertRaises(ResearchAPIError, msg=params):
+                validate_request('paper_qa_search', params)
+        with self.assertRaises(ResearchAPIError):
+            validate_request('paper_keywords', {'page': 0, 'size': 11, 'keywords': '["x"]'})
+
     def test_semantic_cursor_is_preserved_and_next_request_is_cursor_only(self):
         self.session.request.return_value=response({'papers':[{'paper_id':'p'}],'next_cursor':'a'*20})
         client=self.client(allow_paid=True)

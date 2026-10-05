@@ -39,6 +39,12 @@ class AMinerClient:
         self.cache_hits = 0
         self.by_endpoint = {}
         self.warnings = []
+        # Why a request failed, by exception CLASS only. Every run on 2026-10-01 logged
+        # a bare "network_failure", because the cause was discarded with `from None`, so
+        # there was no way to tell a connect timeout from a slow read, a TLS failure or
+        # DNS -- and no basis for tuning anything. Class names carry no secrets; the
+        # exception message is deliberately not recorded (it can include the URL).
+        self.network_errors = []
         self.stopped = False
         self.last_request = None
 
@@ -50,6 +56,7 @@ class AMinerClient:
     def summary(self):
         return {"calls": self.calls, "cache_hits": self.cache_hits,
                 "by_endpoint": dict(self.by_endpoint), "warnings": list(self.warnings),
+                "network_errors": list(self.network_errors),
                 "free_endpoints_only": True}
 
     def _key(self, endpoint, params):
@@ -121,7 +128,12 @@ class AMinerClient:
                              "X-Skill-Name": "zotwatch-aminer-source", "X-Skill-Version": "1"},
                     **({"params": params} if method == "GET" else {"json": params}),
                     timeout=min(self.config.timeout_seconds, remaining - delay), allow_redirects=False)
-            except requests.RequestException:
+            except requests.RequestException as exc:
+                elapsed = round(time.monotonic() - self.last_request, 1)
+                self.network_errors.append({"endpoint": endpoint, "attempt": attempt + 1,
+                                            "error": type(exc).__name__, "elapsed_s": elapsed})
+                logger.info("AMiner %s attempt %d failed: %s after %.1fs",
+                            endpoint, attempt + 1, type(exc).__name__, elapsed)
                 if attempt + 1 < self.config.max_attempts:
                     continue
                 raise AMinerError("network_failure") from None

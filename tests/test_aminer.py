@@ -34,6 +34,23 @@ class ClientTests(unittest.TestCase):
         self.config = AMinerConfig(interval_seconds=0, max_attempts=2)
         self.client = AMinerClient(self.config, Path(self.temp.name), session=self.session, token="private-token")
 
+    def test_network_failures_record_the_cause_without_the_message(self):
+        """Every 2026-10-01 run logged a bare network_failure: the cause was discarded.
+
+        The exception CLASS is recorded so the next run shows whether it was a connect
+        timeout, a slow read or TLS. The message is not -- it can carry the URL.
+        """
+        self.session.request.side_effect = requests.ReadTimeout(
+            "HTTPSConnectionPool(host='x', port=443): Read timed out. (read timeout=15) ?secret=1")
+        with self.assertRaises(AMinerError):
+            self.client.query("recommend", {"topics": ["fracture"], "size": 1})
+        errors = self.client.summary()["network_errors"]
+        self.assertEqual([e["error"] for e in errors], ["ReadTimeout", "ReadTimeout"])
+        self.assertEqual([e["attempt"] for e in errors], [1, 2])
+        self.assertTrue(all(e["endpoint"] == "recommend" for e in errors))
+        self.assertNotIn("secret", repr(errors))
+        self.assertNotIn("private-token", repr(errors))
+
     def test_free_allowlist_and_no_request_without_credentials(self):
         with self.assertRaises(AMinerError): self.client.query("paper_detail", {"id": "x"})
         self.client._token = ""

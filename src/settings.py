@@ -411,6 +411,14 @@ class ResearchConfig(BaseModel):
     diversity_penalty: float = Field(0.20, ge=0, le=0.5)
     exploration_slots: int = Field(2, ge=0, le=5)
     semantic_backfill_items: int = Field(2, ge=0, le=5)
+    # Web-page sections asked for by the owner on 2026-10-05. Both are auxiliary:
+    # any failure drops the section, never the digest.
+    method_comparison: bool = True
+    method_papers: int = Field(10, ge=0, le=20)
+    method_model: str = ""  # empty = the translation model
+    method_deadline_seconds: int = Field(480, ge=60, le=1200)
+    lineage: bool = True
+    lineage_max_requests: int = Field(40, ge=0, le=80)
 
 
 class NetworkConfig(BaseModel):

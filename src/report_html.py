@@ -66,6 +66,23 @@ def clamp(text: str | None, limit: int = ABSTRACT_CLAMP) -> str:
     return " ".join(str(text).split())
 
 
+# Method table: ten fields folded into five columns so the table fits a page. Inside a
+# column only what the paper reports is listed; a column with nothing reported shows a
+# dash. Unlabelled entries are the column's headline field.
+METHOD_COLUMNS = (
+    (("material", ""),),
+    (("tests", ""), ("strain_rate", "应变率"), ("temperature", "温度"), ("stress_state", "应力状态")),
+    (("model", ""), ("calibration", "标定")),
+    (("simulation", ""), ("validation", "验证")),
+    (("finding", ""),),
+)
+
+
+def method_cells(fields: dict) -> list:
+    return [[(label, fields[key]) for key, label in column
+             if fields.get(key) and fields[key] != "未报告"] for column in METHOD_COLUMNS]
+
+
 def split_abstract(text: str | None, limit: int = ABSTRACT_CLAMP) -> tuple:
     """Split into (visible, hidden) at a word boundary.
 
@@ -609,6 +626,38 @@ _TEMPLATE = """
     article{padding:19px 17px}
     h1{font-size:24px}.title{font-size:16.5px}.abs{font-size:15px}
   }
+  details.trial{margin:28px 0 8px}
+  details.trial>summary{cursor:pointer;list-style:none}
+  details.trial>summary::-webkit-details-marker{display:none}
+  .trial-list{margin:10px 0 0;padding-left:22px;line-height:1.75}
+  .trial-list li{margin:4px 0}
+  .trial-fb{display:inline-block;margin-left:8px;padding:0 8px;border:1px solid #d6dae0;
+    border-radius:10px;font-size:12px;color:#5b6573;text-decoration:none}
+  .trial-fb:hover{background:#f2f4f7}
+  .jump a{display:block;font-size:13px;line-height:2;color:var(--ink)}
+  section.insight{margin:34px 0 8px;scroll-margin-top:16px}
+  section.insight h3{font-size:15px;margin:18px 0 6px}
+  section.insight h3 em{font-style:normal;font-weight:400;font-size:12.5px;color:var(--faint);margin-left:6px}
+  .mt-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:12px;background:var(--card);margin-top:12px}
+  table.mt{margin:0;min-width:760px;font-size:12.5px}
+  table.mt th{background:var(--soft);text-align:left;font-weight:600;padding:8px 8px;white-space:nowrap}
+  table.mt td{vertical-align:top;padding:8px 8px;border-top:1px solid var(--line);line-height:1.55}
+  table.mt td.t{width:170px}
+  table.mt td div+div{margin-top:3px}
+  table.mt td i{font-style:normal;color:var(--faint);margin-right:5px}
+  table.mt .src{display:inline-block;margin-left:6px;padding:0 6px;border-radius:8px;font-size:11px;
+    background:var(--soft);color:var(--muted)}
+  table.mt .src.full{background:#e6f2e9;color:#2f6b3b}
+  .na{color:var(--faint)}
+  .lin-anc,.lin-pap{line-height:1.75;padding-left:22px;font-size:14px}
+  .lin-anc li,.lin-pap li{margin:5px 0}
+  .lin-anc .yr{display:inline-block;min-width:46px;color:var(--muted);font-variant-numeric:tabular-nums}
+  .lin-anc .tag{margin-left:6px;font-size:11px;padding:1px 7px;border-radius:8px;white-space:nowrap}
+  .lin-anc .tag.in{background:var(--soft);color:var(--muted)}
+  .lin-anc .tag.out{background:var(--accent-soft);color:var(--accent-d)}
+  .lin-anc .by{margin-left:6px;font-size:12px;color:var(--faint);white-space:nowrap}
+  .lin-lib span{display:block;font-size:13px;color:var(--muted);padding-left:12px;
+    border-left:2px solid var(--line);margin:3px 0}
 </style>
 </head>
 <body>
@@ -634,6 +683,16 @@ _TEMPLATE = """
     <button class="fitem" aria-pressed="false" data-dir="{{ name }}">
       <span><i class="dot" style="background:{{ h.fg }}"></i>{{ name }}</span><span>{{ n }}</span></button>
     {% endfor %}
+  </div>
+  {% endif %}
+
+  {% if (method_table and method_table.rows) or lineage %}
+  <div class="panel">
+    <h3>{{ icon('book') }} 本期专栏</h3>
+    <div class="jump">
+      {% if method_table and method_table.rows %}<a href="#methods">方法对比 · {{ method_table.rows|length }} 篇</a>{% endif %}
+      {% if lineage %}<a href="#lineage">研究脉络{% if lineage.ancestors %} · {{ lineage.ancestors|length }} 篇源头{% endif %}</a>{% endif %}
+    </div>
   </div>
   {% endif %}
 
@@ -760,6 +819,62 @@ _TEMPLATE = """
 <div class="empty" id="noMatch" hidden>该方向本期没有推荐。</div>
 {% endif %}
 
+{% if method_table and method_table.rows %}
+<section class="insight" id="methods">
+<h2>方法对比 <em>本期前 {{ method_table.rows|length }} 篇</em></h2>
+<p class="note">有开放获取全文的读方法与结论部分，没有的只读摘要，「依据」逐篇标明（本期全文 {{ method_table.full_text }} 篇、仅摘要 {{ method_table.abstract_only }} 篇）。
+原文没写的项不列出。由模型 {{ method_table.model }} 抽取，每项都要求附原文原句并经程序核对{% if method_table.dropped %}，另有 {{ method_table.dropped }} 项因在原文里找不到依据已删除{% endif %}。用于横向浏览，引用前请核对原文。</p>
+<div class="mt-wrap"><table class="mt">
+<tr><th>#</th><th>论文 · 依据</th><th>材料</th><th>试验与工况</th><th>模型与标定</th><th>数值实现与验证</th><th>关键结论</th></tr>
+{% for row in method_table.rows %}
+<tr>
+  <td class="n"><a href="#p{{ row.rank }}">{{ '%02d'|format(row.rank) }}</a></td>
+  <td class="t">{{ row.title|truncate(70, true, '…', 0) }}{% if row.source != '无' %}<span class="src{{ ' full' if row.source == '全文' else '' }}">{{ row.source }}</span>{% endif %}</td>
+  {% if row.fields %}
+  {% for column in method_cells(row.fields) %}
+  <td>{% for label, value in column %}<div>{% if label %}<i>{{ label }}</i>{% endif %}{{ value }}</div>{% else %}<span class="na">—</span>{% endfor %}</td>
+  {% endfor %}
+  {% else %}
+  <td colspan="5" class="na">{{ row.note }}</td>
+  {% endif %}
+</tr>
+{% endfor %}
+</table></div>
+</section>
+{% endif %}
+
+{% if lineage %}
+{% set cov = lineage.coverage %}
+<section class="insight" id="lineage">
+<h2>研究脉络</h2>
+<p class="note">依据 OpenAlex 收录的参考文献表：本期 {{ cov.papers }} 篇里 {{ cov.with_references }} 篇有参考文献表，没有的不代表没有引用。{%
+  if cov.truncated or cov.incomplete %}本轮查询不完整，下面可能有遗漏。{% endif %}</p>
+{% if lineage.ancestors %}
+<h3>共同源头 <em>被本期至少两篇引用，按年份排列</em></h3>
+<ol class="lin-anc">
+{% for a in lineage.ancestors %}
+  <li><span class="yr">{{ a.year or '—' }}</span><a href="{{ a.url }}" target="_blank" rel="noopener">{{ a.title }}</a>
+    <span class="tag {{ 'in' if a.in_library else 'out' }}">{{ '文库已有' if a.in_library else '文库没有 · 可补读' }}</span>
+    <span class="by">被 {% for r in a.cited_by %}<a href="#p{{ r }}">#{{ r }}</a>{{ ' ' if not loop.last }}{% endfor %} 引用</span></li>
+{% endfor %}
+</ol>
+{% endif %}
+{% if lineage.papers %}
+<h3>本期论文承接了你文库里的哪些文献 <em>{{ cov.linked_to_library }} 篇有交集</em></h3>
+<ul class="lin-pap">
+{% for p in lineage.papers %}
+  <li><a href="#p{{ p.rank }}">#{{ p.rank }}</a> {{ p.title }}
+    <div class="lin-lib">{% for l in p.library %}<span>{{ l.title }}{% if l.year %}（{{ l.year }}）{% endif %}</span>{% endfor %}{%
+      if p.library_total > p.library|length %}<span>…共 {{ p.library_total }} 篇</span>{% endif %}</div></li>
+{% endfor %}
+</ul>
+{% endif %}
+{% if not lineage.ancestors and not lineage.papers %}
+<p class="note">本期论文与你的文库、彼此之间都没有找到共同引用。</p>
+{% endif %}
+</section>
+{% endif %}
+
 {% if watched_works %}
 <h2>重点作者新作 <em>{{ watched_works|length }} 篇</em></h2>
 <p class="note">已通过主题筛选，按发表时间排列；不代表都达到优先阅读阈值。</p>
@@ -776,6 +891,27 @@ _TEMPLATE = """
 <h2>跨圈方法发现 <em>{{ exploration_works|length }} 篇</em></h2>
 <p class="note">独立语义检索或 AMiner 补充发现，不要求与种子有引文关系；超出近期窗口或具体日期待核实，不能当作新发表。</p>
 <div class="cards">{% for work in exploration_works %}{{ card(work, 0) }}{% endfor %}</div>
+{% endif %}
+
+{% if aminer_trial_works %}
+{% set board = (diagnostics or {}).get('aminer_trial', {}) %}
+<details class="trial">
+  <summary><h2 style="display:inline">AMiner 试运行：现有来源没找到的论文 <em>{{ aminer_trial_works|length }} 篇</em></h2></summary>
+  <p class="note">只在网页显示，不进邮件、不算正式推送。这些论文由 AMiner 找到、现有来源没找到，已去掉你文库里有的和推送过的。
+  点「有用」或「不相关」就是在帮系统判断 AMiner 值不值得正式接入。
+  {% if board %}<br />累计 {{ board.weeks }} 周 · AMiner 独有 {{ board.aminer_only_total }} 篇 · 已标注 {{ board.labelled }} 篇（有用 {{ board.useful }} / 不相关 {{ board.irrelevant }}）。<b>{{ board.verdict }}</b>{% endif %}</p>
+  <ol class="trial-list">
+  {% for work in aminer_trial_works %}
+    <li>
+      <a href="{{ work.url or '#' }}" target="_blank" rel="noopener">{{ work.title }}</a>
+      <span class="yr">{{ work.venue or '' }}{% if work.extra.get('publication_year') %} · {{ work.extra.publication_year }}{% endif %}</span>
+      {% for link in work.extra.get('feedback_links', []) if link.name in ['直接有用', '不相关'] %}
+        <a class="trial-fb" href="{{ link.url }}" target="_blank" rel="noopener">{{ '有用' if link.name == '直接有用' else '不相关' }}</a>
+      {% endfor %}
+    </li>
+  {% endfor %}
+  </ol>
+</details>
 {% endif %}
 
 {% if update_works %}
@@ -1022,6 +1158,8 @@ def render_html(works: List[RankedWork], output_path: Path | str, *, watched_wor
                 classic_works: List[RankedWork] | None = None, coverage_warnings: List[str] | None = None,
                 diagnostics: dict | None = None, update_works: List[RankedWork] | None = None,
                 exploration_works: List[RankedWork] | None = None,
+                aminer_trial_works: list | None = None,
+                lineage: dict | None = None, method_table: dict | None = None,
                 problem_names: dict | None = None, library_size: str = "",
                 window_days: int = 30, library_directions: list | None = None,
                 issue_no: int = 0, feedback_repository: str = "") -> Path:
@@ -1046,6 +1184,8 @@ def render_html(works: List[RankedWork], output_path: Path | str, *, watched_wor
         watched_works=watched_works or [],
         classic_works=classic_works or [],
         exploration_works=exploration_works or [],
+        aminer_trial_works=aminer_trial_works or [],
+        lineage=lineage, method_table=method_table, method_cells=method_cells,
         update_works=update_works or [],
         coverage_warnings=coverage_warnings or [],
         diagnostics=diagnostics or {},

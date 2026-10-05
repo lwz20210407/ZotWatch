@@ -21,3 +21,10 @@ API 免费/限免状态以官方当时说明为准，客户端保持明确白名
 
 接口依据：[官方免费接口目录](https://github.com/AMinerOrg/aminer-open-skill/blob/main/skills/aminer-free-academic/references/api-catalog.md)，
 推荐参数依据：[官方 rec5 实现](https://github.com/AMinerOrg/aminer-open-skill/blob/main/skills/aminer-daily-paper/scripts/rec5_api.py)。
+
+## 与官方文档的差异（2026-10-05 对照 aminer.cn/open/docs 核实）
+
+- **rec5 路径**：官方文档写 `POST /api/paper/rec5`，本仓库和官方 aminer-daily-paper 技能都用 `POST /api/v3/paper/rec5`。目前可用；若某周 rec5 全部失败，先查是否旧路径下线。
+- **实验记录检索**：`/api/v3/paper/search/experiment_data/SearchPro` 不在官方 32 项接口列表里，单价 0.10 元取自技能目录。只在按需命令里用，不进周报。
+- **参数类型**（已修正 `src/aminer_advanced.py`）：`paper_qa_search` 的 `year` 是数组（`[]number`），`author_id`、`org_id` 是字符串数组；`paper_keywords` 的 `size` 上限 10。此前按文档写法传参会被本地校验拒绝。
+- **MCP 传输**：官方推荐 Streamable HTTP（`https://mcp.aminer.cn/mcp`），SSE（`/sse`）为兼容保留。MCP 只用于本机 Claude/Codex 会话，GitHub Actions 不经过 MCP。
