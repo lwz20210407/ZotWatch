@@ -46,13 +46,6 @@ try {
         Copy-Item $bundle (Join-Path $repo 'data\profile-bundle.prev.tar.gz') -Force
         Write-Log 'kept the previous bundle as data\profile-bundle.prev.tar.gz'
     }
-    # Full-text downloads as implicit feedback (src/download_signal.py). Optional: a
-    # failed scan must not cost the week its fresh profile, so it only logs.
-    try {
-        Invoke-Step 'scan download folders' { & $python -m src.download_signal scan }
-    } catch {
-        Write-Log "download scan skipped: $_"
-    }
     Invoke-Step 'build profile from local Zotero' { & $python -m src.cli profile --local --bundle }
     Invoke-Step 'verify profile' { & $python -m src.cli verify-profile }
 

@@ -731,8 +731,6 @@ _TEMPLATE = """
     <div style="font-size:13px;line-height:1.75;color:var(--muted)">
       画像来自你的 Zotero 文库{% if library_size %} {{ library_size }}{% endif %}{%
         if profile_age %}，生成于 {{ profile_age.date }}（{{ profile_age.days }} 天前）{% endif %}。<br />
-      {% set dl = (diagnostics or {}).get('downloads') or {} %}
-      {% if dl.get('matched') %}推送过的论文中，你已下载全文 <b style="color:var(--ink)">{{ dl.matched }}</b> 篇，已计入排序偏好。<br />{% endif %}
       {% if profile_age and profile_age.stale %}<b style="color:var(--accent-d)">画像已超过 {{ profile_age.limit }} 天未更新，本机每周四的画像更新任务可能没有运行。</b><br />{% endif %}
       中文标题与一句话摘要由模型生成，仅供快速筛选，<b style="color:var(--ink)">以原文为准</b>。
     </div>

@@ -42,7 +42,6 @@ from .aminer_policy import aminer_only, screen_aminer_delivery, recent_delivery,
 from .aminer_shadow import export_shadow, persist_week, scoreboard, trial_candidates
 from .entity_tracking import tracking_report
 from .abstract_fill import weekly_fill
-from .download_signal import implicit_entries
 from .lineage import Lookup, build_lineage, resolve_week
 from .method_compare import MethodComparer
 
@@ -184,10 +183,6 @@ def write_profile_bundle(base_dir: Path) -> Path:
         data_dir / "profile.json",
     ]
     missing = [member.name for member in members if not member.exists()]
-    # Optional: the owner's full-text downloads (src/download_signal.py). Travels in this
-    # private bundle because the repository is public.
-    if (data_dir / "download-signal.json").exists():
-        members.append(data_dir / "download-signal.json")
     if missing:
         raise SystemExit(f"Cannot bundle profile; missing {', '.join(missing)}")
     with tarfile.open(path, "w:gz") as archive:
@@ -223,15 +218,6 @@ def _run_watch(
     config = settings.research
     feedback = FeedbackModel(load_feedback(base_dir, config, history.state.get("feedback_entries", [])), config)
     history.state["feedback_entries"] = [e.model_dump() for e in feedback.entries.values()]
-    # Full-text downloads of delivered papers count as positive feedback for ranking.
-    # Added only after the line above, so they are never persisted as explicit feedback,
-    # and placed first, so any explicit feedback on the same paper wins.
-    downloads = None
-    if config.enabled and config.download_signal_rating != "off":
-        downloads = _optional("Download signal", lambda: implicit_entries(
-            base_dir, history.state, config, rating=config.download_signal_rating), None)
-        if downloads and downloads["entries"]:
-            feedback = FeedbackModel([*downloads["entries"], *feedback.entries.values()], config)
     builder = ProfileBuilder(base_dir, storage, settings)
     builder.feedback_entries = list(feedback.entries.values())
     if prebuilt_profile:
@@ -364,8 +350,7 @@ def _run_watch(
                    "network": fetcher.session.summary() if isinstance(fetcher.session, BudgetSession) else {},
                    "retrieval_warnings": retrieval_warnings, "version_warnings": monitor.warnings,
                    "feedback_count": len(feedback.entries), "feedback_reasons": feedback.reason_summary(), "evidence_mode": "title_abstract_only",
-                   "abstract_fill": abstract_fill,
-                   "downloads": {k: v for k, v in (downloads or {}).items() if k != "entries"}}
+                   "abstract_fill": abstract_fill}
 
     if not combined:
         logging.getLogger(__name__).info("No ranked results available")

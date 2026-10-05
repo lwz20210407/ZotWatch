@@ -422,9 +422,6 @@ class ResearchConfig(BaseModel):
     method_deadline_seconds: int = Field(480, ge=60, le=1200)
     lineage: bool = True
     lineage_max_requests: int = Field(40, ge=0, le=80)
-    # Full-text downloads of delivered papers (src/download_signal.py) count as this
-    # rating in the ranking; "off" ignores them. Explicit feedback always wins.
-    download_signal_rating: Literal["direct", "transferable", "mechanism", "off"] = "transferable"
     # Paid (0.01 yuan per filled paper). Off until the hit rate is measured.
     aminer_abstract_fill: bool = False
     aminer_abstract_limit: int = Field(10, ge=0, le=30)

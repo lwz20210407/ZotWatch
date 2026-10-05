@@ -31,11 +31,6 @@ lineage_max_requests: 40
 # 免费标题检索找到 AMiner 记录（DOI 一致才算；一方没 DOI 时要求标题几乎一致），再花 0.01 元
 # 取完整摘要。每周最多 aminer_abstract_limit 篇、封顶 aminer_abstract_budget_yuan 元。
 # 测命中率：python -m src.abstract_fill reports/report-YYYYMMDD.html --budget 0.20
-# 下载全文 = 感兴趣（2026-10-05）。本人看完周报会把想读的论文全文下载到主题文件夹，攒一批再
-# 导入 Zotero；当时推送过的 97 篇里已有 29 篇在下载目录里。本机每周四扫描下载目录
-# （路径在不入库的 data/download-roots.txt），推送过又被下载的论文按下面的档位计入排序反馈。
-# 只做正面信号；网页上明确点的反馈优先；不写入推送历史。off = 不用。
-download_signal_rating: transferable
 aminer_abstract_fill: false
 aminer_abstract_limit: 10
 aminer_abstract_budget_yuan: 0.20
