@@ -25,6 +25,8 @@ __pycache__/
 # from being pushed again, and it used to live only in a 90-day CI artifact.
 /data/watch-state/*
 !/data/watch-state/state.json
+!/data/watch-state/scheduled-deliveries.json
+!/data/watch-state/aminer-shadow/
 
 # Reports are tracked so past digests stay reachable. GitHub Pages replaces the
 # whole site on every deploy, so an untracked report is gone the moment the next

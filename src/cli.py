@@ -31,7 +31,7 @@ from .report_html import render_html
 from .digest_email import render_digest, render_text
 from .enrich_zh import enrich_chinese
 from .utils import beijing_now
-from .research_features import FeedbackModel, RetrievalWarnings, coverage_report, load_feedback, propose_tracking, save_feedback, collaboration_groups
+from .research_features import FeedbackModel, RetrievalWarnings, coverage_report, feedback_links, load_feedback, propose_tracking, save_feedback, collaboration_groups
 from .problem_ranking import diverse_select
 from .network_budget import BudgetSession
 from .research_evidence import attach_evidence
@@ -39,7 +39,7 @@ from .version_watch import VersionMonitor
 from .query_feedback import annotate_counts
 from .research_archive import attach_topics
 from .aminer_policy import aminer_only, screen_aminer_delivery, recent_delivery, select_backfill
-from .aminer_shadow import export_shadow
+from .aminer_shadow import export_shadow, persist_week, scoreboard, trial_candidates
 from .entity_tracking import tracking_report
 
 load_dotenv()  # Load default .env if present
@@ -356,7 +356,32 @@ def _run_watch(
             0 if (base_dir / "reports" / report_name).exists() else 1)
         profile_names = {key: value.get("name", key) for key, value
                          in (ranker.profile.get("problem_profiles") or {}).items()}
+
+        # Shadow mode's whole purpose is to decide whether AMiner earns a place in the
+        # digest, and until now it could not: the comparison was overwritten weekly and
+        # nobody labelled it. Show the AMiner-only papers in the web report (never the
+        # email) with the usual useful / not-relevant buttons, keep a per-week ledger,
+        # and score the owner's clicks across weeks. Auxiliary throughout -- any failure
+        # here leaves the digest exactly as it would have been.
+        aminer_trial = []
+        trial_cohorts = getattr(fetcher, "discovery_comparison", None)
+        if (settings.sources.aminer.enabled and settings.sources.aminer.mode == "shadow"
+                and isinstance(trial_cohorts, dict)):
+            def build_trial():
+                works = trial_candidates(
+                    trial_cohorts, limit=12,
+                    keep_unseen=lambda found: history.filter(dedupe.filter(found)))
+                for work in works:
+                    work.extra["feedback_links"] = feedback_links(work, config)
+                iso = beijing_now().isocalendar()
+                ledger = base_dir / "data" / "watch-state" / "aminer-shadow"
+                persist_week(works, ledger, f"{iso[0]}-W{iso[1]:02d}")
+                diagnostics["aminer_trial"] = scoreboard(ledger, feedback.entries)
+                return works
+            aminer_trial = _optional("AMiner trial section", build_trial, [])
+
         render_html(ranked, base_dir / "reports" / report_name, watched_works=watched,
+                    aminer_trial_works=aminer_trial,
                     classic_works=classics, coverage_warnings=retrieval_warnings + monitor.warnings,
                     diagnostics=diagnostics, update_works=alerts, exploration_works=exploration,
                     problem_names=profile_names,
@@ -398,7 +423,8 @@ def _run_watch(
                 return export_shadow(cohorts, fetcher.aminer_summary, base_dir / "reports",
                                      window_days=settings.sources.window_days, baseline_cached_at=cached_at)
             _optional("AMiner shadow evidence", write_shadow_evidence, {})
-            comparison = {"description": "AMiner 与现有来源的主题筛选后候选对照；不是最终推送排名或人工相关性结论",
+            def write_candidate_comparison():
+                comparison = {"description": "AMiner 与现有来源的主题筛选后候选对照；不是最终推送排名或人工相关性结论",
                           "generated_at": datetime.now(timezone.utc).isoformat(),
                           "mode": settings.sources.aminer.mode,
                           "counts": {name: len(items) for name, items in cohorts.items()},
@@ -406,7 +432,11 @@ def _run_watch(
                                                  "year": w.extra.get("publication_year")}
                                                 for w in cohorts.get("aminer", [])],
                           "aminer": fetcher.aminer_summary}
-            (base_dir / "reports" / "aminer-candidates.json").write_text(json.dumps(comparison, ensure_ascii=False, indent=2), "utf-8")
+                (base_dir / "reports" / "aminer-candidates.json").write_text(json.dumps(comparison, ensure_ascii=False, indent=2), "utf-8")
+            # Was unguarded: an unexpected shape in the cohorts would fail the whole watch
+            # step, which means no Pages deploy and no email -- an auxiliary diagnostic
+            # taking the digest down with it.
+            _optional("AMiner candidate comparison", write_candidate_comparison, None)
         for name, works in (("baseline", baseline), ("candidate", ranked)):
             snapshot = {"ranking": [{"doi": w.doi, "title": w.title, "score": w.score,
                          "facets": w.extra.get("research_facets", [])} for w in works],

@@ -29,31 +29,61 @@ on:
         description: "Build the digest without emailing, publishing or recording history"
         type: boolean
         default: false
+      trigger:
+        # The external scheduler sends "scheduled"; leave "manual" when running by hand.
+        description: "scheduled = weekly delivery (deduplicated per ISO week); manual = always run"
+        type: choice
+        options: [manual, scheduled]
+        default: manual
 
 jobs:
-  # Cheap gate for the backup slots: has this Thursday's digest already gone out?
-  # The successful run commits reports/report-<Beijing date>.html, so its presence in
-  # a fresh checkout is the record. Costs a few seconds when it skips.
+  # Cheap gate: has this week's scheduled digest already gone out? Costs a few
+  # seconds when it skips.
   # workflow_dispatch is never gated -- a manual run is an explicit instruction.
+  #
+  # Keyed on the Beijing ISO WEEK, not the calendar date. The first version keyed on
+  # "today's report file" and failed on 2026-10-01: GitHub started the 09:30 UTC slot
+  # 7 hours late, at 00:38 Beijing on 10-02, so it looked for report-20261002.html,
+  # did not find it, and sent a second digest. Any delay that crosses midnight did that.
+  #
+  # Reads the marker from the LATEST origin/main, not the commit this run was queued
+  # on. A run that sat in GitHub's schedule queue for hours carries a github.sha from
+  # before the earlier run pushed its marker, so a plain checkout cannot see it.
+  #
+  # "Scheduled origin" = the GitHub cron, or the external scheduler, which dispatches
+  # with trigger=scheduled. Only those are gated and only those write the marker. A run
+  # you start by hand is never gated and never suppresses the Thursday digest.
   guard:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     outputs:
       should_run: ${{ steps.check.outputs.should_run }}
+      scheduled: ${{ steps.check.outputs.scheduled }}
+      week: ${{ steps.check.outputs.week }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - id: check
         run: |
           set -euo pipefail
-          report="reports/report-$(TZ=Asia/Shanghai date +%Y%m%d).html"
-          if [ "${{ github.event_name }}" != "schedule" ]; then
+          week="$(TZ=Asia/Shanghai date +%G-W%V)"
+          echo "week=$week" >> "$GITHUB_OUTPUT"
+          if [ "${{ github.event_name }}" = "schedule" ] || [ "${{ inputs.trigger }}" = "scheduled" ]; then
+            echo "scheduled=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "scheduled=false" >> "$GITHUB_OUTPUT"
             echo "Manual run; not gated."
             echo "should_run=true" >> "$GITHUB_OUTPUT"
-          elif [ -f "$report" ]; then
-            echo "::notice::$report already exists, so this Thursday's digest was already sent. Skipping."
+            exit 0
+          fi
+          git fetch --quiet origin "${{ github.event.repository.default_branch }}"
+          ledger="$(git show "origin/${{ github.event.repository.default_branch }}:data/watch-state/scheduled-deliveries.json" 2>/dev/null || echo '{}')"
+          if printf '%s' "$ledger" | python3 -c "import json,sys; sys.exit(0 if '$week' in json.load(sys.stdin) else 1)"; then
+            echo "::notice::The $week digest was already delivered. Skipping this scheduled run."
             echo "should_run=false" >> "$GITHUB_OUTPUT"
           else
-            echo "No $report yet; this run delivers."
+            echo "No delivery recorded for $week yet; this run delivers."
             echo "should_run=true" >> "$GITHUB_OUTPUT"
           fi
 
@@ -327,6 +357,29 @@ jobs:
         if: env.DRY_RUN != 'true'
         run: python -m src.cli commit-history
 
+      # The guard's ledger. Written only after the mail went out, only for a
+      # scheduled-origin run, and keyed on the week the GUARD computed -- so a long run
+      # that finishes after Sunday midnight still records the week it was started for.
+      - name: Record this week's scheduled delivery
+        if: env.DRY_RUN != 'true' && needs.guard.outputs.scheduled == 'true'
+        env:
+          WEEK: ${{ needs.guard.outputs.week }}
+        run: |
+          python - <<'PY'
+          import json, os, pathlib
+          from datetime import datetime, timezone
+          path = pathlib.Path("data/watch-state/scheduled-deliveries.json")
+          ledger = json.loads(path.read_text(encoding="utf-8")) if path.exists() else {}
+          ledger[os.environ["WEEK"]] = {
+              "delivered_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+              "run_id": os.environ.get("GITHUB_RUN_ID"),
+              "event": os.environ.get("GITHUB_EVENT_NAME"),
+          }
+          path.parent.mkdir(parents=True, exist_ok=True)
+          path.write_text(json.dumps(ledger, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+          print(f"recorded {os.environ['WEEK']}")
+          PY
+
       # Delivery history and past digests live in the repository, not in an
       # artifact. Artifacts expire after 90 days; losing the history means
       # re-sending papers already read, and losing the reports means every link in
@@ -343,10 +396,10 @@ jobs:
           # be repaired: on 2026-09-19 that left 8 of 27 cards with no Chinese title
           # or TLDR, permanently. Cached by a hash of title+abstract, so the next run
           # fills in whatever the last one failed to translate.
-          for path in data/watch-state/state.json data/zh-cache.json reports/feed.xml; do
+          for path in data/watch-state/state.json data/watch-state/scheduled-deliveries.json data/zh-cache.json reports/feed.xml; do
             [ -f "$path" ] && git add -f "$path"
           done
-          for path in reports/report-*.html; do
+          for path in reports/report-*.html data/watch-state/aminer-shadow/*.json; do
             [ -f "$path" ] && git add -f "$path"
           done
           if git diff --cached --quiet; then

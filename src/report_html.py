@@ -609,6 +609,14 @@ _TEMPLATE = """
     article{padding:19px 17px}
     h1{font-size:24px}.title{font-size:16.5px}.abs{font-size:15px}
   }
+  details.trial{margin:28px 0 8px}
+  details.trial>summary{cursor:pointer;list-style:none}
+  details.trial>summary::-webkit-details-marker{display:none}
+  .trial-list{margin:10px 0 0;padding-left:22px;line-height:1.75}
+  .trial-list li{margin:4px 0}
+  .trial-fb{display:inline-block;margin-left:8px;padding:0 8px;border:1px solid #d6dae0;
+    border-radius:10px;font-size:12px;color:#5b6573;text-decoration:none}
+  .trial-fb:hover{background:#f2f4f7}
 </style>
 </head>
 <body>
@@ -776,6 +784,27 @@ _TEMPLATE = """
 <h2>跨圈方法发现 <em>{{ exploration_works|length }} 篇</em></h2>
 <p class="note">独立语义检索或 AMiner 补充发现，不要求与种子有引文关系；超出近期窗口或具体日期待核实，不能当作新发表。</p>
 <div class="cards">{% for work in exploration_works %}{{ card(work, 0) }}{% endfor %}</div>
+{% endif %}
+
+{% if aminer_trial_works %}
+{% set board = (diagnostics or {}).get('aminer_trial', {}) %}
+<details class="trial">
+  <summary><h2 style="display:inline">AMiner 试运行：现有来源没找到的论文 <em>{{ aminer_trial_works|length }} 篇</em></h2></summary>
+  <p class="note">只在网页显示，不进邮件、不算正式推送。这些论文由 AMiner 找到、现有来源没找到，已去掉你文库里有的和推送过的。
+  点「有用」或「不相关」就是在帮系统判断 AMiner 值不值得正式接入。
+  {% if board %}<br />累计 {{ board.weeks }} 周 · AMiner 独有 {{ board.aminer_only_total }} 篇 · 已标注 {{ board.labelled }} 篇（有用 {{ board.useful }} / 不相关 {{ board.irrelevant }}）。<b>{{ board.verdict }}</b>{% endif %}</p>
+  <ol class="trial-list">
+  {% for work in aminer_trial_works %}
+    <li>
+      <a href="{{ work.url or '#' }}" target="_blank" rel="noopener">{{ work.title }}</a>
+      <span class="yr">{{ work.venue or '' }}{% if work.extra.get('publication_year') %} · {{ work.extra.publication_year }}{% endif %}</span>
+      {% for link in work.extra.get('feedback_links', []) if link.name in ['直接有用', '不相关'] %}
+        <a class="trial-fb" href="{{ link.url }}" target="_blank" rel="noopener">{{ '有用' if link.name == '直接有用' else '不相关' }}</a>
+      {% endfor %}
+    </li>
+  {% endfor %}
+  </ol>
+</details>
 {% endif %}
 
 {% if update_works %}
@@ -1022,6 +1051,7 @@ def render_html(works: List[RankedWork], output_path: Path | str, *, watched_wor
                 classic_works: List[RankedWork] | None = None, coverage_warnings: List[str] | None = None,
                 diagnostics: dict | None = None, update_works: List[RankedWork] | None = None,
                 exploration_works: List[RankedWork] | None = None,
+                aminer_trial_works: list | None = None,
                 problem_names: dict | None = None, library_size: str = "",
                 window_days: int = 30, library_directions: list | None = None,
                 issue_no: int = 0, feedback_repository: str = "") -> Path:
@@ -1046,6 +1076,7 @@ def render_html(works: List[RankedWork], output_path: Path | str, *, watched_wor
         watched_works=watched_works or [],
         classic_works=classic_works or [],
         exploration_works=exploration_works or [],
+        aminer_trial_works=aminer_trial_works or [],
         update_works=update_works or [],
         coverage_warnings=coverage_warnings or [],
         diagnostics=diagnostics or {},
