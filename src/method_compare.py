@@ -303,7 +303,10 @@ class MethodComparer:
             text, source = work.abstract, "摘要"
         base = {"rank": rank, "title": work.title, "source": source}
         if text is None:
-            return {**base, "fields": None, "note": "无开放全文，摘要过短"}
+            # Elsevier abstracts are often absent from OpenAlex and Crossref alike; on
+            # 2026-10-05 the two top-ranked papers had none, so say which case it is.
+            note = "无开放全文，摘要过短" if work.abstract else "无开放全文，来源未提供摘要"
+            return {**base, "fields": None, "note": note}
         path = self.cache_dir / f"{_cache_key(work, source, self.model)}.json"
         try:
             cached = json.loads(path.read_text("utf-8"))

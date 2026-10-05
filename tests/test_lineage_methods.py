@@ -251,8 +251,10 @@ class ComparerTests(unittest.TestCase):
         self.assertEqual(row["fields"]["validation"], UNREPORTED, "missing fields must be explicit")
 
     def test_a_paper_with_nothing_to_read_is_marked_not_guessed(self):
-        row = self.comparer.compare([self.work("b", "too short")], {})["rows"][0]
-        self.assertIsNone(row["fields"])
+        rows = self.comparer.compare([self.work("b", "too short"), self.work("g", None)], {})["rows"]
+        self.assertIsNone(rows[0]["fields"])
+        self.assertIn("摘要过短", rows[0]["note"])
+        self.assertIn("未提供摘要", rows[1]["note"], "a missing abstract is not a short one")
         self.assertEqual(self.asked, [])
 
     def test_extractions_are_cached_across_runs(self):
