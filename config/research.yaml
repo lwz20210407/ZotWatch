@@ -15,6 +15,18 @@ version_batch_size: 10
 proposal_min_papers: 2
 proposal_limit: 10
 
+# 2026-10-05 本人要求加入网页的两栏（不进邮件）。都是附属功能：失败只少一栏，不影响推送。
+# 方法对比：本期前 method_papers 篇，有开放获取 PDF 的读全文方法段，否则用摘要，逐行标明依据；
+# 原文没写的格子填「未报告」。模型留空 = 沿用 translation.yaml 的模型。
+method_comparison: true
+method_papers: 10
+method_model: ""
+method_deadline_seconds: 480
+# 研究脉络：OpenAlex 参考文献 → 每篇新论文承接你文库里的哪几篇 + 本期共同引用的源头文献。
+# 每次约 30 次 OpenAlex 列表请求（按 network.yaml 计价约 0.003 美元）。
+lineage: true
+lineage_max_requests: 40
+
 # 方向划分依据本人 2026-09-19 给出的博士课题定义：
 #
 #   以 LPBF/SLM 制备的 TC4（Ti-6Al-4V）为主要对象，研究温度、应变率和复杂应力状态下的

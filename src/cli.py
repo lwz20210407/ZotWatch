@@ -41,6 +41,8 @@ from .research_archive import attach_topics
 from .aminer_policy import aminer_only, screen_aminer_delivery, recent_delivery, select_backfill
 from .aminer_shadow import export_shadow, persist_week, scoreboard, trial_candidates
 from .entity_tracking import tracking_report
+from .lineage import Lookup, build_lineage, resolve_week
+from .method_compare import MethodComparer
 
 load_dotenv()  # Load default .env if present
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -380,8 +382,29 @@ def _run_watch(
                 return works
             aminer_trial = _optional("AMiner trial section", build_trial, [])
 
+        # Two web-page sections the owner asked for on 2026-10-05: where this week's
+        # papers sit relative to the library and to each other (lineage), and their
+        # methods side by side (comparison). One OpenAlex lookup feeds both; each is
+        # auxiliary, so a failure removes its section and nothing else.
+        lineage = method_table = None
+        if config.lineage or (config.method_comparison and config.method_papers):
+            lookup = Lookup(fetcher.session, mailto=settings.sources.openalex.mailto,
+                            max_requests=config.lineage_max_requests,
+                            interval=settings.sources.request_interval_seconds)
+            week_records = _optional("OpenAlex lookup for this week's papers",
+                                     lambda: resolve_week(ranked, lookup), {})
+            if config.lineage:
+                lineage = _optional("Research lineage", lambda: build_lineage(
+                    ranked, storage.iter_items(), week_records, lookup), None)
+            if config.method_comparison and config.method_papers:
+                comparer = MethodComparer(settings.translation, base_dir / "data" / "cache" / "method-compare",
+                                          model=config.method_model)
+                method_table = _optional("Method comparison", lambda: comparer.compare(
+                    ranked[:config.method_papers], week_records,
+                    deadline_seconds=config.method_deadline_seconds), None)
+
         render_html(ranked, base_dir / "reports" / report_name, watched_works=watched,
-                    aminer_trial_works=aminer_trial,
+                    aminer_trial_works=aminer_trial, lineage=lineage, method_table=method_table,
                     classic_works=classics, coverage_warnings=retrieval_warnings + monitor.warnings,
                     diagnostics=diagnostics, update_works=alerts, exploration_works=exploration,
                     problem_names=profile_names,
