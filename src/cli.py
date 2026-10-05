@@ -473,8 +473,11 @@ def _optional(label: str, produce, default):
     try:
         return produce()
     except Exception as exc:  # noqa: BLE001 - auxiliary, must not propagate
-        logger.warning("%s failed (%s: %s); the digest continues without it",
-                       label, exc.__class__.__name__, exc)
+        # cli.py has no module-level `logger`. Until 2026-10-05 this line used one, so
+        # the first auxiliary failure raised NameError from inside the guard and took
+        # the digest down with it -- the exact outcome the guard exists to prevent.
+        logging.getLogger(__name__).warning("%s failed (%s: %s); the digest continues without it",
+                                            label, exc.__class__.__name__, exc)
         return default
 
 
