@@ -42,6 +42,33 @@ class EnrichmentTests(unittest.TestCase):
         self.addCleanup(patcher.stop)
         self.addCleanup(self.tmp.cleanup)
 
+    def test_batches_run_concurrently_and_every_paper_is_filled(self):
+        """24 papers in 3 batches took 5 minutes serially on 2026-10-05."""
+        import time
+        config = TranslationConfig(batch_size=8, timeout_seconds=1, concurrency=3)
+        enricher = ChineseEnricher(config, self.cache)
+
+        def slow_post(batch, attempts=3):
+            time.sleep(0.4)
+            return reply(range(len(batch)))
+        works = [work(i) for i in range(24)]
+        with patch.object(enricher, "_post", side_effect=slow_post):
+            started = time.monotonic()
+            enricher.enrich(works)
+            elapsed = time.monotonic() - started
+        self.assertLess(elapsed, 1.0, "three 0.4 s batches should overlap, not add up to 1.2 s")
+        self.assertTrue(all(w.extra.get("title_zh") for w in works))
+
+    def test_each_thread_gets_its_own_session(self):
+        import threading
+        enricher = ChineseEnricher(self.config, self.cache)
+        seen = []
+        thread = threading.Thread(target=lambda: seen.append(enricher._http))
+        thread.start()
+        thread.join()
+        self.assertIsNot(seen[0], enricher._http)
+        self.assertIs(enricher._http, enricher._http)
+
     def test_a_timing_out_batch_is_split_rather_than_retried(self):
         """Eight papers that fail as one batch still all get translated."""
         works = [work(i) for i in range(8)]
