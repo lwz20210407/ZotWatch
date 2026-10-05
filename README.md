@@ -48,19 +48,20 @@ python -m src.cli profile --local --bundle
 
 | 什么时候 | 做什么 |
 |---|---|
-| 每周四 07:00 | 自动运行，无需干预 |
-| 文库新增较多后（约每月） | 本地刷新画像并重新上传 bundle，见下 |
+| 每周四 13:00 | 本机计划任务"ZotWatch Profile Refresh"自动刷新画像并上传（`tools/refresh_profile.ps1`），电脑没开机就沿用上一版 |
+| 每周四 15:00 | cron-job.org 触发推送，约 15:15–15:30 收到邮件；见 [docs/precise-schedule.md](docs/precise-schedule.md) |
+| 网页提示"画像已超过 14 天未更新" | 检查本机计划任务，或手动运行下面的刷新命令 |
 | 想改推荐口径 | 调 `config/scoring.yaml` 的权重/阈值，或 `config/sources.yaml` 的期刊与关键词 |
 | 收到不相关的推荐 | 点报告里的反馈链接开 Issue，下轮生效 |
 
 ### 刷新画像
 
-```bash
-python -m src.cli profile --local --bundle
-gh release upload profile-latest data/profile-bundle.tar.gz --clobber
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File tools\refresh_profile.ps1
 ```
 
-不刷新也能跑，只是新加入文库的论文暂时不影响排序。
+等价于 `python -m src.cli profile --local --bundle` + `verify-profile` + `gh release upload profile-latest data/profile-bundle.tar.gz --clobber`，另外会保留上一版为 `data/profile-bundle.prev.tar.gz`（回滚方法见脚本开头），日志在 `logs/`。
+不刷新也能跑，只是新加入文库的论文暂时不影响排序，且可能被当成新论文再推一次。
 
 ### 手动触发
 

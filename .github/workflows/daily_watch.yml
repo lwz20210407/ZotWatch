@@ -254,6 +254,12 @@ jobs:
         if: steps.prebuilt.outputs.found == 'true'
         run: |
           echo "Prebuilt profile: ${{ steps.prebuilt.outputs.items }} items, generated ${{ steps.prebuilt.outputs.generated }}"
+          # Rebuilt weekly on the owner's PC (tools/refresh_profile.ps1, Thursday 13:00).
+          # Nothing fails when that stops -- the digest just ages -- so say it here too.
+          age=$(( ( $(date +%s) - $(date -d "${{ steps.prebuilt.outputs.generated }}" +%s 2>/dev/null || date +%s) ) / 86400 ))
+          if [ "$age" -gt 14 ]; then
+            echo "::warning::The library profile is $age days old; the weekly local refresh may not be running."
+          fi
           python -m src.cli verify-profile
 
       # The facet centroids are derived data: which library papers belong to each
