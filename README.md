@@ -60,7 +60,8 @@ python -m src.cli profile --local --bundle
 powershell -NoProfile -ExecutionPolicy Bypass -File tools\refresh_profile.ps1
 ```
 
-等价于 `python -m src.cli profile --local --bundle` + `verify-profile` + `gh release upload profile-latest data/profile-bundle.tar.gz --clobber`，另外会保留上一版为 `data/profile-bundle.prev.tar.gz`（回滚方法见脚本开头），日志在 `logs/`。
+计划任务由 `tools\install_refresh_task.ps1` 创建（重复运行即更新；删除：`Unregister-ScheduledTask -TaskName 'ZotWatch Profile Refresh' -Confirm:$false`）。
+刷新脚本等价于 `python -m src.cli profile --local --bundle` + `verify-profile` + `gh release upload profile-latest data/profile-bundle.tar.gz --clobber`，另外会保留上一版为 `data/profile-bundle.prev.tar.gz`（回滚方法见脚本开头），日志在 `logs/`。
 不刷新也能跑，只是新加入文库的论文暂时不影响排序，且可能被当成新论文再推一次。
 
 ### 手动触发
