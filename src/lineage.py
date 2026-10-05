@@ -48,26 +48,40 @@ class Lookup:
     and recorded, never retried in a loop.
     """
 
-    def __init__(self, session, *, mailto="", max_requests=30, interval=0.2):
+    def __init__(self, session, *, mailto="", max_requests=30, interval=0.2, max_seconds=120):
         self.session, self.mailto = session, mailto
         self.max_requests, self.interval = max_requests, interval
+        self.deadline = time.monotonic() + max_seconds
         self.requests = 0
         self.incomplete = []
+        self.stopped = False
 
     def query(self, filter_value, select):
+        # Three stops, because this runs on the main thread before the page is
+        # rendered and the email sent: a request cap, a wall-clock cap, and the first
+        # failure. Without the last two a slow OpenAlex cost ~62 s per request (two 30 s
+        # attempts plus backoff) across ~31 requests -- half an hour on top of a 30-35
+        # minute run, enough to hit the job timeout before the email step.
+        if self.stopped:
+            return []
         if self.requests >= self.max_requests:
             self.incomplete.append("request_cap")
+            return []
+        if time.monotonic() >= self.deadline:
+            self.incomplete.append("time_cap")
+            self.stopped = True
             return []
         self.requests += 1
         params = {"filter": filter_value, "per-page": BATCH, "select": select}
         if self.mailto:
             params["mailto"] = self.mailto
         try:
-            response = request_with_retry(self.session, "GET", OPENALEX, params=params, timeout=30,
+            response = request_with_retry(self.session, "GET", OPENALEX, params=params, timeout=20,
                                           attempts=2, logger=logger, context="Lineage lookup")
             rows = response.json().get("results", [])
         except Exception as exc:  # budget exhaustion, transport, bad JSON: all non-fatal
             self.incomplete.append(type(exc).__name__)
+            self.stopped = True
             return []
         time.sleep(self.interval)
         return rows

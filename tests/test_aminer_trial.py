@@ -68,6 +68,15 @@ class ScoreboardTests(unittest.TestCase):
                                       entry("transferable", work_id="aminer:abc123")])
         self.assertEqual((board["useful"], board["irrelevant"], board["labelled"]), (2, 1, 3))
 
+    def test_the_real_feedback_model_is_counted(self):
+        """cli passes FeedbackModel.entries, a dict; iterating it yielded keys and 0 labels."""
+        from src.research_features import FeedbackEntry, FeedbackModel
+        from src.settings import ResearchConfig
+        persist_week([work("A", doi="10.1016/j.x.2026.0001")], self.dir, "2026-W41")
+        model = FeedbackModel([FeedbackEntry(doi="10.1016/j.x.2026.0001", rating="direct")], ResearchConfig())
+        self.assertEqual(scoreboard(self.dir, model.entries)["labelled"], 1)
+        self.assertEqual(scoreboard(self.dir, list(model.entries.values()))["labelled"], 1)
+
     def test_no_verdict_on_a_handful_of_clicks(self):
         persist_week([work("A", doi="10.1/a")], self.dir, "2026-W41")
         board = scoreboard(self.dir, [entry("direct", doi="10.1/a")], min_labels=20)

@@ -1,3 +1,3 @@
 # Local PDF extraction for the on-demand dossier command. pypdf is also in
 # requirements.txt now, for the weekly page's method comparison.
-pypdf>=5.0
+pypdf>=6.0

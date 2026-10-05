@@ -114,6 +114,8 @@ def scoreboard(ledger_dir, feedback_entries, *, min_labels=20, graduate_ratio=0.
         return 'doi:' + doi.casefold().rstrip(' .;') if doi else None
 
     labels = {}
+    if isinstance(feedback_entries, dict):  # FeedbackModel.entries is keyed by DOI/scope
+        feedback_entries = feedback_entries.values()
     for entry in feedback_entries or []:
         rating = getattr(entry, 'rating', None)
         if getattr(entry, 'work_id', ''):

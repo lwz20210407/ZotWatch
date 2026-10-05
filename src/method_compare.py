@@ -18,13 +18,16 @@ from __future__ import annotations
 
 import hashlib
 import io
+import ipaddress
 import json
 import logging
 import os
+import queue
 import re
+import threading
 import time
-from concurrent.futures import ThreadPoolExecutor, wait
 from pathlib import Path
+from urllib.parse import urljoin, urlsplit
 
 import requests
 
@@ -70,7 +73,12 @@ SYSTEM_PROMPT = (
 # Variants the model writes instead of the exact marker: "未报告应变率范围",
 # "氢脆钢，未报告制备或热处理状态", "未提及", "N/A".
 _SILENT = re.compile(r"未报告|未提及|未说明|未给出|未注明|未明确|不详|^(?:无|n/?a|none|unknown|not reported|-|—)$", re.I)
-_WORD = re.compile(r"[a-z0-9]+(?:[.\-][a-z0-9]+)*")
+# Hyphens split words ("finite-element" == "finite element", "Ti-6Al-4V" == ti 6al 4v)
+# so PDF hyphenation and the model's re-spacing cannot break a genuine quote.
+_WORD = re.compile(r"[a-z0-9]+(?:\.[0-9]+)*")
+_STOP = frozenset("""a an the and or of in on at to for from by with was were is are be been being this that
+    these those which as it its we our us using used use than then into under over between via also has have had
+    not no can may such both each all any per their they there here while where when after before during""".split())
 
 METHOD_HEAD = re.compile(
     r"(?im)^[ \t]*(?:\d+(?:\.\d+)*\.?[ \t]+)?(?:materials? and methods?|experimental(?: procedures?| details| methods?| setup| work)?"
@@ -88,7 +96,7 @@ def pdf_urls(work, record):
     record = record or {}
     for location in [record.get("best_oa_location") or {}, *(record.get("locations") or [])]:
         url = (location or {}).get("pdf_url")
-        if isinstance(url, str) and url.startswith("http"):
+        if isinstance(url, str) and safe_url(url):
             urls.append(url)
     match = re.search(r"arxiv\.org/abs/([\w.\-/]+)", work.url or "")
     if match:
@@ -96,20 +104,60 @@ def pdf_urls(work, record):
     return list(dict.fromkeys(urls))[:3]
 
 
-def pdf_text(session, url, *, max_bytes=25_000_000, timeout=40, max_pages=40):
-    """Text of a PDF, or None for anything that is not a readable PDF."""
+def safe_url(url):
+    """https to a named host only.
+
+    The URLs come from third-party metadata and redirects, and the runner should not
+    be steered at a link-local metadata service or anything else by IP literal.
+    """
+    parts = urlsplit(url)
+    host = (parts.hostname or "").lower()
+    if parts.scheme != "https" or not host or host == "localhost" or host.endswith(".local"):
+        return False
+    try:
+        ipaddress.ip_address(host)
+    except ValueError:
+        return True
+    return False
+
+
+def _open(session, url, timeout, max_redirects=4):
+    """GET with redirects followed by hand, so every hop passes safe_url."""
+    for _ in range(max_redirects + 1):
+        if not safe_url(url):
+            return None
+        response = session.get(url, timeout=timeout, stream=True, allow_redirects=False)
+        location = (getattr(response, "headers", None) or {}).get("Location")
+        if response.status_code in (301, 302, 303, 307, 308) and location:
+            response.close()
+            url = urljoin(url, location)
+            continue
+        return response
+    return None
+
+
+def pdf_text(session, url, *, deadline=None, max_bytes=25_000_000, timeout=(10, 20), max_pages=40):
+    """Text of a PDF, or None for anything that is not a readable PDF.
+
+    `deadline` is an absolute time.monotonic() value. The per-read timeout alone does
+    not bound a download: a slow server trickling bytes never trips it.
+    """
     try:
         from pypdf import PdfReader
     except ImportError:
         return None
+    deadline = deadline or time.monotonic() + 60
     try:
-        with session.get(url, timeout=timeout, stream=True) as response:
+        response = _open(session, url, timeout)
+        if response is None:
+            return None
+        with response:
             if response.status_code != 200:
                 return None
             data = bytearray()
             for chunk in response.iter_content(65536):
                 data.extend(chunk)
-                if len(data) > max_bytes:
+                if len(data) > max_bytes or time.monotonic() > deadline:
                     return None
         if not bytes(data[:1024]).lstrip().startswith(b"%PDF"):
             return None  # a landing page or a bot challenge, not the paper
@@ -148,22 +196,48 @@ def _value(raw):
     return "，".join(kept)[:80] if kept else UNREPORTED
 
 
-def grounded(quote, source, *, min_share=0.8):
+def _content(text):
+    return [w for w in _WORD.findall(str(text or "").lower()) if w not in _STOP]
+
+
+def grounded(quote, source, *, min_share=0.8, min_pairs=0.7):
     """Does the quote actually occur in the source text?
 
-    Token containment rather than exact substring: PDF extraction breaks lines and
-    hyphenates, and the model normalises whitespace and dashes. A quote with no
-    alphanumeric token cannot be checked and does not count as evidence.
+    Not an exact substring -- PDF extraction breaks lines and hyphenates, and the model
+    re-spaces dashes -- but close to one: the quote's content words must be in the
+    source AND appear there in the same order, judged by adjacent pairs. A bag of words
+    alone was too weak: "calibrated using DIC measurements and the finite element
+    analysis" passed against a text that never mentions DIC, because every other word
+    occurs somewhere in any FE paper. Stopwords are ignored for the same reason.
     """
     quote = str(quote or "")
     if re.search(r"[㐀-鿿]", quote):  # a Chinese quote: whitespace-free substring
         squeeze = lambda s: re.sub(r"\s+", "", s)
         return len(squeeze(quote)) >= 4 and squeeze(quote) in squeeze(source)
-    words = _WORD.findall(quote.lower())
+    words = _content(quote)
     if len(words) < 2:
         return False
-    present = set(_WORD.findall(source.lower()))
-    return sum(word in present for word in words) / len(words) >= min_share
+    tokens = _content(source)
+    present = set(tokens)
+    if sum(word in present for word in words) / len(words) < min_share:
+        return False
+    pairs = set(zip(tokens, tokens[1:]))
+    wanted = list(zip(words, words[1:]))
+    return sum(pair in pairs for pair in wanted) / len(wanted) >= min_pairs
+
+
+def named_terms_present(value, source, *, min_share=0.75):
+    """The Latin-script names in a value (DIC, UMAT, Johnson-Cook) must be in the source.
+
+    A value can outrun its quote: a correct quote about the test, attached to a value
+    that adds a calibration method. Numbers are not checked -- the model legitimately
+    rewrites 0.001 as 1e-3 -- only tokens containing a letter.
+    """
+    names = [w for w in _content(value) if len(w) >= 2 and re.search(r"[a-z]", w)]
+    if not names:
+        return True
+    present = set(_content(source))
+    return sum(name in present for name in names) / len(names) >= min_share
 
 
 def _clean(fields, source=None):
@@ -177,7 +251,8 @@ def _clean(fields, source=None):
         raw = fields.get(key)
         quote = raw.get("quote") if isinstance(raw, dict) else None
         value = _value(raw.get("value") if isinstance(raw, dict) else raw)
-        if source is not None and value != UNREPORTED and not grounded(quote, source):
+        if (source is not None and value != UNREPORTED
+                and not (grounded(quote, source) and named_terms_present(value, source))):
             value, dropped = UNREPORTED, dropped + 1
         out[key] = value
     return out, dropped
@@ -189,13 +264,16 @@ class MethodComparer:
         self.model = model or translation.model_name
         self.cache_dir = Path(cache_dir)
         self.pdf_session = pdf_session or requests.Session()
+        # Seconds kept back from downloads for the model call, and the least time worth
+        # starting a model call with. A call that cannot finish only wastes the budget.
+        self.model_reserve, self.min_call_seconds = 30, 10
         self.pdf_session.headers.setdefault("User-Agent", "ZotWatch/1.0 (weekly literature digest; open-access text only)")
 
     @property
     def enabled(self):
         return bool(self.config.enabled and os.getenv(self.config.api_key_env, ""))
 
-    def _ask(self, work, source, text):
+    def _ask(self, work, source, text, timeout=None):
         user = f"标题：{work.title}\n来源：{source}\n\n{text}"
         response = request_with_retry(
             requests.Session(), "POST", f"{self.config.base_url.rstrip('/')}/chat/completions",
@@ -206,15 +284,18 @@ class MethodComparer:
                   "response_format": {"type": "json_object"}, "enable_thinking": False,
                   "messages": [{"role": "system", "content": SYSTEM_PROMPT},
                                {"role": "user", "content": user}]},
-            timeout=self.config.timeout_seconds)
+            timeout=timeout or self.config.timeout_seconds)
         content = response.json()["choices"][0]["message"]["content"]
         match = re.search(r"\{.*\}", content, re.S)
         return json.loads(match.group(0) if match else content)
 
-    def row(self, rank, work, record):
+    def row(self, rank, work, record, deadline=None):
+        deadline = deadline or time.monotonic() + 600
         text, source = None, "无"
         for url in pdf_urls(work, record):
-            full = pdf_text(self.pdf_session, url)
+            if time.monotonic() > deadline - self.model_reserve:
+                break  # leave the remaining time for the model call
+            full = pdf_text(self.pdf_session, url, deadline=deadline - self.model_reserve)
             if full:
                 text, source = method_excerpt(full), "全文"
                 break
@@ -229,8 +310,12 @@ class MethodComparer:
             return {**base, "fields": _clean(cached["fields"])[0], "dropped": cached.get("dropped", 0)}
         except (OSError, ValueError, KeyError, TypeError):
             pass
+        remaining = deadline - time.monotonic()
+        if remaining < self.min_call_seconds:
+            return {**base, "fields": None, "note": "未完成：超过本轮时间上限"}
         # Title + text: the title is evidence too, and the model sees it.
-        fields, dropped = _clean(self._ask(work, source, text), f"{work.title}\n{text}")
+        reply = self._ask(work, source, text, timeout=min(self.config.timeout_seconds, remaining))
+        fields, dropped = _clean(reply, f"{work.title}\n{text}")
         try:
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_text(json.dumps({"fields": fields, "dropped": dropped}, ensure_ascii=False), encoding="utf-8")
@@ -242,24 +327,41 @@ class MethodComparer:
         if not self.enabled or not works:
             return None
         started = time.monotonic()
-        pool = ThreadPoolExecutor(max_workers=workers)
-        futures = {pool.submit(self.row, rank, work, records.get(norm_doi(work.doi)) if work.doi else None): (rank, work)
-                   for rank, work in enumerate(works, start=1)}
-        done, _ = wait(futures, timeout=deadline_seconds)
-        pool.shutdown(wait=False, cancel_futures=True)
-        rows = []
-        for future, (rank, work) in futures.items():
-            if future not in done:
-                rows.append({"rank": rank, "title": work.title, "source": "无", "fields": None,
-                             "note": "未完成：超过本轮时间上限"})
-                continue
-            try:
-                rows.append(future.result())
-            except Exception as exc:
-                logger.warning("Method comparison failed for #%d: %s", rank, type(exc).__name__)
-                rows.append({"rank": rank, "title": work.title, "source": "无", "fields": None,
-                             "note": "抽取失败"})
-        rows.sort(key=lambda row: row["rank"])
+        deadline = started + deadline_seconds
+        jobs = queue.Queue()
+        for rank, work in enumerate(works, start=1):
+            jobs.put((rank, work))
+        results = {}
+
+        def worker():
+            while time.monotonic() < deadline:
+                try:
+                    rank, work = jobs.get_nowait()
+                except queue.Empty:
+                    return
+                record = records.get(norm_doi(work.doi)) if work.doi else None
+                try:
+                    results[rank] = self.row(rank, work, record, deadline=deadline)
+                except Exception as exc:
+                    logger.warning("Method comparison failed for #%d: %s", rank, type(exc).__name__)
+                    results[rank] = {"rank": rank, "title": work.title, "source": "无",
+                                     "fields": None, "note": "抽取失败"}
+
+        # Daemon threads, not a ThreadPoolExecutor. The executor's workers are joined at
+        # interpreter exit, so one download stuck past the deadline held the whole watch
+        # step open -- measured in review: a 1 s deadline still took 6.4 s to exit, and a
+        # slow server could push the job into its 60-minute timeout before the email
+        # step. A daemon thread is abandoned at exit instead.
+        threads = [threading.Thread(target=worker, daemon=True, name=f"method-compare-{i}")
+                   for i in range(max(1, min(workers, len(works))))]
+        for thread in threads:
+            thread.start()
+        for thread in threads:
+            thread.join(max(0.0, deadline - time.monotonic()))
+        snapshot = dict(results)
+        rows = [snapshot.get(rank) or {"rank": rank, "title": work.title, "source": "无", "fields": None,
+                                       "note": "未完成：超过本轮时间上限"}
+                for rank, work in enumerate(works, start=1)]
         return {"rows": rows, "model": self.model, "seconds": round(time.monotonic() - started),
                 "dropped": sum(r.get("dropped", 0) for r in rows),
                 "full_text": sum(1 for r in rows if r["source"] == "全文" and r["fields"]),

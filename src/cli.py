@@ -378,7 +378,9 @@ def _run_watch(
                 iso = beijing_now().isocalendar()
                 ledger = base_dir / "data" / "watch-state" / "aminer-shadow"
                 persist_week(works, ledger, f"{iso[0]}-W{iso[1]:02d}")
-                diagnostics["aminer_trial"] = scoreboard(ledger, feedback.entries)
+                # entries is a dict keyed by DOI/scope; iterating it yields the keys, which
+                # is how the scoreboard read every week as 0 labelled until review caught it.
+                diagnostics["aminer_trial"] = scoreboard(ledger, list(feedback.entries.values()))
                 return works
             aminer_trial = _optional("AMiner trial section", build_trial, [])
 

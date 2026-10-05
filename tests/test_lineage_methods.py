@@ -21,6 +21,8 @@ from src.settings import TranslationConfig
 
 
 class FakeResponse:
+    headers = {}
+
     def __init__(self, data, status=200, content=b""):
         self.status_code, self._data, self.content = status, data, content
 
@@ -116,6 +118,64 @@ METHODS_TEXT = ("Title\nAbstract text " + "x" * 900 + "\n1. Introduction\nBackgr
                 + "body " * 2500 + "\n5. Conclusions\nFracture strain fell by 30%.\nReferences\n[1] x")
 
 
+class LineageBudgetTests(unittest.TestCase):
+    def test_the_first_failure_stops_further_lookups(self):
+        """A slow OpenAlex must not cost ~62 s per remaining request."""
+        broken = mock.Mock()
+        broken.request.side_effect = RuntimeError("timeout")
+        lookup = Lookup(broken, interval=0)
+        lookup.by_id([f"W{i}" for i in range(500)], "id")
+        self.assertEqual(broken.request.call_count, 1)
+
+    def test_the_wall_clock_cap_stops_lookups(self):
+        api = FakeOpenAlex(week={}, refs={})
+        lookup = Lookup(api, interval=0, max_seconds=0)
+        lookup.by_id(["W1", "W2"], "id")
+        self.assertEqual(api.calls, 0)
+        self.assertIn("time_cap", lookup.incomplete)
+
+
+class GroundingTests(unittest.TestCase):
+    SOURCE = ("SHPB tests were carried out at 25-600 C with strain rates from 1000 to 4600 s-1. "
+              "The conventional Johnson-Cook model was calibrated with the same data set, and the "
+              "finite element analysis of the specimen used an explicit solver.")
+
+    def test_a_real_quote_passes_despite_respacing_and_hyphens(self):
+        from src.method_compare import grounded
+        self.assertTrue(grounded("the conventional Johnson Cook model was calibrated with the same data-set",
+                                 self.SOURCE))
+
+    def test_a_plausible_but_absent_quote_fails(self):
+        """Review case: every word but DIC occurs somewhere in an FE paper."""
+        from src.method_compare import grounded
+        source = self.SOURCE + " Model parameters were measured; the analysis used measurements."
+        self.assertFalse(grounded("the model parameters were calibrated using DIC measurements "
+                                  "and the finite element analysis", source))
+
+    def test_a_value_naming_something_absent_is_rejected(self):
+        from src.method_compare import named_terms_present
+        self.assertTrue(named_terms_present("Johnson-Cook 模型", self.SOURCE))
+        self.assertFalse(named_terms_present("DIC + 有限元反演", self.SOURCE))
+
+
+class SafeUrlTests(unittest.TestCase):
+    def test_only_https_to_named_hosts(self):
+        from src.method_compare import safe_url
+        self.assertTrue(safe_url("https://www.mdpi.com/x.pdf"))
+        for url in ("http://www.mdpi.com/x.pdf", "https://169.254.169.254/latest", "https://localhost/x",
+                    "https://[::1]/x", "file:///etc/passwd", "ftp://x.org/a.pdf"):
+            self.assertFalse(safe_url(url), url)
+
+    def test_a_redirect_to_an_unsafe_host_is_not_followed(self):
+        redirect = FakeResponse(None, status=302)
+        redirect.headers = {"Location": "http://169.254.169.254/latest/meta-data"}
+        redirect.close = lambda: None
+        session = mock.Mock()
+        session.get.return_value = redirect
+        self.assertIsNone(pdf_text(session, "https://oa.example/a.pdf"))
+        self.assertEqual(session.get.call_count, 1)
+
+
 class MethodTextTests(unittest.TestCase):
     def test_excerpt_starts_at_the_methods_and_keeps_the_conclusions(self):
         excerpt = method_excerpt(METHODS_TEXT)
@@ -145,13 +205,14 @@ class ComparerTests(unittest.TestCase):
         self.addCleanup(env.stop)
         config = TranslationConfig(api_key_env="TEST_LLM_KEY", timeout_seconds=5)
         self.comparer = MethodComparer(config, Path(self.tmp.name), pdf_session=mock.Mock())
+        self.comparer.model_reserve = self.comparer.min_call_seconds = 0
         self.asked = []
 
         self.reply = {"material": {"value": UNREPORTED, "quote": ""},
                       "model": {"value": "Johnson-Cook + MMC",
                                 "quote": "calibrated the Johnson-Cook and MMC models"}}
 
-        def ask(work, source, text):
+        def ask(work, source, text, timeout=None):
             self.asked.append(work.title)
             if work.title == "slow":
                 time.sleep(1.5)
@@ -208,6 +269,28 @@ class ComparerTests(unittest.TestCase):
         self.assertEqual(rows[0]["fields"]["model"], "Johnson-Cook + MMC")
         self.assertIn("未完成", rows[1]["note"])
         time.sleep(1.2)  # let the abandoned worker finish before the temp dir goes
+
+    def test_a_stuck_worker_does_not_hold_the_process_open(self):
+        """Executor workers are joined at exit; review measured 6.4 s for a 1 s deadline."""
+        import subprocess
+        import sys
+        code = (
+            "import os, time; os.environ['K']='k'\n"
+            "from src.method_compare import MethodComparer\n"
+            "from src.models import CandidateWork\n"
+            "from src.settings import TranslationConfig\n"
+            "c = MethodComparer(TranslationConfig(api_key_env='K'), 'unused-cache')\n"
+            "c.model_reserve = c.min_call_seconds = 0\n"
+            "c._ask = lambda *a, **k: time.sleep(5)\n"
+            "w = CandidateWork(source='t', identifier='x', title='x', abstract='y' * 300)\n"
+            "print(c.compare([w], {}, deadline_seconds=0.3)['rows'][0]['note'])\n")
+        started = time.monotonic()
+        out = subprocess.run([sys.executable, "-c", code], capture_output=True, text=True,
+                             encoding="utf-8", errors="replace", timeout=30,
+                             env={**os.environ, "PYTHONIOENCODING": "utf-8"},
+                             cwd=Path(__file__).resolve().parents[1])
+        self.assertLess(time.monotonic() - started, 3.5, out.stderr)
+        self.assertIn("未完成", out.stdout)
 
     def test_disabled_without_a_key(self):
         with mock.patch.dict(os.environ, {"TEST_LLM_KEY": ""}):
