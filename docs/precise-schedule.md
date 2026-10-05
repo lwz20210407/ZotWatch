@@ -39,13 +39,16 @@ GitHub → Settings → Developer settings → Fine-grained tokens → Generate 
 | 字段 | 值 |
 |---|---|
 | URL | `https://api.github.com/repos/lwz20210407/ZotWatch/actions/workflows/daily_watch.yml/dispatches` |
-| 时间 | 自定义：每周四，15:30；时区 **Asia/Shanghai** |
+| 时间 | 自定义：每周四，**15:00**；时区 **Asia/Shanghai**（整个流程约 30 分钟，邮件约 15:30 到） |
 | Request method | POST |
-| Headers | `Authorization: Bearer <你的 token>`<br>`Accept: application/vnd.github+json`<br>`X-GitHub-Api-Version: 2022-11-28`<br>`Content-Type: application/json` |
+| Headers | `Authorization: Bearer github_pat_…`（Bearer、空格、token 本身，不加尖括号）<br>`Accept: application/vnd.github+json`<br>`X-GitHub-Api-Version: 2022-11-28`<br>`Content-Type: application/json` |
 | Body | `{"ref":"main","inputs":{"dry_run":"false","trigger":"scheduled"}}` |
 | 通知 | 勾选：执行失败时、失败后恢复时、作业被自动停用时 |
 
-第二个作业完全相同，只把时间改成 **周四 17:30**，作为重试。15:30 那次已经投递的话，它几秒内就退出。
+第二个作业完全相同，只把时间改成 **周四 17:00**，作为重试。15:00 那次已经投递的话，它几秒内就退出。
+
+**当前状态（2026-10-05 已配置并测试）**：两个作业 15:00 / 17:00 已建好；token 只有 ZotWatch 仓库的
+Actions 读写权限。测试运行返回 204，GitHub 在请求的同一秒建好运行（run 37280475729），guard 判定正确。
 
 注意：
 
@@ -74,5 +77,5 @@ curl -i -X POST https://api.github.com/repos/lwz20210407/ZotWatch/actions/workfl
 
 - cron-job.org 自己也不承诺准点，失败不重试，所以配两个作业，再加 GitHub cron 兜底。
 - GitHub Actions 整体故障时，外部触发也救不了；第 4 步的心跳至少能让你及时知道。
-- 周四 15:30 之前如果手动跑过一次**正式**运行，并且选了 `trigger=scheduled`，当周自动推送会被跳过。
+- 周四 15:00 之前如果手动跑过一次**正式**运行，并且选了 `trigger=scheduled`，当周自动推送会被跳过。
   手动运行默认是 `manual`，不受影响。

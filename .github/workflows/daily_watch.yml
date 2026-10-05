@@ -16,8 +16,9 @@ concurrency:
 # in the real Thursday digest. Code changes are validated by ci.yml instead.
 on:
   # PRIMARY TRIGGER IS EXTERNAL. An outside scheduler (cron-job.org) calls the
-  # workflow_dispatch API at 15:30 Thursday Beijing with trigger=scheduled; a dispatch
-  # starts within seconds. GitHub's own schedule cannot be made punctual: the docs say
+  # workflow_dispatch API at 15:00 Thursday Beijing (retry 17:00) with trigger=scheduled;
+  # a dispatch starts within seconds and the run takes ~30 minutes, so the email lands
+  # around 15:30. GitHub's own schedule cannot be made punctual: the docs say
   # scheduled events "can be delayed during periods of high loads" and may be dropped,
   # and in June 2026 the Actions product manager called the throttle "global" and said
   # no time of day is reliably better. Measured here: 5h09m late on 2026-09-24,
@@ -27,7 +28,8 @@ on:
   # guard job makes every extra trigger harmless: the first run to deliver records the
   # week, and any later one exits in seconds.
   schedule:
-    # Beijing is UTC+8, so 15:30 Thursday Beijing = 07:30 Thursday UTC.
+    # Fallback only. Beijing is UTC+8, so 15:30 Thursday Beijing = 07:30 Thursday UTC --
+    # after the external 15:00 trigger, so on a normal week these find the ledger and exit.
     - cron: "30 7 * * 4"
     - cron: "30 9 * * 4"
     - cron: "30 11 * * 4"
