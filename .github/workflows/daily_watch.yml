@@ -11,16 +11,20 @@ concurrency:
 # worst of all -- marked those papers as already delivered, so they never appeared
 # in the real Thursday digest. Code changes are validated by ci.yml instead.
 on:
+  # PRIMARY TRIGGER IS EXTERNAL. An outside scheduler (cron-job.org) calls the
+  # workflow_dispatch API at 15:30 Thursday Beijing with trigger=scheduled; a dispatch
+  # starts within seconds. GitHub's own schedule cannot be made punctual: the docs say
+  # scheduled events "can be delayed during periods of high loads" and may be dropped,
+  # and in June 2026 the Actions product manager called the throttle "global" and said
+  # no time of day is reliably better. Measured here: 5h09m late on 2026-09-24,
+  # 7h08m on 2026-10-01. Setup steps: docs/precise-schedule.md.
+  #
+  # The crons below are only the fallback for a week the external call fails. The
+  # guard job makes every extra trigger harmless: the first run to deliver records the
+  # week, and any later one exits in seconds.
   schedule:
     # Beijing is UTC+8, so 15:30 Thursday Beijing = 07:30 Thursday UTC.
     - cron: "30 7 * * 4"
-    # Two backups. GitHub's scheduled events are best-effort: they queue under load
-    # and are sometimes dropped outright. On 2026-09-24 the 08:35 UTC slot did not
-    # start until 13:44 UTC -- a 5h09m delay -- so the mail landed at 22:15 Beijing
-    # instead of the afternoon. These cannot beat a queue delay, but they do cover a
-    # slot that GitHub skips entirely, which would otherwise cost a whole week.
-    # The guard job below makes them harmless: whichever run actually starts first
-    # sends the digest, and the others exit in seconds.
     - cron: "30 9 * * 4"
     - cron: "30 11 * * 4"
   workflow_dispatch:
@@ -65,11 +69,26 @@ jobs:
         with:
           fetch-depth: 0
       - id: check
+        env:
+          EVENT: ${{ github.event_name }}
+          SCHEDULE: ${{ github.event.schedule }}
+          TRIGGER: ${{ inputs.trigger }}
+          DRY: ${{ inputs.dry_run }}
+          BRANCH: ${{ github.event.repository.default_branch }}
         run: |
           set -euo pipefail
           week="$(TZ=Asia/Shanghai date +%G-W%V)"
           echo "week=$week" >> "$GITHUB_OUTPUT"
-          if [ "${{ github.event_name }}" = "schedule" ] || [ "${{ inputs.trigger }}" = "scheduled" ]; then
+          # GitHub's API does not say which cron slot fired a run, so the log has to.
+          echo "event=$EVENT schedule='$SCHEDULE' trigger='$TRIGGER' dry_run='$DRY' started=$(date -u +%FT%TZ)"
+          if [ "$DRY" = "true" ]; then
+            # A dry run sends nothing and records nothing, so it can never collide.
+            echo "scheduled=false" >> "$GITHUB_OUTPUT"
+            echo "Dry run; not gated."
+            echo "should_run=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          if [ "$EVENT" = "schedule" ] || [ "$TRIGGER" = "scheduled" ]; then
             echo "scheduled=true" >> "$GITHUB_OUTPUT"
           else
             echo "scheduled=false" >> "$GITHUB_OUTPUT"
@@ -77,8 +96,8 @@ jobs:
             echo "should_run=true" >> "$GITHUB_OUTPUT"
             exit 0
           fi
-          git fetch --quiet origin "${{ github.event.repository.default_branch }}"
-          ledger="$(git show "origin/${{ github.event.repository.default_branch }}:data/watch-state/scheduled-deliveries.json" 2>/dev/null || echo '{}')"
+          git fetch --quiet origin "$BRANCH"
+          ledger="$(git show "origin/$BRANCH:data/watch-state/scheduled-deliveries.json" 2>/dev/null || echo '{}')"
           if printf '%s' "$ledger" | python3 -c "import json,sys; sys.exit(0 if '$week' in json.load(sys.stdin) else 1)"; then
             echo "::notice::The $week digest was already delivered. Skipping this scheduled run."
             echo "should_run=false" >> "$GITHUB_OUTPUT"
@@ -91,7 +110,9 @@ jobs:
     needs: guard
     if: needs.guard.outputs.should_run == 'true'
     runs-on: ubuntu-latest
-    timeout-minutes: 50
+    # 60, not 50: the method-comparison section (2026-10-05) may add up to 8 minutes
+    # (method_deadline_seconds), and recent runs already took 30-35.
+    timeout-minutes: 60
     permissions:
       actions: read
       issues: read
@@ -248,6 +269,7 @@ jobs:
             data/cache/aminer
             data/cache/candidate-vectors
             data/cache/entity-tracking
+            data/cache/method-compare
           key: candidate-v1-${{ github.ref_name }}-${{ steps.model.outputs.slug }}-${{ github.run_id }}-${{ github.run_attempt }}
           restore-keys: |
             candidate-v1-${{ github.ref_name }}-${{ steps.model.outputs.slug }}-
@@ -308,6 +330,7 @@ jobs:
             data/cache/aminer
             data/cache/candidate-vectors
             data/cache/entity-tracking
+            data/cache/method-compare
           key: candidate-v1-${{ github.ref_name }}-${{ steps.model.outputs.slug }}-${{ github.run_id }}-${{ github.run_attempt }}
 
       - name: Prepare Pages
@@ -406,9 +429,30 @@ jobs:
             echo "Nothing to persist"
           else
             git commit -m "chore(watch): record $(date -u +%Y-%m-%d) digest and delivery history [skip ci]"
-            # The branch can have moved during a 50-minute run.
-            git pull --rebase --autostash origin "${{ github.ref_name }}"
-            git push origin "HEAD:${{ github.ref_name }}"
+            # Retried because the mail has already gone out by now: a lost push loses the
+            # week's marker, and a fallback cron would then send the digest a second time.
+            # The branch can also have moved during a long run, hence the rebase each try.
+            for attempt in 1 2 3; do
+              if git pull --rebase --autostash origin "${{ github.ref_name }}" \
+                 && git push origin "HEAD:${{ github.ref_name }}"; then
+                break
+              fi
+              [ "$attempt" -lt 3 ] || { echo "::error::Delivery history could not be pushed after 3 attempts."; exit 1; }
+              sleep $((attempt * 15))
+            done
+          fi
+
+      # Optional end-to-end heartbeat (healthchecks.io or similar). Set the secret
+      # HC_PING_URL to enable it; the check then alerts by email when a Thursday passes
+      # without a delivered digest -- whatever the cause: the external trigger, GitHub,
+      # the job or SMTP. Without the secret this step does nothing.
+      - name: Heartbeat
+        if: env.DRY_RUN != 'true' && needs.guard.outputs.scheduled == 'true'
+        env:
+          HC_PING_URL: ${{ secrets.HC_PING_URL }}
+        run: |
+          if [ -n "${HC_PING_URL}" ]; then
+            curl -fsS -m 10 --retry 3 "${HC_PING_URL}" > /dev/null || echo "::warning::Heartbeat ping failed"
           fi
 
       - uses: actions/upload-artifact@v4
