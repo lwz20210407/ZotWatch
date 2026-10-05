@@ -13,6 +13,7 @@ __pycache__/
 # Built by `profile --local --bundle` and shipped as a release asset, never
 # committed: tens of megabytes, replaced on every refresh.
 /data/profile-bundle.tar.gz
+/data/profile-bundle.prev.tar.gz
 /data/network-state/
 /reports/ranking-*.json
 /data/feedback-issues.json
@@ -47,3 +48,6 @@ __pycache__/
 /reports/digest-*
 /data/zh-cache.json
 temp-artifact/
+
+# Local logs written by tools/refresh_profile.ps1
+/logs/

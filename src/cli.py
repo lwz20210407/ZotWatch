@@ -420,6 +420,7 @@ def _run_watch(
                     diagnostics=diagnostics, update_works=alerts, exploration_works=exploration,
                     problem_names=profile_names,
                     library_size=f"{ranker.profile.get('item_count', 0)} 篇",
+                    profile_generated_at=ranker.profile.get("generated_at"),
                     window_days=settings.sources.window_days,
                     issue_no=issue_no,
                     feedback_repository=settings.research.feedback_repository,

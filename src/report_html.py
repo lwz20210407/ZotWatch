@@ -25,6 +25,7 @@ from __future__ import annotations
 import logging
 import re
 import zlib
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from urllib.parse import urlencode
 from typing import List
@@ -76,6 +77,27 @@ METHOD_COLUMNS = (
     (("simulation", ""), ("validation", "验证")),
     (("finding", ""),),
 )
+
+
+PROFILE_STALE_DAYS = 14
+
+
+def profile_age(generated_at, now=None, limit: int = PROFILE_STALE_DAYS):
+    """When the library profile was built, and whether that is old enough to flag.
+
+    The profile is rebuilt on the owner's PC (tools/refresh_profile.ps1, Thursdays
+    13:00). If that task stops running nothing else fails -- the digest just keeps
+    using an old library -- so the page has to say so.
+    """
+    try:
+        built = datetime.fromisoformat(str(generated_at))
+    except (TypeError, ValueError):
+        return None
+    if built.tzinfo is None:
+        built = built.replace(tzinfo=timezone.utc)
+    days = max(0, ((now or datetime.now(timezone.utc)) - built).days)
+    return {"date": built.astimezone(timezone(timedelta(hours=8))).strftime("%Y-%m-%d"),
+            "days": days, "stale": days > limit, "limit": limit}
 
 
 def method_cells(fields: dict) -> list:
@@ -707,7 +729,9 @@ _TEMPLATE = """
   <div class="panel">
     <h3>{{ icon('clock') }} 关于本期</h3>
     <div style="font-size:13px;line-height:1.75;color:var(--muted)">
-      画像来自你的 Zotero 文库{% if library_size %} {{ library_size }}{% endif %}。<br />
+      画像来自你的 Zotero 文库{% if library_size %} {{ library_size }}{% endif %}{%
+        if profile_age %}，生成于 {{ profile_age.date }}（{{ profile_age.days }} 天前）{% endif %}。<br />
+      {% if profile_age and profile_age.stale %}<b style="color:var(--accent-d)">画像已超过 {{ profile_age.limit }} 天未更新，本机每周四的画像更新任务可能没有运行。</b><br />{% endif %}
       中文标题与一句话摘要由模型生成，仅供快速筛选，<b style="color:var(--ink)">以原文为准</b>。
     </div>
   </div>
@@ -1163,7 +1187,8 @@ def render_html(works: List[RankedWork], output_path: Path | str, *, watched_wor
                 lineage: dict | None = None, method_table: dict | None = None,
                 problem_names: dict | None = None, library_size: str = "",
                 window_days: int = 30, library_directions: list | None = None,
-                issue_no: int = 0, feedback_repository: str = "") -> Path:
+                issue_no: int = 0, feedback_repository: str = "",
+                profile_generated_at: str | None = None) -> Path:
     env = Environment(autoescape=True)
     template: Template = env.from_string(_TEMPLATE)
     problem_names = problem_names or {}
@@ -1201,6 +1226,7 @@ def render_html(works: List[RankedWork], output_path: Path | str, *, watched_wor
         generated_at_time=now.strftime("%H:%M"),
         window_days=window_days,
         issue_no=issue_no,
+        profile_age=profile_age(profile_generated_at) if profile_generated_at else None,
         clamp_at=ABSTRACT_CLAMP,
         recommendation_reasons=recommendation_reasons,
         authors_line=authors_line, source_line=source_line, direction=direction,
