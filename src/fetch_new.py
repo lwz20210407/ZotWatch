@@ -454,6 +454,10 @@ class CandidateFetcher:
         queries = self._topic_queries()
         if isinstance(self.session, BudgetSession):
             limit = self.settings.network.topic_queries_per_run
+            # OpenAlex has its own cap: with an API key its budget is 10x the keyless
+            # one, while Crossref stays slow (~6 s a query) whatever we pay.
+            if provider == "openalex" and self.settings.network.openalex_topic_queries_per_run:
+                limit = self.settings.network.openalex_topic_queries_per_run
             if limit < len(queries):
                 logger.warning("%s topic rotation coverage cap: %d/%d queries this run", provider, limit, len(queries))
             return self.session.iter_rotation("topics_" + provider, queries, limit)

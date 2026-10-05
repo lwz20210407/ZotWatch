@@ -434,6 +434,9 @@ class NetworkConfig(BaseModel):
     openalex_max_requests: int = Field(160, ge=1, le=1000)
     crossref_max_requests: int = Field(180, ge=1, le=1000)
     topic_queries_per_run: int = Field(40, ge=1, le=200)
+    # 0 = use topic_queries_per_run. Only worth raising with OPENALEX_API_KEY set; without
+    # it the daily budget stops the loop long before the cap is reached.
+    openalex_topic_queries_per_run: int = Field(0, ge=0, le=400)
     cache_hours: int = Field(48, ge=1, le=168)
 
 
