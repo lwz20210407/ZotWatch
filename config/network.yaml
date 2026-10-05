@@ -1,6 +1,16 @@
 openalex_anonymous_budget: 0.08
+# Local ceiling per UTC day, kept under OpenAlex's free $1/day for a keyed account
+# (help.openalex.org/access/pricing, checked 2026-10-05). Costs per call there:
+# list/filter $0.0001, search and semantic search $0.001, single-entity lookup free.
 openalex_key_budget: 0.8
-openalex_max_requests: 160
+# 2026-10-05: OPENALEX_API_KEY added. All 179 topic queries x up to 2 pages = ~360
+# search calls (~$0.36), plus semantic, citation, lineage and metadata calls.
+# Was 160 when the keyless budget ($0.08/day) stopped the topic loop after ~40 searches.
+openalex_max_requests: 600
 crossref_max_requests: 180
+# Crossref is free but slow (~6 s a query), so it keeps rotating 40 queries a run.
 topic_queries_per_run: 40
+# OpenAlex runs every topic query every week now that the key lifts its budget; before,
+# each query came round only every ~4.5 weeks against a 30-day window.
+openalex_topic_queries_per_run: 200
 cache_hours: 48
