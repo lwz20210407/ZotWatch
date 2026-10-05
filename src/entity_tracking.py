@@ -157,8 +157,12 @@ def fetch_entities(session, settings, entries, since, cache_dir):
     for offset in range(min(2, len(eligible))):
         row = eligible[(start + offset) % len(eligible)]; attempted += 1
         try:
+            # 100, not 20. On 2026-10-01 Dirk Mohr alone reported 28 works in the window
+            # and only the newest 20 were read; a venue such as IJIE can publish far more.
+            # OpenAlex is free and allows up to 200 per page, so this is still exactly one
+            # request per entity -- the rotation below remains the budget control.
             params = {'filter': f"{fields[row['kind']]}:{'|'.join(row['openalex_ids'])},from_publication_date:{since.date().isoformat()}",
-                      'sort': 'publication_date:desc', 'per-page': 20, 'mailto': settings.sources.openalex.mailto}
+                      'sort': 'publication_date:desc', 'per-page': 100, 'mailto': settings.sources.openalex.mailto}
             for item in iter_works(session, 'https://api.openalex.org/works', params, provider='openalex', max_pages=1,
                     interval_seconds=settings.sources.request_interval_seconds, logger=logger, context='Confirmed entity watch'):
                 work = candidate_from_openalex(item)
