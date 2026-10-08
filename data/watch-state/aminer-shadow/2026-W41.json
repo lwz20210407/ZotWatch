@@ -1,0 +1,114 @@
+{
+  "schema_version": 1,
+  "week": "2026-W41",
+  "items": [
+    {
+      "work_id": "doi:10.1016/j.cma.2025.117935",
+      "title": "Data-driven Elastoplastic Constitutive Modelling with Physics-Informed RNNs Using the Virtual Fields Method for Indirect Training",
+      "doi": "10.1016/j.cma.2025.117935",
+      "url": "https://www.aminer.cn/pub/68a8fb27163c01c8504f3f13",
+      "aminer_id": "68a8fb27163c01c8504f3f13",
+      "venue": "COMPUTER METHODS IN APPLIED MECHANICS AND ENGINEERING",
+      "year": 2025
+    },
+    {
+      "work_id": "doi:10.1109/mesa.2016.7587145",
+      "title": "A VUMAT of Modified Mohr-Coulomb Model and Its Application in TBM Tunnelling Simulation",
+      "doi": "10.1109/mesa.2016.7587145",
+      "url": "https://www.aminer.cn/pub/619b61b91c45e57ce96f9a61",
+      "aminer_id": "619b61b91c45e57ce96f9a61",
+      "venue": "2016 12TH IEEE/ASME INTERNATIONAL CONFERENCE ON MECHATRONIC AND EMBEDDED SYSTEMS AND APPLICATIONS (MESA)",
+      "year": 2016
+    },
+    {
+      "work_id": "doi:10.15632/jtam-pl/151920",
+      "title": "Study on Progressive Collapse of Single-Layer Arch Shell Structure Based on VUMAT Stability Constitutive Model",
+      "doi": "10.15632/jtam-pl/151920",
+      "url": "https://www.aminer.cn/pub/62e8076f5aee126c0f98e8b6",
+      "aminer_id": "62e8076f5aee126c0f98e8b6",
+      "venue": "JOURNAL OF THEORETICAL AND APPLIED MECHANICS",
+      "year": 2022
+    },
+    {
+      "work_id": "doi:10.13905/j.cnki.dwjz.2023.1.019",
+      "title": "NUMERICAL SIMULATION OF CONCRETE-FILLED STEEL TUBE IMPACT BASED ON VUMAT",
+      "doi": "10.13905/j.cnki.dwjz.2023.1.019",
+      "url": "https://www.aminer.cn/pub/6431430290e50fcafd98b48e",
+      "aminer_id": "6431430290e50fcafd98b48e",
+      "venue": "Low Temperature Architecture Technology",
+      "year": 2023
+    },
+    {
+      "work_id": "doi:10.54097/hset.v52i.8815",
+      "title": "Numerical Simulation Analysis of Rock Fracture Propagation Based on VUMAT",
+      "doi": "10.54097/hset.v52i.8815",
+      "url": "https://www.aminer.cn/pub/65793cd0939a5f4082160608",
+      "aminer_id": "65793cd0939a5f4082160608",
+      "venue": "Highlights in Science, Engineering and Technology",
+      "year": 2023
+    },
+    {
+      "work_id": "aminer:65afe4dc939a5f4082f949af",
+      "title": "VUMAT of a Generalized Standard Continuum Damage Model",
+      "doi": null,
+      "url": "https://www.aminer.cn/pub/65afe4dc939a5f4082f949af",
+      "aminer_id": "65afe4dc939a5f4082f949af",
+      "venue": null,
+      "year": 2018
+    },
+    {
+      "work_id": "aminer:65b7526d939a5f408288c451",
+      "title": "MAcroscale Fracture VUMAT",
+      "doi": null,
+      "url": "https://www.aminer.cn/pub/65b7526d939a5f408288c451",
+      "aminer_id": "65b7526d939a5f408288c451",
+      "venue": null,
+      "year": null
+    },
+    {
+      "work_id": "aminer:65b79a61939a5f408287c867",
+      "title": "RVE Fracture VUMAT",
+      "doi": null,
+      "url": "https://www.aminer.cn/pub/65b79a61939a5f408287c867",
+      "aminer_id": "65b79a61939a5f408287c867",
+      "venue": null,
+      "year": 2016
+    },
+    {
+      "work_id": "doi:10.1007/s43452-026-01508-3",
+      "title": "Dynamic Deformation Behavior of Cast 7003-T6 Aluminum Alloy and Its High-Speed Impact Simulation Using VUMAT",
+      "doi": "10.1007/s43452-026-01508-3",
+      "url": "https://www.aminer.cn/pub/69d800929be8eb7c4b94488d",
+      "aminer_id": "69d800929be8eb7c4b94488d",
+      "venue": "Archives of Civil and Mechanical Engineering",
+      "year": 2026
+    },
+    {
+      "work_id": "doi:10.1007/s11665-026-14228-9",
+      "title": "Advanced Constitutive Modeling of Triaxiality-Dependent Phase Transformation in Metastable Austenitic Steels: VUMAT Implementation and Multi-Model Validation",
+      "doi": "10.1007/s11665-026-14228-9",
+      "url": "https://www.aminer.cn/pub/6a21c2ca0a96f8c83ce7245c",
+      "aminer_id": "6a21c2ca0a96f8c83ce7245c",
+      "venue": "Journal of Materials Engineering and Performance",
+      "year": 2026
+    },
+    {
+      "work_id": "doi:10.1145/3776759.3776785",
+      "title": "Three-Dimensional Finite Element Modeling of Titanium Alloy Cutting Based on VUMAT",
+      "doi": "10.1145/3776759.3776785",
+      "url": "https://www.aminer.cn/pub/6a4385540a96f8c83c67f0c1",
+      "aminer_id": "6a4385540a96f8c83c67f0c1",
+      "venue": "Proceedings of the 2025 International Symposium on Artificial Intelligence and Computational Social Sciences",
+      "year": 2025
+    },
+    {
+      "work_id": "doi:10.21236/ad1216609",
+      "title": "A Wrapper Enabling a VUMAT User Subroutine Originally Developed for Simulating Skull Fracture in Abaqus to Be Used in LS-DYNA",
+      "doi": "10.21236/ad1216609",
+      "url": "https://www.aminer.cn/pub/6a43e8290a96f8c83c26e1b5",
+      "aminer_id": "6a43e8290a96f8c83c26e1b5",
+      "venue": null,
+      "year": 2023
+    }
+  ]
+}
