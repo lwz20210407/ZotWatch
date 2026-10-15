@@ -1,0 +1,114 @@
+{
+  "schema_version": 1,
+  "week": "2026-W42",
+  "items": [
+    {
+      "work_id": "doi:10.1016/j.ijmst.2020.04.002",
+      "title": "Confining Stress Effect on the Elastoplastic Ground Reaction Considering the Lode Angle Dependence",
+      "doi": "10.1016/j.ijmst.2020.04.002",
+      "url": "https://www.aminer.cn/pub/5ecbc57d9fced0a24b4e7f3f",
+      "aminer_id": "5ecbc57d9fced0a24b4e7f3f",
+      "venue": "INTERNATIONAL JOURNAL OF MINING SCIENCE AND TECHNOLOGY",
+      "year": 2020
+    },
+    {
+      "work_id": "doi:10.1007/s00170-018-2399-6",
+      "title": "An Efficient Method to Estimate the Post-Necking Behavior of Sheet Metals",
+      "doi": "10.1007/s00170-018-2399-6",
+      "url": "https://www.aminer.cn/pub/5c3a70dddf5b8c0b3c8abf3d",
+      "aminer_id": "5c3a70dddf5b8c0b3c8abf3d",
+      "venue": "The International Journal of Advanced Manufacturing Technology",
+      "year": 2018
+    },
+    {
+      "work_id": "doi:10.1007/s11340-019-00577-1",
+      "title": "Inferring Post-Necking Strain Hardening Behavior of Sheets by a Combination of Continuous Bending under Tension Testing and Finite Element Modeling",
+      "doi": "10.1007/s11340-019-00577-1",
+      "url": "https://www.aminer.cn/pub/5e5e19a493d709897ce7e593",
+      "aminer_id": "5e5e19a493d709897ce7e593",
+      "venue": "Experimental Mechanics",
+      "year": 2020
+    },
+    {
+      "work_id": "doi:10.1016/j.ijmecsci.2020.105508",
+      "title": "Modeling Material Behavior During Continuous Bending under Tension for Inferring the Post-Necking Strain Hardening Response of Ductile Sheet Metals: Application to DP 780 Steel",
+      "doi": "10.1016/j.ijmecsci.2020.105508",
+      "url": "https://www.aminer.cn/pub/5e5e1a1993d709897cea3fae",
+      "aminer_id": "5e5e1a1993d709897cea3fae",
+      "venue": "International Journal of Mechanical Sciences",
+      "year": 2020
+    },
+    {
+      "work_id": "doi:10.1007/s10853-020-04477-x",
+      "title": "Revealing the Small Post-Necking Elongation in Twinning-Induced Plasticity Steels",
+      "doi": "10.1007/s10853-020-04477-x",
+      "url": "https://www.aminer.cn/pub/5ea014d79fced0a24ba1683f",
+      "aminer_id": "5ea014d79fced0a24ba1683f",
+      "venue": "Journal of Materials Science",
+      "year": 2020
+    },
+    {
+      "work_id": "doi:10.1088/1361-651x/ac2797",
+      "title": "Stepwise Modelling Method for Post Necking Characterisation of Anisotropic Sheet Metal",
+      "doi": "10.1088/1361-651x/ac2797",
+      "url": "https://www.aminer.cn/pub/619badee1c45e57ce9eb5bf2",
+      "aminer_id": "619badee1c45e57ce9eb5bf2",
+      "venue": "MODELLING AND SIMULATION IN MATERIALS SCIENCE AND ENGINEERING",
+      "year": 2021
+    },
+    {
+      "work_id": "doi:10.1111/ffe.13754",
+      "title": "Edge Tracing Technique to Study Post-Necking Behavior and Failure in Al Alloys and Anisotropic Plasticity in Line Pipe Steels",
+      "doi": "10.1111/ffe.13754",
+      "url": "https://www.aminer.cn/pub/627e31a75aee126c0fa1e7f8",
+      "aminer_id": "627e31a75aee126c0fa1e7f8",
+      "venue": "FATIGUE & FRACTURE OF ENGINEERING MATERIALS & STRUCTURES",
+      "year": 2022
+    },
+    {
+      "work_id": "doi:10.1080/27660400.2021.1922207",
+      "title": "Tensile Deformation Behavior of TRIP-aided Bainitic Ferrite Steel in the Post-Necking Strain Region",
+      "doi": "10.1080/27660400.2021.1922207",
+      "url": "https://www.aminer.cn/pub/62ac38e55aee126c0f4831cc",
+      "aminer_id": "62ac38e55aee126c0f4831cc",
+      "venue": "Science and Technology of Advanced Materials Methods",
+      "year": 2021
+    },
+    {
+      "work_id": "doi:10.1016/j.matdes.2023.111937",
+      "title": "An Advanced Post-Necking Analysis Methodology for Elasto-Plastic Material Models Identification",
+      "doi": "10.1016/j.matdes.2023.111937",
+      "url": "https://www.aminer.cn/pub/648d6661d68f896efad55dac",
+      "aminer_id": "648d6661d68f896efad55dac",
+      "venue": "MATERIALS & DESIGN",
+      "year": 2023
+    },
+    {
+      "work_id": "doi:10.3390/met13071156",
+      "title": "A Simple Procedure for the Post-Necking Stress-Strain Curves of Anisotropic Sheet Metals",
+      "doi": "10.3390/met13071156",
+      "url": "https://www.aminer.cn/pub/64f989643fda6d7f064e4ff6",
+      "aminer_id": "64f989643fda6d7f064e4ff6",
+      "venue": "METALS",
+      "year": 2023
+    },
+    {
+      "work_id": "doi:10.1016/j.mechmat.2024.105066",
+      "title": "An Efficient Shape-Based Procedure for Strain Hardening Identification in the Post-Necking Phase",
+      "doi": "10.1016/j.mechmat.2024.105066",
+      "url": "https://www.aminer.cn/pub/65b68f53939a5f4082520519",
+      "aminer_id": "65b68f53939a5f4082520519",
+      "venue": "MECHANICS OF MATERIALS",
+      "year": 2024
+    },
+    {
+      "work_id": "doi:10.3390/met14050593",
+      "title": "A Methodology for Post-Necking Analysis in Isotropic Metals",
+      "doi": "10.3390/met14050593",
+      "url": "https://www.aminer.cn/pub/664c141f01d2a3fbfcefe1ea",
+      "aminer_id": "664c141f01d2a3fbfcefe1ea",
+      "venue": "METALS",
+      "year": 2024
+    }
+  ]
+}
