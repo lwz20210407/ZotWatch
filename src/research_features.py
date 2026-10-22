@@ -159,6 +159,15 @@ class FeedbackModel:
         for entry in self.entries.values():
             if entry.rating not in RATINGS:
                 continue
+            # "Not relevant" judges one paper, not a research direction. Until 2026-10-22 it
+            # voted -1 against every facet the paper touched, so ten clicks on peripheral
+            # papers (a gyroid lattice, a laminated Ti/Mg plate...) penalised the owner's
+            # core directions: lpbf_tc4 -0.048, ductile_fracture -0.027 on every paper --
+            # enough to drop a 0.73 TC4 paper below the 0.70 must-read line. The paper itself
+            # is still pushed down (apply()), and is never re-sent anyway; recurring
+            # off-topic patterns go into the demotion rules in config/scoring.yaml.
+            if RATINGS[entry.rating] < 0:
+                continue
             if entry.reason in {"wrong_material", "wrong_conditions", "metadata_error", "already_known"}:
                 continue  # Retrieval/data errors do not mean disinterest in the whole research direction.
             for facet in ({entry.scope} if entry.scope else set(entry.facets)):
