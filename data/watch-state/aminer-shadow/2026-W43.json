@@ -1,0 +1,114 @@
+{
+  "schema_version": 1,
+  "week": "2026-W43",
+  "items": [
+    {
+      "work_id": "doi:10.1016/j.ijmecsci.2020.106042",
+      "title": "Effects of Heat Treatment on Microstructure and Mechanical Properties of Selective Laser Melted Ti-6Al-4V Lattice Materials",
+      "doi": "10.1016/j.ijmecsci.2020.106042",
+      "url": "https://www.aminer.cn/pub/5ff6842bd4150a363cbd05ff",
+      "aminer_id": "5ff6842bd4150a363cbd05ff",
+      "venue": "INTERNATIONAL JOURNAL OF MECHANICAL SCIENCES",
+      "year": 2021
+    },
+    {
+      "work_id": "doi:10.1016/j.msea.2020.140415",
+      "title": "Effect of Heat Treatment on Microstructure Evolution and Mechanical Properties of Selective Laser Melted Ti–6Al–4V and TiB/Ti–6Al–4V Composite: A Comparative Study",
+      "doi": "10.1016/j.msea.2020.140415",
+      "url": "https://www.aminer.cn/pub/5ff6898ad4150a363cca998f",
+      "aminer_id": "5ff6898ad4150a363cca998f",
+      "venue": "MATERIALS SCIENCE AND ENGINEERING A-STRUCTURAL MATERIALS PROPERTIES MICROSTRUCTURE AND PROCESSING",
+      "year": 2021
+    },
+    {
+      "work_id": "doi:10.1007/s11837-018-2779-2",
+      "title": "On the Importance of Adiabatic Heating on Deformation Behavior of Medium-Manganese Sheet Steels",
+      "doi": "10.1007/s11837-018-2779-2",
+      "url": "https://www.aminer.cn/pub/5c39a587df5b8c0b3c89603f",
+      "aminer_id": "5c39a587df5b8c0b3c89603f",
+      "venue": "JOM",
+      "year": 2018
+    },
+    {
+      "work_id": "doi:10.1007/s40870-019-00204-z",
+      "title": "Adiabatic Heating of Austenitic Stainless Steels at Different Strain Rates",
+      "doi": "10.1007/s40870-019-00204-z",
+      "url": "https://www.aminer.cn/pub/5d9ed2be47c8f76646f75ffb",
+      "aminer_id": "5d9ed2be47c8f76646f75ffb",
+      "venue": "Journal of Dynamic Behavior of Materials",
+      "year": 2019
+    },
+    {
+      "work_id": "doi:10.1016/j.actamat.2019.06.053",
+      "title": "Uncoupling the Effects of Strain Rate and Adiabatic Heating on Strain Induced Martensitic Phase Transformations in a Metastable Austenitic Steel",
+      "doi": "10.1016/j.actamat.2019.06.053",
+      "url": "https://www.aminer.cn/pub/5d9ed5b247c8f76646fd92f8",
+      "aminer_id": "5d9ed5b247c8f76646fd92f8",
+      "venue": "Acta Materialia",
+      "year": 2019
+    },
+    {
+      "work_id": "doi:10.1007/s40870-019-00215-w",
+      "title": "Effects of Adiabatic Heating and Strain Rate on the Dynamic Response of a CoCrFeMnNi High-Entropy Alloy",
+      "doi": "10.1007/s40870-019-00215-w",
+      "url": "https://www.aminer.cn/pub/5db9268547c8f766461b1fd8",
+      "aminer_id": "5db9268547c8f766461b1fd8",
+      "venue": "Journal of dynamic behavior of materials",
+      "year": 2019
+    },
+    {
+      "work_id": "doi:10.1016/j.msea.2020.139382",
+      "title": "Adiabatic Heating and Energy Absorption Capability of an Advanced High Strength Steel During Drop Weight Impact Testing",
+      "doi": "10.1016/j.msea.2020.139382",
+      "url": "https://www.aminer.cn/pub/5ecbc7839fced0a24b505380",
+      "aminer_id": "5ecbc7839fced0a24b505380",
+      "venue": "Zenodo (CERN European Organization for Nuclear Research)",
+      "year": 2020
+    },
+    {
+      "work_id": "doi:10.1016/j.msea.2020.139829",
+      "title": "Microstructure Evolution and Adiabatic Heating During Dynamic Biaxial Deformation of a 304 Stainless Steel",
+      "doi": "10.1016/j.msea.2020.139829",
+      "url": "https://www.aminer.cn/pub/5fae6ef9d4150a363cee4b46",
+      "aminer_id": "5fae6ef9d4150a363cee4b46",
+      "venue": "MATERIALS SCIENCE AND ENGINEERING A-STRUCTURAL MATERIALS PROPERTIES MICROSTRUCTURE AND PROCESSING",
+      "year": 2020
+    },
+    {
+      "work_id": "doi:10.1016/j.ijsolstr.2021.111322",
+      "title": "Crystal Plasticity Modeling of Transformation Plasticity and Adiabatic Heating Effects of Metastable Austenitic Stainless Steels",
+      "doi": "10.1016/j.ijsolstr.2021.111322",
+      "url": "https://www.aminer.cn/pub/61c9ee395244ab9dcbdac9b5",
+      "aminer_id": "61c9ee395244ab9dcbdac9b5",
+      "venue": "INTERNATIONAL JOURNAL OF SOLIDS AND STRUCTURES",
+      "year": 2022
+    },
+    {
+      "work_id": "doi:10.1007/s11837-021-05091-1",
+      "title": "The Effect of Ti-6Al-4V Microstructure, Cutting Speed, and Adiabatic Heating on Segmented Chip Formation and Tool Life",
+      "doi": "10.1007/s11837-021-05091-1",
+      "url": "https://www.aminer.cn/pub/62302ff25aee126c0fc4a6dc",
+      "aminer_id": "62302ff25aee126c0fc4a6dc",
+      "venue": "JOM",
+      "year": 2022
+    },
+    {
+      "work_id": "doi:10.1007/s40870-022-00333-y",
+      "title": "Strain Hardening and Adiabatic Heating of Stainless Steels after a Sudden Increase of Strain Rate",
+      "doi": "10.1007/s40870-022-00333-y",
+      "url": "https://www.aminer.cn/pub/627e31125aee126c0f9fca07",
+      "aminer_id": "627e31125aee126c0f9fca07",
+      "venue": "Journal of Dynamic Behavior of Materials",
+      "year": 2022
+    },
+    {
+      "work_id": "doi:10.1016/j.msea.2023.144659",
+      "title": "Effects of Strain Rate and Adiabatic Heating on Mechanical Behavior of Medium Manganese Q&P Steels",
+      "doi": "10.1016/j.msea.2023.144659",
+      "url": "https://www.aminer.cn/pub/6439080ed6db87a14625b660",
+      "aminer_id": "6439080ed6db87a14625b660",
+      "venue": "MATERIALS SCIENCE AND ENGINEERING A-STRUCTURAL MATERIALS PROPERTIES MICROSTRUCTURE AND PROCESSING",
+      "year": 2023
+    }
+  ]
+}
