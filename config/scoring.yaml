@@ -156,7 +156,20 @@ research_priorities:
          "scaffold", "stent", "prosthes", "femoral", "dental", "bone plate",
          "trauma plate", "orthopaedic", "orthopedic", "osseointegration", "intraoperative",
          "thermohydrogen", "hydrogenation", "dehydrogenation",
-         "形状记忆", "储氢", "支架", "骨板"]
+         "形状记忆", "储氢", "支架", "骨板",
+         # 2026-10-22 本人在 issues #18-#22 标为不相关的 5 篇，各自漏在词表的洞里：
+         #   #22 "…Failure Modes in Gyroid Lattices" 写的是 Gyroid，不是 "lattice structure"；
+         #   #21 "…laminated composite plates" 匹配不到 "laminate"（动词变形）；
+         #   #18 TC4 板材"电阻加热-超声振动复合成形"是成形工艺本身；
+         #   #19 功能梯度材料设计、#20 先进高强钢"微结构设计与加工"是材料设计。
+         # 每个词都对 4463 篇文库核对过：除 laminated composite / composite plate 命中 5 篇
+         # 陶瓷/纤维复合装甲（课题外）外，其余在库内 0 命中。刻意没加的近义词：
+         # TPMS/triply periodic（库内有 TPMS 断裂机理）、ultrasonic vibration（库内有超声
+         # 振动下 AA6061 延性断裂）、electrically assisted（10-13 刚加入 AZ31 电辅助本构）、
+         # alloy design（库内有 3D 打印钛合金合金设计）、metal matrix composite（库内 9 篇）。
+         "gyroid", "laminated composite", "composite plate",
+         "composite forming", "resistance heating",
+         "material design", "materials design", "microstructural design", "microstructure design"]
   # One category, two alternative matching routes: identification/numerics method
   # papers, and constitutive/fracture work on other metals.
   - name: "跨金属方法参考"
