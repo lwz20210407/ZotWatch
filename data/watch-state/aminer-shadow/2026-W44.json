@@ -1,0 +1,114 @@
+{
+  "schema_version": 1,
+  "week": "2026-W44",
+  "items": [
+    {
+      "work_id": "doi:10.1016/j.procir.2013.06.091",
+      "title": "Inverse Identification of the Constitutive Equation of Inconel 718 and AISI 1045 from FE Machining Simulations",
+      "doi": "10.1016/j.procir.2013.06.091",
+      "url": "https://www.aminer.cn/pub/56d880d6dabfae2eee667585",
+      "aminer_id": "56d880d6dabfae2eee667585",
+      "venue": "14TH CIRP CONFERENCE ON MODELING OF MACHINING OPERATIONS (CIRP CMMO)",
+      "year": 2013
+    },
+    {
+      "work_id": "doi:10.1016/j.simpat.2015.09.009",
+      "title": "Inverse Identification of Flow Stress in Metal Cutting Process Using Response Surface Methodology",
+      "doi": "10.1016/j.simpat.2015.09.009",
+      "url": "https://www.aminer.cn/pub/573696986e3b12023e5a12d0",
+      "aminer_id": "573696986e3b12023e5a12d0",
+      "venue": "Simulation modelling practice and theory",
+      "year": 2016
+    },
+    {
+      "work_id": "doi:10.1007/s11340-011-9555-3",
+      "title": "Out-of-plane Testing Procedure for Inverse Identification Purpose: Application in Sheet Metal Plasticity",
+      "doi": "10.1007/s11340-011-9555-3",
+      "url": "https://www.aminer.cn/pub/56d8f7acdabfae2eee9dfd7b",
+      "aminer_id": "56d8f7acdabfae2eee9dfd7b",
+      "venue": "Experimental Mechanics",
+      "year": 2012
+    },
+    {
+      "work_id": "doi:10.1016/j.ijmecsci.2020.105422",
+      "title": "Inverse Identification Strategies for the Characterization of Transformation-Based Anisotropic Plasticity Models with the Non-Linear VFM",
+      "doi": "10.1016/j.ijmecsci.2020.105422",
+      "url": "https://www.aminer.cn/pub/5e5e198b93d709897ce7430c",
+      "aminer_id": "5e5e198b93d709897ce7430c",
+      "venue": "INTERNATIONAL JOURNAL OF MECHANICAL SCIENCES",
+      "year": 2020
+    },
+    {
+      "work_id": "doi:10.1016/0045-7825(92)90123-2",
+      "title": "Algorithms for Static and Dynamic Multiplicative Plasticity That Preserve the Classical Return Mapping Schemes of the Infinitesimal Theory",
+      "doi": "10.1016/0045-7825(92)90123-2",
+      "url": "https://www.aminer.cn/pub/539087ae20f70186a0d4d739",
+      "aminer_id": "539087ae20f70186a0d4d739",
+      "venue": "Computer Methods in Applied Mechanics and Engineering",
+      "year": 1992
+    },
+    {
+      "work_id": "doi:10.1002/(sici)1097-0207(20000228)47:6<1123::aid-nme817>3.0.co;2-n",
+      "title": "Numerical Implementation of a Shape Memory Alloy Thermomechanical Constitutive Model Using Return Mapping Algorithms",
+      "doi": "10.1002/(sici)1097-0207(20000228)47:6<1123::aid-nme817>3.0.co;2-n",
+      "url": "https://www.aminer.cn/pub/53e9b21ab7602d9703cb4f1d",
+      "aminer_id": "53e9b21ab7602d9703cb4f1d",
+      "venue": "Shape Memory Alloys",
+      "year": 2008
+    },
+    {
+      "work_id": "doi:10.1002/nme.1620380404",
+      "title": "A Return Mapping Algorithm for A Class of Cyclic Plasticity Models",
+      "doi": "10.1002/nme.1620380404",
+      "url": "https://www.aminer.cn/pub/53e9a89bb7602d97031e86b8",
+      "aminer_id": "53e9a89bb7602d97031e86b8",
+      "venue": "INTERNATIONAL JOURNAL FOR NUMERICAL METHODS IN ENGINEERING",
+      "year": 1995
+    },
+    {
+      "work_id": "doi:10.1002/1097-0207(20010120)50:2<487::aid-nme44>3.3.co;2-e",
+      "title": "A Return-Mapping Algorithm for Plastic-Damage Models: 3-D and Plane Stress Formulation",
+      "doi": "10.1002/1097-0207(20010120)50:2<487::aid-nme44>3.3.co;2-e",
+      "url": "https://www.aminer.cn/pub/619b84bf1c45e57ce91a2505",
+      "aminer_id": "619b84bf1c45e57ce91a2505",
+      "venue": "INTERNATIONAL JOURNAL FOR NUMERICAL METHODS IN ENGINEERING",
+      "year": 2001
+    },
+    {
+      "work_id": "doi:10.1016/j.cma.2005.01.009",
+      "title": "A Return Mapping Algorithm for Cyclic Viscoplastic Constitutive Models",
+      "doi": "10.1016/j.cma.2005.01.009",
+      "url": "https://www.aminer.cn/pub/53e9b4a0b7602d9703fab27c",
+      "aminer_id": "53e9b4a0b7602d9703fab27c",
+      "venue": "COMPUTER METHODS IN APPLIED MECHANICS AND ENGINEERING",
+      "year": 2006
+    },
+    {
+      "work_id": "doi:10.1016/j.cma.2016.11.026",
+      "title": "A Return Mapping Algorithm for Isotropic and Anisotropic Plasticity Models Using a Line Search Method",
+      "doi": "10.1016/j.cma.2016.11.026",
+      "url": "https://www.aminer.cn/pub/5c756b14f56def97983a5457",
+      "aminer_id": "5c756b14f56def97983a5457",
+      "venue": "Computer Methods in Applied Mechanics and Engineering",
+      "year": 2016
+    },
+    {
+      "work_id": "doi:10.1016/j.finel.2021.103531",
+      "title": "A Robust Multisurface Return-Mapping Algorithm and Its Implementation in Abaqus",
+      "doi": "10.1016/j.finel.2021.103531",
+      "url": "https://www.aminer.cn/pub/605aa2bce4510cd7c86c131b",
+      "aminer_id": "605aa2bce4510cd7c86c131b",
+      "venue": "FINITE ELEMENTS IN ANALYSIS AND DESIGN",
+      "year": 2021
+    },
+    {
+      "work_id": "doi:10.1002/(sici)1097-0207(20000110/30)47:1/3<75::aid-nme762>3.0.co;2-y",
+      "title": "Consistent Return Mapping Algorithm for Chemoplastic Constitutive Laws with Internal Couplings",
+      "doi": "10.1002/(sici)1097-0207(20000110/30)47:1/3<75::aid-nme762>3.0.co;2-y",
+      "url": "https://www.aminer.cn/pub/53e998fcb7602d9702138952",
+      "aminer_id": "53e998fcb7602d9702138952",
+      "venue": "International Journal for Numerical Methods in Engineering",
+      "year": 2000
+    }
+  ]
+}
