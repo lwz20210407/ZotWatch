@@ -1,0 +1,114 @@
+{
+  "schema_version": 1,
+  "week": "2026-W45",
+  "items": [
+    {
+      "work_id": "doi:10.1016/s1359-6454(03)00239-8",
+      "title": "Strain Hardening of Titanium: Role of Deformation Twinning",
+      "doi": "10.1016/s1359-6454(03)00239-8",
+      "url": "https://www.aminer.cn/pub/53e9a10eb7602d97029fca86",
+      "aminer_id": "53e9a10eb7602d97029fca86",
+      "venue": "Acta Materialia",
+      "year": 2003
+    },
+    {
+      "work_id": "doi:10.1016/j.msea.2003.10.214",
+      "title": "Strain Hardening, Strain Rate Sensitivity, and Ductility of Nanostructured Metals",
+      "doi": "10.1016/j.msea.2003.10.214",
+      "url": "https://www.aminer.cn/pub/53e9a718b7602d970305006d",
+      "aminer_id": "53e9a718b7602d970305006d",
+      "venue": "Materials Science and Engineering A",
+      "year": 2004
+    },
+    {
+      "work_id": "doi:10.1016/j.actamat.2012.09.064",
+      "title": "Revealing the Strain-Hardening Behavior of Twinning-Induced Plasticity Steels: Theory, Simulations, Experiments",
+      "doi": "10.1016/j.actamat.2012.09.064",
+      "url": "https://www.aminer.cn/pub/56d8370ddabfae2eee4739aa",
+      "aminer_id": "56d8370ddabfae2eee4739aa",
+      "venue": "ACTA MATERIALIA",
+      "year": 2013
+    },
+    {
+      "work_id": "doi:10.1016/j.actamat.2004.05.003",
+      "title": "Temperature Dependence of Strain Hardening and Plastic Instability Behaviors in Austenitic Stainless Steels",
+      "doi": "10.1016/j.actamat.2004.05.003",
+      "url": "https://www.aminer.cn/pub/5f0b25a49fced0a24bb1c808",
+      "aminer_id": "5f0b25a49fced0a24bb1c808",
+      "venue": "Acta Materialia",
+      "year": 2004
+    },
+    {
+      "work_id": "doi:10.1016/j.actamat.2011.07.009",
+      "title": "Dislocation and Twin Substructure Evolution During Strain Hardening of an Fe–22wt.% Mn–0.6wt.% C TWIP Steel Observed by Electron Channeling Contrast Imaging",
+      "doi": "10.1016/j.actamat.2011.07.009",
+      "url": "https://www.aminer.cn/pub/56d83712dabfae2eee475839",
+      "aminer_id": "56d83712dabfae2eee475839",
+      "venue": "ACTA MATERIALIA",
+      "year": 2011
+    },
+    {
+      "work_id": "doi:10.1016/j.msea.2007.12.038",
+      "title": "Size effect on strength and strain hardening of small-scale [111] nickel compression pillars",
+      "doi": "10.1016/j.msea.2007.12.038",
+      "url": "https://www.aminer.cn/pub/53e9af99b7602d97039e392c",
+      "aminer_id": "53e9af99b7602d97039e392c",
+      "venue": "Materials Science and Engineering: A",
+      "year": 2008
+    },
+    {
+      "work_id": "doi:10.1016/s1359-6462(98)00195-x",
+      "title": "Yielding and Strain Hardening of Thin Metal Films on Substrates",
+      "doi": "10.1016/s1359-6462(98)00195-x",
+      "url": "https://www.aminer.cn/pub/53e99de8b7602d97026a9d0b",
+      "aminer_id": "53e99de8b7602d97026a9d0b",
+      "venue": "SCRIPTA MATERIALIA",
+      "year": 1998
+    },
+    {
+      "work_id": "doi:10.1080/14786435908238272",
+      "title": "Ductile Fracture in Metals",
+      "doi": "10.1080/14786435908238272",
+      "url": "https://www.aminer.cn/pub/53e99a2fb7602d9702288e2b",
+      "aminer_id": "53e99a2fb7602d9702288e2b",
+      "venue": "Philosophical magazine",
+      "year": 1959
+    },
+    {
+      "work_id": "doi:10.1016/0029-5493(87)90234-2",
+      "title": "Ductile Fracture Models And Their Potential In Local Approach Of Fracture",
+      "doi": "10.1016/0029-5493(87)90234-2",
+      "url": "https://www.aminer.cn/pub/53e9bb0eb7602d97047470e3",
+      "aminer_id": "53e9bb0eb7602d97047470e3",
+      "venue": "NUCLEAR ENGINEERING AND DESIGN",
+      "year": 1987
+    },
+    {
+      "work_id": "doi:10.1007/bf02648336",
+      "title": "Cavity Formation from Inclusions in Ductile Fracture of A508 Steel",
+      "doi": "10.1007/bf02648336",
+      "url": "https://www.aminer.cn/pub/53e9bc0ab7602d970486fe93",
+      "aminer_id": "53e9bc0ab7602d970486fe93",
+      "venue": "Metallurgical Transactions A",
+      "year": 1981
+    },
+    {
+      "work_id": "doi:10.1016/j.ijfatigue.2006.01.013",
+      "title": "Damage Evolution and Infrared Thermography in Woven Composite Laminates under Fatigue Loading",
+      "doi": "10.1016/j.ijfatigue.2006.01.013",
+      "url": "https://www.aminer.cn/pub/53e9b260b7602d9703d027a4",
+      "aminer_id": "53e9b260b7602d9703d027a4",
+      "venue": "INTERNATIONAL JOURNAL OF FATIGUE",
+      "year": 2006
+    },
+    {
+      "work_id": "doi:10.1016/j.compstruct.2018.09.093",
+      "title": "Assessment of Failure Criteria and Damage Evolution Methods for Composite Laminates under Low-Velocity Impact",
+      "doi": "10.1016/j.compstruct.2018.09.093",
+      "url": "https://www.aminer.cn/pub/5c757db5f56def9798b13304",
+      "aminer_id": "5c757db5f56def9798b13304",
+      "venue": "Composite Structures",
+      "year": 2018
+    }
+  ]
+}

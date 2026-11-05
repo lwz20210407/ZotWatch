@@ -24,6 +24,11 @@
 "title_zh": "基于物理验证的算子学习辅助路径依赖塑性参数反演",
 "tldr": "对路径依赖塑性材料，采用算子学习方法结合物理验证进行参数反演，获得更准确的材料响应模型。"
 },
+"0378631eb231f175": {
+"abstract_zh": "",
+"title_zh": "球形弹丸高速贯穿中熵CrCoNi薄板",
+"tldr": "利用球形弹丸对中熵CrCoNi薄板进行高速贯穿实验，研究其动态力学响应。"
+},
 "03f508596f9888e2": {
 "abstract_zh": "三周期极小曲面（TPMS）梯度结构如基于片的 gyroid 在轻量化结构和能量吸收应用中具有前景，但其屈服后的变形和损伤过程及其对相对密度的依赖性尚未完全阐明。本研究在压缩条件下，调查了激光粉末床熔融 Ti-6Al-4V gyroid 梯度结构单元格的演化状态，并探讨这些状态与整体结构响应的关系，基于之前建立的 gyroid 相对密度对模量和屈服应力的影响。通过在不同相对密度（3-60%）下对单元格和周期性 gyroid 梯度结构进行单轴压缩试验，并在中间全局应变时中断试验，结合原位立体数字图像相关、X 射线微计算机断层扫描和高分辨率有限元计算，解析了应变局部化和损伤演化。研究发现，失效模式逐渐转变：在较低相对密度下，单元格铰接失效先于快速结构坍塌，而在较高相对密度下，延性断裂失效占主导。这些发现为理解金属 gyroid 梯度结构在压缩下的失效提供了基础，并支持基于几何的策略以提高结构性能和抗断裂能力。",
 "title_zh": "相对密度对 gyroid 梯度结构变形机制和失效模式的影响",
@@ -124,6 +129,11 @@
 "title_zh": "双相钢中界面解离引起的空洞成核的表征与建模",
 "tldr": "通过X射线显微断层扫描对双相钢进行原位拉伸试验，量化空洞成核与应变和应力三轴度的关系，并采用Argon准则建模，考虑局部应力场和运动硬化效应。"
 },
+"190793f0d44ade77": {
+"abstract_zh": "本文提出一种相场方法，用于模拟由延性100Cr6钢基体和多种非金属、脆性夹杂物组成的异质域中的脆性与延性断裂耦合。基体子域采用von Mises塑性与线性等向硬化进行建模，而夹杂物子域假设保持在弹性范围内。单轴拉伸和接触载荷下的平面应变和三维模拟显示，脆性夹杂物子域是裂纹成核的优先位置，与周期性加载工业轴承的实验数据定性一致。",
+"title_zh": "用于异质域内脆性与延性断裂耦合的相场模型",
+"tldr": "提出一种相场模型，用于模拟异质域内脆性与延性断裂的耦合，适用于含脆性夹杂物的100Cr6钢基体。"
+},
 "19680594abe42ee5": {
 "abstract_zh": "本文考虑了在高温等温条件下，对圆柱形坯料进行平砧镦粗时选择合理的应变率变化模式的问题。研究对象是热镦粗过程；研究主题是坯料临界点的应变率变化规律以及变形工具的相应运动规律。该工作的相关性源于镦粗是能耗最高的锻造工艺之一，而实际中工具速度通常根据设备能力设定为常数值，而非根据材料塑性能力的充分利用条件。已知的多阶段热变形速率模式优化结果适用于具有均匀应力-应变状态的过程，其中应力三轴度比保持不变。但在平砧镦粗过程中，该比值在坯料侧表面赤道临界点随过程进行而变化，这是由于鼓胀效应引起的，这使得直接应用已知结果变得不可能。为克服这一障碍，提出了一个假设，即在特定材料类别中，高温变形时极限应变与应力三轴度比的依赖性较弱。证明了该假设的弱化形式足以正确地将结果转移，仅需在应变率敏感指数上独立于应力三轴度比。确定了资源依赖参数仅进入解的尺度因子，不影响最优轨迹的形状，同时极限应变的相对误差小于该参数的相对误差。解决了将最优应变率变化规律与工具运动匹配的问题。得到了一个闭式解析表达式，用于工具速度，无需对应变强度与镦粗比之间的依赖关系进行数值求逆。对于指数和多项式轨迹，工具运动规律以显式形式给出。提出了一个阶段内应变率偏差的估计方法，赋予特定工艺阶段具体的技术意义。对14Kh17N2钢在1150 °C进行的数值计算表明，材料塑性资源在平砧镦粗过程中未被耗尽，即该过程受几何限制而非变形限制。对于此类材料，缩短工艺时间的问题具有实际意义。得到了变形时间减少与极限应变增加之间的关系；证明了极限应变增加5.9%对应变形时间减少47%。确定了所得结果适用于辊压抛光等局部变形工艺的适用条件。",
 "title_zh": "高温平砧镦粗过程中应变率变化模式的选择",
@@ -154,6 +164,11 @@
 "title_zh": "Ti–6Al–4V合金三种微观结构在弹道冲击中剪切带交叉影响的断裂性能",
 "tldr": "对Ti–6Al–4V合金三种微观结构，研究绝热剪切带交叉对弹道冲击断裂性能的影响。"
 },
+"25d336de6a601e08": {
+"abstract_zh": "准确再现夏比冲击试验需要能够表示材料在动态加载条件下行为的本构和损伤模型。本研究对不同厚度和缺口深度的亚尺寸AISI 304不锈钢夏比试样进行了实验-数值研究，以表征其冲击响应。使用50 J摆锤冲击系统在冲击速度为3.458 m/s下进行仪器化试验。实验测得的力、位移、速度和吸收能量历史被用作LS-DYNA显式有限元模拟的参考数据，采用Johnson–Cook本构和损伤模型。通过改变六个Johnson–Cook参数（A、B、n、D1、D2和D3）的±20%基准值，进行了包含64次模拟的两水平全因子设计实验。使用一般线性模型和方差分析评估这些参数对峰值冲击力的影响。然后，利用敏感性分析结果指导校准最关键参数，并在不同试样几何形状下评估所得参数集。总体而言，校准模型在初始加载阶段、峰值力大小和能量吸收趋势方面具有合理的准确性。最大的差异出现在峰值后和断裂阶段，包括实验观察与数值预测的断裂条件之间的差异。结果表明，基于设计实验的敏感性分析可以缩小参数空间并支持更系统的校准过程。然而，它们也表明，主要基于峰值力的校准不足以确保在不同亚尺寸试样几何形状下对峰值后行为和断裂条件的准确预测。",
+"title_zh": "基于设计实验的Johnson–Cook模型校准用于AISI 304钢的亚尺寸夏比冲击试验",
+"tldr": "通过设计实验和敏感性分析校准Johnson–Cook模型，用于AISI 304钢的亚尺寸夏比冲击试验，提高冲击响应预测精度。"
+},
 "26cd72ddc2b32668": {
 "abstract_zh": "",
 "title_zh": "通过原位X射线断层扫描揭示增材制造Ti-6Al-4V合金的微观结构缺陷演变与断裂行为",
@@ -178,6 +193,11 @@
 "abstract_zh": "",
 "title_zh": "从微裂纹到断裂：准脆性失效的统一微力学框架",
 "tldr": "提出一个基于微力学的统一框架，用于描述准脆性材料从微裂纹到断裂的失效过程。"
+},
+"2be9ac296b25b116": {
+"abstract_zh": "本文利用一种耦合实验与数值的方法来表征延性材料的弹塑性本构特性。三维数字图像相关技术用于测量单轴拉伸试样两个相互正交表面上的全场变形。通过优化过程，将这些实验测量结果与有限元模拟进行比较，其中本构模型被实现。优化过程利用了来自DIC的稳健局部变形测量数据以及标准的边界载荷和位移数据。当实验与模拟之间的差异被充分减小时，可以找到一组适用于大应变水平的材料模型参数。该材料表征方法被应用于由15-5 PH不锈钢薄板制造的拉伸试样。该方法证明是校准材料模型的强大工具。最终参数产生的模拟结果与实验的局部位移场误差在百分之几以内。同时，试样在整个测试过程中所承受的载荷模拟误差小于1%。此外，通过单次拉伸试验即可获得Hill屈服准则的一半参数，描述正应力的各向异性。该方法在校准更复杂材料模型方面将具有更大的用途，因为它大大减少了实验工作量以识别合适的模型参数。",
+"title_zh": "从三维变形测量中提取弹塑性本构特性",
+"tldr": "通过三维数字图像相关技术测量拉伸试样变形，结合有限元模拟优化参数，获得适用于大应变的材料本构模型。"
 },
 "2c0c3c03f97c621c": {
 "abstract_zh": "显著的张拉-压缩不对称性和各向异性是限制镁合金组件成形精度的常见问题。有效的解决策略是采用高精度屈服准则，以重建材料特性并优化工艺参数。本文提出了一种基于多项式函数与应力三轴度耦合的新各向异性非对称屈服准则。该模型在捕捉镁合金板的各向异性与强不对称响应方面表现出高灵活性和准确性，已在八个差异显著的虚拟材料案例中验证。还提供了一种系统校准程序，用于确定新模型屈服应力函数和塑性势函数中的材料参数。最后，该模型应用于具有明显不同屈服轨迹的AZ31和AZ31B镁合金板。与CPB06ex2、Hu2017和Zhou2023等非对称屈服准则相比，新模型在六个应力状态下对15个应力相关采样点和12个应变相关采样点实现了准确预测，显示出全面优越的预测精度。更重要的是，该模型准确捕捉了AZ31和AZ31B镁合金板在剪切和近平面应变应力状态下的各向异性响应特性，强烈证实了其准确性和适用性。",
@@ -214,6 +234,16 @@
 "title_zh": "结合溶质含量和微观结构依赖的多尺度RVE模型用于预测Ti-6Al-4V合金的流动行为和损伤演化",
 "tldr": "建立结合溶质含量和微观结构依赖的多尺度RVE模型，预测Ti-6Al-4V合金的流动行为和损伤演化。"
 },
+"340a0d4b8221d50c": {
+"abstract_zh": "",
+"title_zh": "TC4 ELI T型接头裂纹演化受应力状态和微观结构的影响：实验研究与晶体塑性建模",
+"tldr": "研究TC4 ELI T型接头裂纹演化与应力状态及微观结构的关系。"
+},
+"34565384ec0eae61": {
+"abstract_zh": "",
+"title_zh": "低温下钢材延性断裂的实验研究与建模",
+"tldr": "对钢材在低温下，进行延性断裂的实验研究与建模，得到其断裂机制及影响因素。"
+},
 "346cb8dbe0981074": {
 "abstract_zh": "准确预测增材制造（AM）316L不锈钢在高温和高应变率下的动态流动应力对于服务安全评估和成形工艺优化至关重要。为克服传统经验本构模型的有限精度和纯数据驱动模型在小数据集下的弱泛化能力，本文开发了一种Johnson–Cook指导的PCA-MLP残差学习模型（JC-PCA-MLP）。以Johnson–Cook模型作为物理基础，主成分分析（PCA）用于降低实验测量与JC预测之间残差应力的维度。多层感知机（MLP）预测PCA残差系数，以重构完整的应力-应变曲线。该模型在不同温度和高应变率下的AM 316L不锈钢动态压缩数据上进行了验证，使用未见过的中间温度（272°C和450°C）进行测试。模型在272°C和450°C下分别实现了平均R²为0.9306和0.9538，平均绝对相对误差（AARE）为1.97%和1.63%，最小R²分别为0.8779和0.8909。与JC、MLP和PCA-MLP模型相比，JC-PCA-MLP模型在预测精度和稳定性方面表现更优。本工作提供了一种高效的物理信息引导数据驱动策略，用于增材制造316L不锈钢的动态本构建模。",
 "title_zh": "基于Johnson-Cook指导的PCA-MLP残差学习的AM 316本构建模方法",
@@ -249,10 +279,20 @@
 "title_zh": "选择性激光熔融制造的Inconel 718改性Ti6Al4V合金的微观结构复杂性与力学行为",
 "tldr": "分析选择性激光熔融制造的Inconel 718改性Ti6Al4V合金的微观结构复杂性及其对力学行为的影响。"
 },
+"3a62c93c7c7a9310": {
+"abstract_zh": "面向应用的模拟，如汽车碰撞模拟，通常使用大壳单元以优化计算效率。本研究将裂纹带方法通常用于混凝土材料，应用于钢板。旨在通过平面应力壳单元研究该正则化方法在不同应力状态下的网格敏感性，减少对单元尺寸和形状的依赖。使用LS-Dyna对四个试样进行有限元模拟，覆盖低至中三轴度范围，分别采用小实体单元和大壳单元。对于每个试样，使用大壳单元进行有限元模拟的结果与相同尺寸的实体单元块结果进行了比较。每个有限元求解器使用不同的壳单元公式，这可能影响模拟的精确结果。尽管如此，比较提供了与壳单元模拟行为相比的预期行为见解。本研究开发的指南通过对比不同离散化网格的拉伸试验结果进行了数值测试。结果表明，裂纹带方法确定的特征长度提高了壳单元模拟的准确性，相较于传统计算的特征长度。该方法适用于各种纵横比和任意形状的壳单元。",
+"title_zh": "现象学损伤模型在使用小实体和大壳单元时的网格敏感性分析",
+"tldr": "应用裂纹带方法到钢板中，研究不同应力状态下使用小实体和大壳单元的网格敏感性问题。"
+},
 "3c6122ecf5654c75": {
 "abstract_zh": "Fully coupled ductile damage model considering strength-differential (SD) effect is proposed for simulation of metal forming processes for Ti-6Al-4V. The developed constitutive equations are based on non-associative plasticity theory under thermodynamically-consistent framework. The third stress invariant is added to Hill48 criterion to capture the SD effect. Lode angle-dependent enhanced fully coupled damage model is proposed to account for the loading path sensitivity on ductile damage initiation and growth. A detailed material parameters identification procedure is presented. The proposed model is implemented into the FE code Abaqus/Explicit through user defined subroutine VUMAT. The numerically predicted results obtained with the proposed model are compared to experimental data of Ti-6Al-4V and good agreement is observed.",
 "title_zh": "考虑Lode角依赖性的增强CDM模型用于钛合金Ti-6Al-4V室温韧性断裂预测",
 "tldr": "提出一种考虑Lode角依赖性的增强CDM模型，用于钛合金Ti-6Al-4V的室温韧性断裂预测，与实验数据吻合良好。"
+},
+"3cf97ad33a7b54c0": {
+"abstract_zh": "绿色金属填充PLA部件在打印后状态脆弱，且部件级模拟工具无法解析珠级应力集中区域。本文提出了一种基于预计算热历史的珠级解析热粘弹性特征应变框架，用于预测绿色金属-PLA部件的打印几何形状、残余应力场和最高应力区域。求解链通过与Cattenone等人提出的ABS平面弹簧基准进行验证，其归一化RMSE（20.7% vs 23.5%）低于基准的Abaqus模拟，且通过校准两个参数与基准一致，无需重新缩放。预测的几何形状与IN718-PLA和Cu-PLA试样的3D扫描匹配，横向偏差为0.07–0.10 mm，纵向偏差为0.04–0.09 mm，每种材料分别制作六个试样进行测量。三案例顺序隔离设计恢复了跨材料应力比σ_Cu/σ_IN = (E_Cu/E_IN)·(α_Cu/α_IN)，其中α为沿扫描线收缩系数，误差在6%以内，并数值验证了位移与模量的解耦：模量变化2.2倍仅导致预测几何形状变化小于0.002 mm。珠级弹性应力需求图对接头本构扰动具有鲁棒性（ρ ≥ 0.98），且材料中195个最高应力珠与材料一致，这为单次模拟原料筛选提供了依据。",
+"title_zh": "基于珠级解析的金属填充PLA增材制造中翘曲、残余应力和高应力区域预测",
+"tldr": "预测金属填充PLA部件在打印后的翘曲、残余应力和高应力区域分布。"
 },
 "3dcd5b1e5ebfc328": {
 "abstract_zh": "Thin high-strength 7075-T651 aluminum plates are susceptible to radial cracking, petaling, and rear-face fragmentation under ogive-nosed projectile impact. This study investigates the influence of a ductile 2024-T351 front layer on the ballistic response and failure evolution of a thin 7075-T651 substrate. Ballistic experiments were conducted on 1.59-mm monolithic 7075-T651 targets and 2.4/1.59-mm 2024-T351/7075-T651 bilayer targets, and the results were combined with three-dimensional finite-element simulations employing material-specific constitutive and fracture models. The bilayer configuration exhibited an experimental ballistic-limit velocity of 184.8 m/s, compared with 102.4 m/s for the monolithic 7075-T651 target, corresponding to a configuration-level increase of 80.5%. At comparable normalized impact velocities, the selected failed elements in the 7075-T651 rear plate of the bilayer target exhibited a distribution shifted toward higher positive damage-averaged stress triaxiality compared with those in the monolithic target. This shift was accompanied by a more localized damaged region and petaling in the bilayer rear plate, linking the presence of the 2024-T351 front layer to changes in both stress-state histories and failure morphology. Buckingham π analysis and seven parametric simulations further established a dimensionally consistent semi-empirical relation between ballistic-limit velocity and front-to-rear thickness ratio, Vbl=153.7trR2=0.997, while the incremental ballistic benefit decreased with increasing tr. These results link ductile-front-induced stress-state redistribution with failure-mode evolution and provide a quantitative framework for thickness allocation in layered aluminum targets.",
@@ -334,6 +374,11 @@
 "title_zh": "通过可控爆炸硬化诱导的高应变率线弧增材修复钢层塑性强化",
 "tldr": "对ASTM A36钢层进行可控爆炸硬化处理，通过调节冲击波传递，获得更高的硬度和强度。"
 },
+"524a0f1ecc069502": {
+"abstract_zh": "",
+"title_zh": "通过实验和弹塑性 cohesive-zone 模型揭示TWIP钢断裂韧性负应变率敏感性",
+"tldr": "对TWIP钢，通过实验和弹塑性 cohesive-zone 模型研究其断裂韧性负应变率敏感性，得到材料在不同应变率下的断裂特性。"
+},
 "52ee50169801bb08": {
 "abstract_zh": "",
 "title_zh": "晶体塑性有限元模型参数的贝叶斯校准",
@@ -349,6 +394,11 @@
 "title_zh": "室温下使用分裂霍普金森压力杆进行块体金属材料动态压缩的标准试验方法",
 "tldr": "制定室温下使用分裂霍普金森压力杆进行块体金属材料动态压缩的标准试验方法，用于评估材料的动态力学性能。"
 },
+"5411aed01646b534": {
+"abstract_zh": "",
+"title_zh": "高应变率变形中孪生诱导塑性钢中位错的抑制",
+"tldr": "分析高应变率变形下孪生诱导塑性钢中位错的抑制机制。"
+},
 "552e124545ec76a5": {
 "abstract_zh": "在本研究中，通过结合经典塑性理论与神经网络算法，成功开发了用于预测AA7075-T6各向异性力学行为的机器学习模型。首先，基于四阶线性不变量变换构建了一个包含强度不对称性和取向依赖性的屈服准则，并通过返回映射和隐式积分方案实现了应力更新算法。随后，建立了一个包含拉伸、压缩和剪切试验在多个取向下的实验数据集，以及通过额外应变路径生成的理论数据集，用于训练一个遗传算法优化的双隐藏层神经网络。塑性阶段评估表明，在等双轴路径下，机器学习模型预测的应力-应变曲线相对于本构实现的RMSE值分别为31.87 MPa和39.24 MPa。值得注意的是，等双轴加载下的应力-应变响应代表了一个额外的预测案例。训练后的模型在与拉伸、压缩和剪切实验数据的比较中表现出良好的预测性能，并能够再现由经典本构模型推导出的理论应力路径。该方法结合了传统本构建模的物理可解释性和数据驱动方法的高效性，为高效预测金属材料在复杂应力状态下的各向异性力学响应提供了可行的解决方案。",
 "title_zh": "基于各向异性弹塑性本构理论的AA7075-T6机器学习模型",
@@ -358,6 +408,11 @@
 "abstract_zh": "近期研究越来越多地采用优化算法，包括遗传算法，以识别Johnson-Cook材料模型参数，同时减少传统参数识别所需的实验负担。然而，大多数研究基于低应变率测试获得的材料行为，如准静态拉伸试验和带缺口试样试验，因此可能无法充分捕捉高速冲击过程中应变率依赖性和损伤演化之间的耦合效应。为解决这一局限性，本研究使用Taylor冲击试验结果进行基于遗传算法的优化，并在校准6061-T6铝合金的Johnson-Cook断裂模型参数时保持D5固定在文献报告值。所得到的参数为D1 = −0.583，D2 = 1.451，D3 = −0.378，D4 = 0.002。通过使用相同的文献数据集，进一步评估了校准参数集在不同冲击配置下6 mm和8 mm厚6061-T6铝合金板的高速冲击模拟结果。预测的穿透速度和直径与实验测量值表现出良好一致性，最大偏差分别为6 mm和8 mm厚板的穿透速度7.18%和穿透直径2.94%。除了最终状态的一致性，还通过目标板内部能量、侵蚀体积分数和侵蚀内部能量比较了能量侵蚀响应。这些量被用作补充的数值指标，以评估所采用有限元框架中与元素删除相关的能量损失。所识别参数集的可重复性仍需通过使用不同随机种子进行重复优化进一步评估。",
 "title_zh": "基于遗传算法的Johnson-Cook断裂模型在高应变率条件下的校准",
 "tldr": "对6061-T6铝合金采用遗传算法校准Johnson-Cook断裂模型参数，通过Taylor冲击试验结果，得到参数D1-D4并验证其在高速冲击下的预测精度。"
+},
+"55915ced99d0a66e": {
+"abstract_zh": "将人类肋骨皮质骨的生物变异性整合到本构模型中，有助于量化群体水平的生物力学响应不确定性，例如在虚拟汽车碰撞评估中。然而，当前本构模型通常依赖固定材料属性。由于生物组织难以建模，本文提出使用人工神经网络（ANN）方法来解决这一问题。该模型基于扩展的最小状态单元（MSC）构建循环神经网络，并通过迁移学习（TL）层调节MSC的输入和输出，以考虑生物变异性。该模型在非单调多轴平面应力条件下，针对不同变异性参数的离散值进行了训练，并学习了其平滑映射，从而能够在不重新训练的情况下对中间值进行插值。自洽性允许在较短序列（∼102步）上进行训练，同时在非常长序列（∼106步）上准确评估，满足FEM框架内在线预测的需求。该ANN模型通过向量化用户材料子程序（UMAT）部署到商业显式求解器中。此外，提出了一种新的侵入式随机方法，其中变异性参数在材料子程序中遵循概率分布，无需多次运行或修改求解器即可传播材料不确定性。该方法允许在单次模拟中估计应力和边界力的分布。在试样几何形状上，该ANN模型在确定性和随机模拟中均保持稳定，适用于均匀、正态和双峰分布。",
+"title_zh": "用于人类肋骨皮质骨的循环神经网络本构模型及其生物变异性：从确定性到侵入式随机显式有限元法",
+"tldr": "提出一种基于扩展最小状态单元（MSC）的循环神经网络本构模型，用于模拟人类肋骨皮质骨的生物变异性，实现从确定性到侵入式随机显式有限元的过渡。"
 },
 "559228ff24cf0761": {
 "abstract_zh": "Accurate constitutive modeling of hot deformation characteristics is essential for the development of thermomechanical procedures for advanced structural alloys. Conventional Arrhenius-type and empirical models frequently find it challenging to effectively depict the combined influences of strain hardening, dynamic recovery (DRV), and dynamic recrystallization (DRX) across extensive processing intervals. This research uses two Stacked Residual Physics-Informed Neural Networks (STAR-PINNs) to predict the hot-deformation characteristics of a Mo-rich α + β titanium alloy (Ti–6Al–4Mo–1V–0.1Si). The Improved STAR-PINN integrates thermomechanical constitutive restrictions, while the DRX-Aware STAR-PINN utilizes a dual-output framework that incorporates recrystallization kinetics through a trainable JMAK–Avrami model. Both models utilize a common residual encoder that is trained on empirical flow-stress data collected at temperatures ranging from 800 to 1050 °C and strain rates between 0.01 and 10 s⁻¹ . Constraints informed by physics that enforce thermal softening, strain-rate sensitivity, strain hardening, and post-peak softening are applied via automatic differentiation. The DRX-Aware model also includes JMAK–Avrami regularization featuring learnable, constrained kinetic parameters k and n, DRX saturation limits, Arrhenius-based consistency, and latent-feature integration connecting the estimated DRX fraction to the stress output. The DRX-Aware STAR-PINN obtained RMSE = 11.62 MPa, MAE = 4.73 MPa, and R² = 0.9852 on the test set reserved for validation, along with a five-fold cross-validated RMSE of 12.74 ± 0.38 MPa. The learned JMAK parameters converged to k = 2.03 and n = 1.99 , remaining close to the conventional values while being inferred directly from the data. The model effectively mirrored flow curves influenced by temperature, DRX development, and Zener–Hollomon correlations under interpolation scenarios while preserving physically coherent constitutive behavior. These findings illustrate that physics-informed deep learning delivers a precise and understandable structure for constitutive modeling, presenting a viable approach for sophisticated process modeling of hot-deformed titanium alloys.",
@@ -449,6 +504,11 @@
 "title_zh": "316L不锈钢增材制造仿生负泊松比晶格的动态压缩响应实验与数值模拟",
 "tldr": "对316L不锈钢3D打印的三种负泊松比晶格进行实验与数值模拟，研究其在准静态和动态冲击下的压缩响应，得到其应变率依赖的泊松比函数。"
 },
+"7357e791f0e0482f": {
+"abstract_zh": "",
+"title_zh": "基于非关联塑性的板料成形有限元公式",
+"tldr": "提出基于非关联塑性的有限元公式用于板料成形分析。"
+},
 "7478272042e554d9": {
 "abstract_zh": "",
 "title_zh": "BR1500HS超高强度汽车钢在高温下的变形行为与本构模型",
@@ -529,6 +589,16 @@
 "title_zh": "EP-450钢在470 °C等温退火过程中辐照硬化的时间依赖性热恢复研究",
 "tldr": "研究EP-450钢在470 °C等温退火过程中辐照硬化的时间依赖性热恢复行为。"
 },
+"9198e25b78a6dbf4": {
+"abstract_zh": "超高速弹道冲击随着推进技术的进步变得越来越常见。太空碰撞如陨石也涉及高速冲击。传统金属薄板如Ti-6Al-4V和AISI 1045钢在薄配置下难以承受高速冲击事件中产生的严重应力。本文研究了Ti-6Al-4V钛合金和AISI 1045钢双层板对超高速铝球冲击的响应，以观察此类超高速冲击引起的剥落、空洞化和碎片云形成等现象。采用改进的Johnson–Cook材料模型和Grüneisen状态方程来表征受冲击材料，并在商业有限元软件LS-DYNA中实现光滑粒子流体动力学方法，研究对称和非对称冲击条件下的穿透行为。结果表明，在临界阈值30°之后，冲击角度显著影响能量分布、流动应力和下层AISI 1045钢板的后表面隆起形成。这些发现为优化多层金属防护和抗冲击结构提供了实用的设计指导。",
+"title_zh": "Ti-6Al-4V/AISI 1045双层板在超高速冲击下的角度依赖性防护性能研究",
+"tldr": "对Ti-6Al-4V/AISI 1045双层板，研究其在超高速铝球冲击下的角度依赖性防护性能，得到能量分布和后表面隆起的影响规律。"
+},
+"940717b3abc0b5e8": {
+"abstract_zh": "化学短程有序（SRO）可以显著影响高熵合金（HEAs）的力学响应，但其在含孔合金在高应变率加载下的作用仍不清楚。本文结合分子动力学模拟和数据驱动的代理模型，研究了含纳米孔的Al 0.3 FeCoCrNi高熵合金的拉伸响应。结果揭示了结构缺陷与局部化学有序之间的耦合效应。预先存在的孔洞尺寸通过加剧应力集中和促进早期塑性而主导屈服起始、峰值强度和损伤演化。相比之下，SRO作为一种条件性原子尺度修饰因子，对较小孔洞可提高拉伸阻力，通过减少活动位错成核位点、限制早期塑性区和促进静止反应（包括Lomer-Cottrell锁和Hirth位错）实现。然而，对于较大孔洞，SRO效应变得不显著，变形逐渐由孔洞引起的应力集中主导。温度进一步约束SRO效应：在300 K时，SRO促进孪生和有序平面缺陷演化，而在1200 K时，热激活抑制孪生并导致断裂后缺陷的弥散累积。所提出的代理模型提供了对研究参数空间内应力响应和损伤演化的高效映射。这些发现识别SRO作为调节HEAs缺陷容忍性的条件设计参数。",
+"title_zh": "化学短程有序作为含孔高熵合金在高应变率加载下变形与损伤的条件修饰因子",
+"tldr": "研究含孔高熵合金Al 0.3 FeCoCrNi在高应变率加载下的拉伸响应，发现化学短程有序对损伤演化具有条件性修饰作用。"
+},
 "951438be36e66696": {
 "abstract_zh": "",
 "title_zh": "通过激光粉末床熔融（LPBF）添加微量碳实现原位合金化Ti6Al4V合金的同时强度和延性增强",
@@ -543,6 +613,11 @@
 "abstract_zh": "在高温塑性变形过程中，材料流动应力受变形温度、应变速率和应变的共同影响。其准确预测对热加工工艺优化和有限元模拟至关重要。为解决传统应变补偿Arrhenius本构模型在预定义函数形式和残差预测误差方面的局限性，本文基于高温压缩数据，开发了一种基于深度符号优化的修正应变补偿Arrhenius模型（SR-ARH）。该框架采用RNN引导、GP辅助的策略来识别显式的修正因子表达式。运算符集根据高温流动应力演化的非周期性和非线性特征进行约束。基于特征重要性分析，首先开发了SR-ARH-2F模型，使用温度和应变速率作为特征，随后开发了SR-ARH-3F模型，加入应变作为额外特征。SR-ARH-3F模型在整体预测性能上优于SR-ARH-2F模型，因此被选为最终模型。留一条件验证揭示了该模型在未见过的变形条件下具有条件依赖的泛化性能，而应变硬化率分析显示在标定范围内无明显的非物理振荡。与应变补偿Arrhenius模型相比，SR-ARH-3F模型将RMSE降低了3.397-15.574 MPa，AARE降低了3.428-8.177个百分点，同时R值提高了0.00616-0.04747。进一步使用DEFORM-2D进行了高温压缩模拟。通过模拟获得的载荷-位移曲线与实验曲线更接近，对应的载荷AARE相比应变补偿Arrhenius模型降低了0.188-19.099个百分点，证实了所提模型在高温压缩数值模拟中的适用性。",
 "title_zh": "基于深度符号优化的修正Arrhenius本构模型用于高温变形",
 "tldr": "针对高温变形，基于深度符号优化开发修正Arrhenius本构模型，提升对材料流动应力的预测精度。"
+},
+"97ee2bddb2ea4467": {
+"abstract_zh": "Laser cladding (LC) 是一种3D打印技术，已被越来越多地应用于土木工程结构的修复和强化。然而，目前对激光熔覆材料循环性能的研究仍有限。因此，使用LC技术制备了11个试样，并进行了实验以研究LC材料在不同循环加载协议下的力学性能和迟滞行为。实验结果表明，激光熔覆316L不锈钢具有优异的能量耗散能力。LC 316L不锈钢在循环加载下表现出混合硬化行为，包括等向硬化和运动硬化，以及显著的Bauschinger效应。在循环加载下，316L不锈钢的包络曲线与单调拉伸曲线不同，Ramberg–Osgood模型被证明有效于描述包络行为。316L不锈钢的弹性模量在前几次加载循环中会降低，随后随着累积塑性应变趋于稳定。Chaboche模型被用于预测LC 316L不锈钢的应力-应变响应，参数校准和后续验证确认了模型的预测准确性。",
+"title_zh": "激光熔覆增材制造316L不锈钢的循环变形特性：实验评估",
+"tldr": "研究激光熔覆316L不锈钢在不同循环加载协议下的力学性能和迟滞行为。"
 },
 "99d9e8c0ddb242dd": {
 "abstract_zh": "",
@@ -573,6 +648,11 @@
 "abstract_zh": "本文通过对比终端弹道计算机模拟结果与穿甲弹穿透装甲钢的实验数据，评估了文献中提出的本构模型的充分性。模拟中采用了一种改进的Johnson-Cook模型，通过引入Cockcroft-Latham延性断裂准则而非标准失效模型进行增强。分析包括网格结构以及元素相互作用的算法。通过网格收敛性测试评估了网格密度对模拟结果的影响。基于我们对芯材力学性能的自身实验测试，分析表明需要改进本构模型的校准。",
 "title_zh": "评估穿甲弹芯在终端弹道模拟中的本构模型充分性",
 "tldr": "通过对比终端弹道计算机模拟结果与穿甲弹穿透装甲钢的实验数据，评估现有本构模型的充分性，并指出需改进模型校准。"
+},
+"a3b8e59994b459d4": {
+"abstract_zh": "数据驱动的计算力学提供了一种替代传统方法的解决方案，通过用数据空间替代本构模型来定义允许的材料状态。最初用于线弹性问题，其在塑性问题中的应用仍具挑战性。纯数据驱动的塑性方案通常受限于一维问题，因为路径依赖性导致所需数据空间过大。结合本构假设与数据的混合框架显示出潜力，但往往受限于其假设，如等向硬化，或无法捕捉应变路径变化。本文提出了一种新的混合模型-数据塑性框架，通过从离散数据集中导出的数据空间引入运动硬化和等向硬化，同时采用Prager定律进行背应力演化，无需显式定义其函数形式。该方法保留了标准的计算塑性算法流程，同时通过数据空间执行隐式回映过程和类似于弹塑性切线的搜索方向计算。在一维和三维问题中的数值示例展示了该框架在更一般塑性问题中的有效性。",
+"title_zh": "结合模型与数据的弹塑性框架，包含运动硬化和等向硬化",
+"tldr": "提出一种结合模型与数据的弹塑性框架，通过数据空间实现运动硬化和等向硬化的建模，有效处理更一般的塑性问题。"
 },
 "a653fed13e317822": {
 "abstract_zh": "",
@@ -608,6 +688,11 @@
 "abstract_zh": "金属变形过程中微观结构特征的预测一直是研究重点。已有研究表明，超声振动辅助铆接实验可定量改变铆钉的晶粒尺寸（GS）和几何必要位错（GND）密度。然而，现有微尺度理论模型主要关注总位错密度的预测，且大多数模型适用于纵向超声振动，针对横向超声振动辅助成形过程中晶粒尺寸和几何必要位错密度的定量预测研究较少。因此，本研究聚焦于广泛应用于航空领域的2A10铝合金试样，进行了不同超声振幅下的横向超声振动辅助压缩（TUVAC）试验。基于实验研究，建立了包含几何必要位错密度和晶粒尺寸的多尺度超声本构模型，并开发了VUMAT子程序以预测TUVAC模拟中2A10铝合金的微观结构特征。结果表明，当超声振幅从0 μm增加到21.2 μm时，最大流动应力从509.7 MPa降低至477.4 MPa。与原始试样相比，简单压缩后<111>||ND纤维织构的强度显著降低。在压缩过程中施加横向超声振动时，铜织构持续减弱，而黄铜织构随超声振幅增加逐渐增强。相比之下，S织构和<111>||ND纤维织构则先增加后减少。几何必要位错密度非线性增加，而晶粒尺寸逐渐减小，表明显著的晶粒细化。超声本构模型的预测结果与实验数据进行了比较，结果显示在不同振幅下应力的平均绝对相对误差（AARE）均低于2.2%。对实验与模拟结果的比较分析表明，几何必要位错密度的AARE约为15%，晶粒尺寸的AARE约为12%，而微硬度的AARE低于5%。因此，所提出的本构模型能够准确预测宏观力学行为和微观结构特征，从而为进一步研究超声辅助铆接的微机制和性能提供了坚实的理论基础。",
 "title_zh": "2A10铝合金在横向超声振动辅助压缩下的表征与多尺度本构模型研究",
 "tldr": "通过横向超声振动辅助压缩试验，建立包含几何必要位错密度和晶粒尺寸的多尺度超声本构模型，用于预测2A10铝合金的微观结构特征。"
+},
+"ac326339c948b6c5": {
+"abstract_zh": "Ti-6Al-4V钛合金广泛应用于航空航天、太空探索和汽车制造领域。表征其高温流动应力对于工程设计和数值模拟至关重要。为了解决传统Johnson–Cook本构模型预测精度有限以及基于小数据集训练的神经网络泛化能力不足的问题，本研究开发了一种混合浅层-深层神经网络工作流程。在25、100、150、200和300 °C下进行机械试验，以表征大尺寸Ti-6Al-4V铸件的本构行为和断裂特征。浅层神经网络学习采样域内的响应，而长短期记忆（LSTM）网络扩展温度依赖的应力预测至该域之外。生成的数据支持后续非线性回归以确定修改后的Johnson–Cook本构模型参数，并与现有实验响应进行比较。该工作流程进一步集成到基于MATLAB R2021a的深度学习工具箱的项目式工程数学课程中。通过实验数据处理、本构拟合、神经网络辅助的数据生成、子区间误差评估和失效诊断，教学案例培养了学生在数据驱动建模、可重复计算和谨慎外推方面的能力。",
+"title_zh": "基于混合浅层-深层神经网络的Ti-6Al-4V钛合金高温流动应力预测本构模型及其在MATLAB工程数学教学中的集成",
+"tldr": "开发一种混合浅层-深层神经网络本构模型，用于Ti-6Al-4V钛合金的高温流动应力预测，并集成到MATLAB工程数学课程中。"
 },
 "ac53f9dd653934f1": {
 "abstract_zh": "Artificial Intelligence (AI) and Machine Learning (ML) are increasingly transforming Computer-Aided Engineering (CAE) workflows by enabling faster design iterations and reducing computational costs. This paper presents the application of Ansys SimAI and Ansys GeomAI in modelling an automotive side impact scenario using high-fidelity data from LS-DYNA simulations. Two AI models are trained on datasets with systematically varied parameters: one encompassing pole impact position and door beam configurations, and another focusing on rocker panel reinforcements. Both models exhibit strong predictive performance, reliably capturing deformation patterns and force-time histories for previously unseen configurations. The datasets are subsequently merged to train a comprehensive surrogate model capable of simultaneously representing variations in pole position, door beam geometry, and rocker reinforcement design, demonstrating robust generalization across a multidimensional design space. To address the emerging bottleneck of geometry creation, GeomAI’s geometry exploration functionality is employed to generate new rocker reinforcement geometries from existing ones, which are then rapidly validated using the pre-trained surrogate model. The results confirm that LS-DYNA simulations can be leveraged effectively to build AI models that dramatically reduce design exploration time. With SimAI and GeomAI in the loop, CAE workflows can evolve from simulation-driven design toward AI-augmented autonomous engineering, where geometry generation, simulation, validation, and optimization converge into an intelligent closed loop.",
@@ -663,6 +748,11 @@
 "abstract_zh": "采用Gleeble-3500热机械模拟器进行本研究。考察了终冷温度（450/500/550/600 °C）对一种新型V–Ti–N微合金高热输入耐候钢微观组织演变和力学性能的影响。结果表明，随着终冷温度的升高，多边形铁素体（PF）的比例增加，粒状贝氏体铁素体的分数显著减少，而针状铁素体的比例略有增加。M/A组分的面积分数和尺寸增加，位错密度降低。较高的终冷温度导致微观组织粗化，减少位错亚结构，降低强度和低温冲击韧性。然而，PF比例的增加和M/A组分的粗化增强了应变硬化能力，减缓了抗拉强度的下降，降低了屈服比，并提高了断裂后伸长率。基于综合性能评估，将终冷温度控制在500–550 °C之间可实现强度、延性、韧性及屈服比的良好平衡，从而获得优异的综合力学性能。本研究为通过热机械控制工艺制备高性能微合金高热输入钢提供了重要的理论和实践参考。",
 "title_zh": "终冷温度对微合金耐候钢微观组织和综合力学性能的影响",
 "tldr": "对微合金耐候钢，通过终冷温度调控，研究其微观组织演变和综合力学性能变化。"
+},
+"b6936bd6b57601a3": {
+"abstract_zh": "",
+"title_zh": "选择性激光熔融和电子束熔融制备Ti6Al4V部件的微观结构和力学性能",
+"tldr": "研究Ti6Al4V部件通过SLM和EBM工艺制备后的微观结构和力学性能。"
 },
 "b7440de35ffcb89f": {
 "abstract_zh": "本研究通过实验和数值方法，调查了使用粉末床熔融-激光束工艺制造的增材制造 316L 不锈钢的疲劳损伤行为。对超过 100 个试样在拉伸和应变控制疲劳载荷下进行测试，以评估表面状态、热等静压（HIP）和构建方向的影响。加工处理通过去除亚表面缺陷，提供了最大的疲劳性能提升，而 HIP 通过降低孔隙率提供了额外的益处。垂直构建的试样表现出比对角和水平构建试样大约 40% 更长的疲劳寿命，因为沿构建方向排列的拉长晶粒增强了延性并稳定了裂纹扩展。基于连续损伤力学的统一本构模型预测了低周和高周疲劳下的循环软化和疲劳寿命。疲劳各向异性通过依赖方向的疲劳延性系数表示，而其余参数则与方向无关。该模型准确再现了循环滞回环和疲劳寿命至失效。",
@@ -769,6 +859,11 @@
 "title_zh": "利用循环神经网络从反向弯曲试验中识别组合等向-随动强化参数",
 "tldr": "通过反向弯曲试验和Bi-LSTM网络实现组合等向-随动强化参数的快速识别"
 },
+"ced89b2e9d2eb6e1": {
+"abstract_zh": "",
+"title_zh": "平面应力下韧性断裂的本质功",
+"tldr": "研究平面应力条件下韧性断裂的本质功特性。"
+},
 "cee8cefbe0292a9e": {
 "abstract_zh": "",
 "title_zh": "脉冲电流辅助切割Inconel 718的热-非热电塑性效应",
@@ -799,6 +894,16 @@
 "title_zh": "柔性辊弯成型中延性断裂的预测研究",
 "tldr": "研究AA3105铝合金板在柔性辊弯成型过程中的断裂机制，提出减少损伤的方法。"
 },
+"d7548d0da6a4b957": {
+"abstract_zh": "",
+"title_zh": "考虑多冲击载荷的HRB钢筋钢动态本构行为研究",
+"tldr": "对HRB钢筋钢，考虑多冲击载荷，研究其动态本构行为，得到材料在冲击下的响应特性。"
+},
+"d8aff62165294868": {
+"abstract_zh": "本研究利用包括Ayada、Rice–Tracy、Brozzo、Oh、Oyane–Sato和Ko–Huh在内的六个独立延性断裂准则，研究了CRB Al/Cu多层板的断裂行为。考察了五种不同材料，包括纯铝(AA1050)、纯铜、Al/Al双层、Al/Cu双层和Cu/Al/Cu三层复合材料。通过混合方法（实验测试、理论分析和数值模拟）对断裂模型进行标定，并通过独立的平面应变拉伸试验进行验证。结果表明，独立断裂准则的预测能力高度依赖于材料特性。Brozzo准则在Al/Al双层材料中预测精度最高（1.6%误差），Oh准则在Al/Cu双层材料中表现最佳（0.1%误差），而Ko–Huh准则在Cu/Al/Cu三层复合材料中预测最接近（1.8%误差）。通过标定的断裂轨迹比较进一步表明，预测精度取决于断裂准则的应力状态敏感性与多层结构损伤演化之间的兼容性，而非任何单一模型的固有优越性。这些发现表明，没有单一的断裂准则适用于所有CRB多层板。然而，Ko–Huh和Oyane–Sato准则在所研究的多层配置中表现出相对一致的性能，表明它们可以作为该研究中多层板断裂预测的合适候选模型，适用于所研究的应力状态范围。",
+"title_zh": "利用延性断裂准则预测冷轧叠层金属复合板的断裂行为",
+"tldr": "对冷轧叠层金属复合板，利用延性断裂准则预测其断裂行为，得到不同材料组合下的断裂预测准确性。"
+},
 "d8ba4b3aaa35d692": {
 "abstract_zh": "",
 "title_zh": "选择性激光熔化和电子束熔化制备的Ti–6Al–4V组件中缺陷对力学性能的影响",
@@ -813,6 +918,11 @@
 "abstract_zh": "",
 "title_zh": "阐明TB9钛合金的应变率与温度依赖塑性：一个集成本构与微观结构分析",
 "tldr": "通过集成本构与微观结构分析，研究TB9钛合金的应变率与温度依赖塑性行为。"
+},
+"da8543f07941496c": {
+"abstract_zh": "",
+"title_zh": "在正应力三轴度和竞争应力集中区域下Al6061的延性损伤框架识别与验证",
+"tldr": "对Al6061材料，在正应力三轴度和竞争应力集中区域下，识别并验证延性损伤框架，得到其损伤演化规律。"
 },
 "db20c4cc67431336": {
 "abstract_zh": "本工作对钛、铁、铜和锡在高应变率压缩下的动态压缩响应进行了研究，探讨了绝热加热和应变率的影响。高应变率试验使用Split Hopkinson Pressure Bar (SHPB)进行，低应变率试验使用伺服液压试验机。在变形过程中，使用高速红外热成像技术测量试样的温度升高。结果表明，所有研究材料均表现出正的应变率敏感性，在高应变率实验（500–3100 s−1）中观察到最高达65 °C的温度升高。所有研究材料的绝热加热程度均随应变率增加。在应变率为1 s−1时，温度升高明显降低了铁和钛的应变硬化率，但似乎不足以影响铜和锡的力学行为。泰勒-金尼系数（βint和βdiff）被发现与应变和应变率有关。在较高应变率（1200–3100 s−1）下，测试初期的积分βint值较小（0.2到0.7），随着较大塑性应变增加到约0.8–0.9。微分βdiff作为应变函数呈现高斯曲线，其最大值在研究材料中为0.9到1.2。锡在较高应变硬化率下表现出较低的βint和βdiff，而铜在整个高应变率试验中表现出较高的βint和βdiff。这些结果表明，铜在变形过程中具有更稳定的微观结构，将大部分塑性功转化为热量，而锡具有更快演化的微观结构，在塑性变形过程中其微观结构储存了更多的塑性功。此外，这表明βint和βdiff可用于研究材料在高应变率塑性变形下的稳定性及微观结构演化。βdiff更适合描述材料的瞬时热机械行为，而βint更适合用于需要单一参数描述材料将塑性功转化为热量效率的应用。",
@@ -869,6 +979,11 @@
 "title_zh": "耦合晶体塑性-损伤RVE框架用于预测宏观延性断裂包络线",
 "tldr": "开发耦合晶体塑性-损伤RVE框架，通过微结构模拟直接预测宏观延性断裂包络线，结果与实验数据吻合较好。"
 },
+"e5cea63705e3b61c": {
+"abstract_zh": "Laser powder bed fusion (L-PBF) 能够制造轻量化铝部件，但加工Al–Cu合金仍具挑战，因其固相区间宽且易发生柱状晶生长相关的凝固裂纹。通过添加形核剂可实现晶粒细化，但大多数报道策略依赖纳米颗粒，其易聚集并带来健康和操作问题。因此，较粗的陶瓷颗粒成为更安全的替代方案。本研究探讨了TiC颗粒尺寸（45 nm, 4 μm, 和44 μm）和浓度（1, 2, 和4 wt.%）对L-PBF成形AA2017合金微观结构和力学性能的影响。结果表明，晶粒细化和柱状晶到等轴晶转变（CET）来源于TiC异质形核与原位形成的L1 2 -Al 3 Ti颗粒的共同作用，以及溶质诱导的构成过冷和生长限制效应。TiC颗粒尺寸对细化效率有关键影响：尽管纳米颗粒具有高形核潜力，但聚集限制了其效果；而粗颗粒则表现出较低的反应性和Ti释放不足。微米级细TiC颗粒（4 μm）在表面积和分散性之间提供了最佳平衡。添加2 wt.% TiC（4 μm）可实现有效的CET和晶粒细化，同时提供良好的强度-延展性平衡（抗拉强度为372 ± 1 MPa，延伸率为18 ± 5%），而4 wt.% TiC（4 μm）则提供更高强度但更低延伸率。总体而言，微米级细TiC颗粒因此成为纳米颗粒在铝合金增材制造中的有效且安全的替代方案。",
+"title_zh": "TiC颗粒尺寸和浓度对L-PBF制备AA2017合金微观结构和力学性能的影响",
+"tldr": "研究TiC颗粒尺寸和浓度对AA2017合金L-PBF成形后微观结构和力学性能的影响。"
+},
 "e66b08f7b0172865": {
 "abstract_zh": "",
 "title_zh": "考虑绝热剪切效应的钛合金切削动态模型及其稳定性分析",
@@ -894,6 +1009,11 @@
 "title_zh": "使用LS-DYNA模拟树脂夹层的子弹防护玻璃聚碳酸酯复合材料",
 "tldr": "使用LS-DYNA模拟树脂夹层子弹防护玻璃聚碳酸酯复合材料的弹道性能，分析不同夹层结构对子弹的防护效果。"
 },
+"e849f65be4e78fc0": {
+"abstract_zh": "",
+"title_zh": "一种物理增强的机器学习本构模型用于固体材料的损伤预测",
+"tldr": "开发一种物理增强的机器学习本构模型，用于预测固体材料的损伤行为，结合物理原理与数据驱动方法。"
+},
 "e863056919d9894c": {
 "abstract_zh": "",
 "title_zh": "低温下316L不锈钢塑性应变诱导马氏体相变的本构建模与参数识别",
@@ -908,6 +1028,11 @@
 "abstract_zh": "",
 "title_zh": "应变率与温度效应对梯度结构Ti55钛合金动态压缩行为的影响",
 "tldr": "研究应变率与温度效应对梯度结构Ti55钛合金动态压缩行为的影响，分析其力学响应。"
+},
+"ea2c06e4ded789d4": {
+"abstract_zh": "",
+"title_zh": "铜镍合金动态冲击行为与本构模型研究",
+"tldr": "对铜镍合金，研究其动态冲击行为，建立相应的本构模型，得到材料在冲击下的力学响应。"
 },
 "eb92fffd31006767": {
 "abstract_zh": "",
@@ -939,6 +1064,11 @@
 "title_zh": "亚10纳米堆垛带实现超强增材制造钛合金",
 "tldr": "通过激光粉末床熔融技术制造亚10纳米堆垛带钛合金，实现超高强度与良好延展性的结合。"
 },
+"effc3d03d4e35276": {
+"abstract_zh": "",
+"title_zh": "应变率增加时，低碳钢从热激活塑性转变为拖曳控制塑性",
+"tldr": "研究低碳钢在应变率增加过程中塑性机制从热激活向拖曳控制的转变。"
+},
 "f08cb034c664554c": {
 "abstract_zh": "",
 "title_zh": "考虑空洞演化的延性断裂模型",
@@ -968,6 +1098,11 @@
 "abstract_zh": "先进高强度钢（AHSS）因其能够结合高承载能力和减少结构质量，正越来越多地被用于能量吸收应用。然而，其适用性不能仅通过名义屈服或抗拉强度来评估，因为变形和断裂行为强烈受微结构、加工历史和应变速率敏感性控制。本章探讨了用于能量吸收的高强度钢中加工、微结构、变形机制、成形性与动态断裂之间的关系。特别关注了铁素体、马氏体、贝氏体组分和残留奥氏体，以及相强度不匹配、应变分区、整体和局部延展性及残留奥氏体稳定性的影响。回顾了用于生产HSLA、DP、TRIP、CP/FB、Q&P、TBF、中锰和压淬钢的主要热机械加工路线，并强调其微结构目标。还考虑了制造过程中引起的效应，包括预应变、局部变薄、切边损伤和弯曲，因为这些效应会改变后续加载时的变形能力。高应变率行为从应变硬化、绝热加热、相变和动态断裂等方面进行讨论。最后，评估了涉及残留奥氏体工程、高延展性压淬钢和空间定制微结构等新兴策略。总体评估表明，最优的能量吸收性能需要强度、应变硬化能力、局部延展性、断裂阻力和受控的微结构异质性的平衡，而不仅仅是最大强度。",
 "title_zh": "用于能量吸收应用的先进高强度钢的微结构设计、加工与动态变形",
 "tldr": "研究先进高强度钢的加工、微结构与动态变形关系，优化其能量吸收性能。"
+},
+"f6e6d66d291afeb7": {
+"abstract_zh": "断裂是铝合金热冲压过程中常见且致命的缺陷。准确预测高温断裂行为对成形工艺规划至关重要。然而，现有高温断裂准则在预测能力和参数标定难度之间存在权衡，限制了其工业应用。本研究通过将应变率和温度项引入半耦合断裂框架，并与粘塑性本构模型耦合，建立了高温半耦合损伤模型。该模型在保持参数标定便捷性的同时，利用双曲正切函数描述损伤演化非线性特征。该模型应用于7075铝合金的有限元分析。对于热拉伸试验，模拟的载荷-位移响应、断裂位移和应变场与实验结果一致，最大载荷-位移均方根误差(RMSE)为0.047 kN，最大断裂位移相对误差为3.141%。对于等温胀形验证试验，断裂位置预测的平均相对误差为5.10%，归一化厚度的最大相对误差为6.67%。这些结果表明，在350–450 °C和0.001–0.1 s−1范围内，所提出的模型能够准确预测损伤起始、演化和断裂行为。",
+"title_zh": "考虑温度和应变率效应的7075铝合金高温半耦合损伤模型研究",
+"tldr": "对7075铝合金，建立考虑温度和应变率效应的高温半耦合损伤模型，准确预测高温下的损伤起始、演化和断裂行为。"
 },
 "f820cac5edde8adb": {
 "abstract_zh": "",
