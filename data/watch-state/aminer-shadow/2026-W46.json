@@ -1,0 +1,114 @@
+{
+  "schema_version": 1,
+  "week": "2026-W46",
+  "items": [
+    {
+      "work_id": "doi:10.1016/j.actbio.2009.11.011",
+      "title": "Influence of Porosity on Mechanical Properties and in Vivo Response of Ti6Al4V Implants",
+      "doi": "10.1016/j.actbio.2009.11.011",
+      "url": "https://www.aminer.cn/pub/53e9b091b7602d9703afb787",
+      "aminer_id": "53e9b091b7602d9703afb787",
+      "venue": "Acta biomaterialia",
+      "year": 2009
+    },
+    {
+      "work_id": "doi:10.1016/j.addma.2014.12.006",
+      "title": "Crack propagation and fracture toughness of Ti6Al4V alloy produced by selective laser melting",
+      "doi": "10.1016/j.addma.2014.12.006",
+      "url": "https://www.aminer.cn/pub/56d870dcdabfae2eeef3a9d7",
+      "aminer_id": "56d870dcdabfae2eeef3a9d7",
+      "venue": "Additive Manufacturing",
+      "year": 2015
+    },
+    {
+      "work_id": "doi:10.1016/j.jmatprotec.2012.11.001",
+      "title": "The Effect of Hardening Laws and Thermal Softening on Modeling Residual Stresses in FSW of Aluminum Alloy 2024-T3",
+      "doi": "10.1016/j.jmatprotec.2012.11.001",
+      "url": "https://www.aminer.cn/pub/56d82f09dabfae2eee1646e7",
+      "aminer_id": "56d82f09dabfae2eee1646e7",
+      "venue": "Journal of Materials Processing Technology",
+      "year": 2012
+    },
+    {
+      "work_id": "doi:10.1007/bf00662556",
+      "title": "Thermal Softening of G13L Steel with Niobium",
+      "doi": "10.1007/bf00662556",
+      "url": "https://www.aminer.cn/pub/53e9ba0bb7602d970460b797",
+      "aminer_id": "53e9ba0bb7602d970460b797",
+      "venue": "Metal Science and Heat Treatment",
+      "year": 1967
+    },
+    {
+      "work_id": "doi:10.1063/1.1707363",
+      "title": "Effect of Strain Rate Upon Plastic Flow of Steel",
+      "doi": "10.1063/1.1707363",
+      "url": "https://www.aminer.cn/pub/56d8356adabfae2eee3c6212",
+      "aminer_id": "56d8356adabfae2eee3c6212",
+      "venue": "JOURNAL OF APPLIED PHYSICS",
+      "year": 1944
+    },
+    {
+      "work_id": "doi:10.1016/s0734-743x(99)00153-0",
+      "title": "High Strain Rate Compressive Behaviour of Aluminium Alloy Foams",
+      "doi": "10.1016/s0734-743x(99)00153-0",
+      "url": "https://www.aminer.cn/pub/53e9a751b7602d970308c8c2",
+      "aminer_id": "53e9a751b7602d970308c8c2",
+      "venue": "INTERNATIONAL JOURNAL OF IMPACT ENGINEERING",
+      "year": 2000
+    },
+    {
+      "work_id": "doi:10.1016/s1359-6454(03)00365-3",
+      "title": "Some Critical Experiments on the Strain-Rate Sensitivity of Nanocrystalline Nickel",
+      "doi": "10.1016/s1359-6454(03)00365-3",
+      "url": "https://www.aminer.cn/pub/53e9a1e1b7602d9702ae06cf",
+      "aminer_id": "53e9a1e1b7602d9702ae06cf",
+      "venue": "ACTA MATERIALIA",
+      "year": 2003
+    },
+    {
+      "work_id": "doi:10.1016/j.tafmec.2010.06.015",
+      "title": "Application of a stress triaxiality dependent fracture criterion in the finite element analysis of unnotched Charpy specimens",
+      "doi": "10.1016/j.tafmec.2010.06.015",
+      "url": "https://www.aminer.cn/pub/53e9b74ab7602d97042e45c5",
+      "aminer_id": "53e9b74ab7602d97042e45c5",
+      "venue": "Theoretical and Applied Fracture Mechanics",
+      "year": 2010
+    },
+    {
+      "work_id": "doi:10.1016/s1359-6454(03)00239-8",
+      "title": "Strain Hardening of Titanium: Role of Deformation Twinning",
+      "doi": "10.1016/s1359-6454(03)00239-8",
+      "url": "https://www.aminer.cn/pub/53e9a10eb7602d97029fca86",
+      "aminer_id": "53e9a10eb7602d97029fca86",
+      "venue": "Acta Materialia",
+      "year": 2003
+    },
+    {
+      "work_id": "doi:10.1016/j.msea.2003.10.214",
+      "title": "Strain Hardening, Strain Rate Sensitivity, and Ductility of Nanostructured Metals",
+      "doi": "10.1016/j.msea.2003.10.214",
+      "url": "https://www.aminer.cn/pub/53e9a718b7602d970305006d",
+      "aminer_id": "53e9a718b7602d970305006d",
+      "venue": "Materials Science and Engineering A",
+      "year": 2004
+    },
+    {
+      "work_id": "doi:10.1016/j.actamat.2012.09.064",
+      "title": "Revealing the Strain-Hardening Behavior of Twinning-Induced Plasticity Steels: Theory, Simulations, Experiments",
+      "doi": "10.1016/j.actamat.2012.09.064",
+      "url": "https://www.aminer.cn/pub/56d8370ddabfae2eee4739aa",
+      "aminer_id": "56d8370ddabfae2eee4739aa",
+      "venue": "ACTA MATERIALIA",
+      "year": 2013
+    },
+    {
+      "work_id": "doi:10.1016/j.actamat.2004.05.003",
+      "title": "Temperature Dependence of Strain Hardening and Plastic Instability Behaviors in Austenitic Stainless Steels",
+      "doi": "10.1016/j.actamat.2004.05.003",
+      "url": "https://www.aminer.cn/pub/5f0b25a49fced0a24bb1c808",
+      "aminer_id": "5f0b25a49fced0a24bb1c808",
+      "venue": "Acta Materialia",
+      "year": 2004
+    }
+  ]
+}
