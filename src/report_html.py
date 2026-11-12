@@ -36,6 +36,7 @@ from markupsafe import Markup
 from .models import RankedWork
 from .citation_watch import recommendation_reasons
 from .utils import beijing_now
+from .research_features import normalize_doi
 
 logger = logging.getLogger(__name__)
 
@@ -815,8 +816,8 @@ _TEMPLATE = """
       <b>{{ '%.2f'|format(work.score) }}</b>
       <span class="bar"><i style="width:{{ (work.score * 100)|round|int }}%"></i></span></span>
     <span class="m">被引用 <b>{{ citation_label(work) }}</b></span>
-    {% if work.doi %}<span class="m">{{ icon('link', 14) }}<a href="https://doi.org/{{ work.doi }}"
-       target="_blank" rel="noopener">{{ work.doi }}</a></span>{% endif %}
+    {% if work.doi %}<span class="m">{{ icon('link', 14) }}<a href="https://doi.org/{{ normalize_doi(work.doi) }}"
+       target="_blank" rel="noopener">{{ normalize_doi(work.doi) }}</a></span>{% endif %}
     {% set rates = rating_buttons(work) %}
     {% if rates %}
     <span class="rate" title="将打开公开 GitHub Issue，需你确认提交，请勿填写私人笔记">
@@ -1232,6 +1233,7 @@ def render_html(works: List[RankedWork], output_path: Path | str, *, watched_wor
         authors_line=authors_line, source_line=source_line, direction=direction,
         anchor=anchor, clamp=clamp, split_abstract=split_abstract, icon=icon,
         published_label=published_label,
+        normalize_doi=normalize_doi,
         direction_hue=direction_hue,
         hue_order=hue_order,
         venues=venue_counts(every),
