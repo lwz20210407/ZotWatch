@@ -60,7 +60,10 @@ def check(base_dir: Path) -> List[str]:
         for other_index, other in enumerate(priorities):
             if other_index == index or other.match_fields != current.match_fields:
                 continue
-            if other.required_groups == current.required_groups and other.multiplier < current.multiplier:
+            if (other.required_groups == current.required_groups
+                    and other.unless_title_terms == current.unless_title_terms
+                    and other.authoritative == current.authoritative
+                    and other.multiplier < current.multiplier):
                 problems.append(
                     f"research_priorities[{index}] '{current.name}' (x{current.multiplier}) has the "
                     f"same required_groups as '{other.name}' (x{other.multiplier}) at the same match "

@@ -43,10 +43,8 @@ decay_days:
   medium: 7
   slow: 30
 whitelist_authors: []
-# First match wins. Coefficients are adjustable heuristics, not probabilities.
-#
-# ORDER MATTERS: rules are evaluated top to bottom and the first match decides the
-# multiplier, so the most specific and highest-value rule must come first.
+# All matches are evaluated: explicit core identification wins, otherwise the
+# lowest multiplier wins. These are heuristics, not relevance probabilities.
 #
 # 跨金属方法参考 is ×1.0, the same as TC4 核心研究, on the owner's instruction: a paper on
 # another metal that follows the same chain -- temperature / strain rate / stress state ->
@@ -77,7 +75,9 @@ research_priorities:
     # 而外围工作只是正文里顺带提到。摘要里出现不足以推翻一条降权。
     match_fields: title
     required_groups:
-      - ["Ti-6Al-4V", "Ti6Al4V", "TC4", "Ti64", "titanium alloy", "钛合金"]
+      # Generic titanium is not proof of TC4 identity. Other titanium and other
+      # metals still qualify through the normal mechanics rules below.
+      - ["Ti-6Al-4V", "Ti6Al4V", "TC4", "Ti64"]
       # 2026-09-19 补：dynamic tensile / split Hopkinson / fracture strain 这几类同样是
       # 链条正中间的术语，漏了它们会让真核心掉到放宽那条，再被「机制参考」的 0.85 压过。
       # "dynamic tension" 匹配不到 "dynamic tensile"——匹配器只补尾部 s，管不到词形变化。
@@ -170,6 +170,41 @@ research_priorities:
          "gyroid", "laminated composite", "composite plate",
          "composite forming", "resistance heating",
          "material design", "materials design", "microstructural design", "microstructure design"]
+  # #23–#34: title-level research-object signals, not bans on metals, AI or microscopy.
+  # Method-focused titles exempt these demotions; an incidental FE mention does not.
+  - name: "工艺或组织设计主导"
+    multiplier: 0.55
+    match_fields: title
+    unless_title_terms: &mechanics_method_title
+      ["constitutive model", "constitutive modeling", "constitutive modelling",
+       "fracture model", "fracture criterion", "failure model", "damage model",
+       "inverse identification", "inverse calibration", "parameter identification",
+       "parameter calibration", "LS-OPT", "hardening extrapolation", "post-necking",
+       "damage regularization", "damage regularisation", "mesh objectivity",
+       "yield criterion", "yield surface", "stress state dependent",
+       "本构模型", "断裂模型", "断裂准则", "参数反演", "参数标定", "损伤正则化"]
+    required_groups:
+      - ["processing map", "process window optimization", "process window optimisation",
+         "energy-saving optimized parameters", "energy-efficient process parameters",
+         "formability-performance trade-off", "nano-precipitation", "nanodispersions",
+         "microstructural insights", "microstructure-controlled nanoscale deformation",
+         "加工图", "工艺窗口优化", "纳米析出"]
+  - name: "表面划痕与聚合物打印"
+    multiplier: 0.55
+    match_fields: title
+    unless_title_terms: *mechanics_method_title
+    required_groups:
+      - ["scratch-induced", "scratch response", "scratch testing", "metal-filled PLA",
+         "metal-PLA", "划痕损伤", "划痕响应"]
+  - name: "增强复合材料工艺与靶板"
+    multiplier: 0.55
+    match_fields: title
+    unless_title_terms: *mechanics_method_title
+    required_groups:
+      - ["composite", "composites", "复合材料"]
+      - ["particle-reinforced", "particulate reinforced", "high fiber", "high fibre",
+         "high resin", "mechanical properties and microstructure",
+         "颗粒增强", "高纤维", "高树脂"]
   # One category, two alternative matching routes: identification/numerics method
   # papers, and constitutive/fracture work on other metals.
   - name: "跨金属方法参考"

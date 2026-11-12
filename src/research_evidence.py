@@ -1,7 +1,7 @@
 """Title/abstract-only method cards. No full-text retrieval or citation-role invention."""
 import re
 
-from .research_features import feedback_links
+from .research_features import feedback_links, facet_ids
 from .topic_matching import matches_any
 from .problem_ranking import local_evidence_graph
 
@@ -37,7 +37,10 @@ def attach_evidence(work, config):
     content = work.abstract or work.title
     cards = []
     budget = 24
+    evidenced = set(facet_ids(work, config))
     for facet in config.facets:
+        if facet.id not in evidenced:
+            continue  # The card must honor facet.requires just like classification.
         sentences = re.split(r"(?<=[.!?。！？])\s*", content)
         sentence = next((s for s in sentences if matches_any(s, facet.terms)), None)
         if not sentence:

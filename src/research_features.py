@@ -216,16 +216,28 @@ class FeedbackModel:
             # must_read", it means the threshold no longer describes anything.
             score = max(0.0, min(1.0, work.score + delta))
             label = "must_read" if score >= thresholds.must_read else "consider" if score >= thresholds.consider else "ignore"
-            if work.extra.get("semantic_gate_failed"):
+            # Explicit GLOBAL feedback is a delivery decision for this paper, not
+            # a negative vote against every direction/material it mentions.
+            # Scoped dislikes stay scoped; reset/positive feedback clears the flag.
+            suppressed = bool(global_entry and global_entry.rating != "reset" and
+                              (global_entry.rating == "irrelevant" or global_entry.applicability == "hold"))
+            if work.extra.get("semantic_gate_failed") or suppressed:
                 label = "ignore"
             extra = {**work.extra, "research_facets": facets, "feedback_adjustment": delta,
                      "feedback_reason": entry.reason if entry and entry.rating != "reset" else "",
                      "feedback_applicability": entry.applicability if entry and entry.rating != "reset"
                          and (not entry.scope or entry.scope in facets) else "auto",
                      "feedback_read": bool(global_entry and global_entry.rating == "read"),
+                     "feedback_suppressed": suppressed,
                      "reading_state": global_entry.rating if global_entry and global_entry.rating in {"later", "reading", "read"} else ""}
             result.append(work.model_copy(update={"score": score, "label": label, "extra": extra}))
         return sorted(result, key=lambda w: w.score, reverse=True)
+
+
+def feedback_delivery_candidates(works):
+    """Common delivery gate; publication corrections/retractions bypass this lane."""
+    return [work for work in works if not work.extra.get("feedback_read")
+            and not work.extra.get("feedback_suppressed")]
 
 
 def feedback_links(work, config):

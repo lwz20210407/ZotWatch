@@ -108,6 +108,8 @@ def matching_priorities(work: CandidateWork, scoring: ScoringConfig) -> List[dic
     text = " ".join(filter(None, [work.title, work.abstract]))
     hits = []
     for index, rule in enumerate(scoring.research_priorities):
+        if rule.unless_title_terms and matches_any(work.title, rule.unless_title_terms):
+            continue
         scope = work.title if rule.match_fields == "title" else text
         if rule.required_groups and matches_groups(scope, rule.required_groups):
             hits.append({"index": index, "name": rule.name, "multiplier": rule.multiplier,

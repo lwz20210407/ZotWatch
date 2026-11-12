@@ -1,0 +1,190 @@
+[
+  {
+    "issue": 23,
+    "doi": "10.1016/j.matchar.2026.117262",
+    "title": "Dynamic strength-ductility synergy in a heterostructured metastable β titanium alloy via strain-rate-driven evolution of deformation mechanisms",
+    "abstract": "",
+    "facets": [
+      "strain_rate"
+    ],
+    "report": "report-20261029.html",
+    "published_score": 0.66,
+    "previous_priority": [
+      "TC4核心研究",
+      1
+    ]
+  },
+  {
+    "issue": 24,
+    "doi": "10.1080/17452759.2026.2742573",
+    "title": "Harnessing additive manufacturing to architect hierarchical (TiB + Y 2 O 3 ) nanodispersions for exceptional strengthening of near-α titanium alloy",
+    "abstract": "Laser powder bed fusion (LPBF) enables trace microalloying to form hierarchical (TiB + Y2O3) nanodispersions in near-α TA15 alloy: a quasi-continuous TiB network along primary-β grain boundaries plus intragranular Y2O3 nanoparticles. Despite totalling only 0.35 vol% reinforcements, this LPBF-architected structure achieves >10% strength gain at room temperature and, notably, 15% gain at 500°C while retaining comparable ductility — surpassing conventional composites that need an order-of-magnitude more reinforcements. This enhanced performance originates from synergistic strengthening mechanisms enabled by the thermally stable hierarchical nanodispersions. Therefore, precursor-assisted LPBF microalloying provides a useful strategy for designing high-strength near-α titanium alloys with minimal nominal reinforcement addition after process-window optimisation.",
+    "facets": [
+      "lpbf_tc4"
+    ],
+    "report": "report-20261029.html",
+    "published_score": 0.64,
+    "previous_priority": [
+      "TC4核心研究",
+      1
+    ]
+  },
+  {
+    "issue": 25,
+    "doi": "10.1177/09506608261502610",
+    "title": "The laser powder bed fusion of particle-reinforced aluminum alloy matrix composites",
+    "abstract": "Laser powder bed fusion (LPBF) enables the fabrication of aluminum matrix particulate composites (AMPCs) with opportunities for microstructural refinement and precipitation strengthening. However, reported mechanical responses remain highly non-monotonic with respect to particle content. Strength improvements are often accompanied by limited or inconsistent gains in ductility, fatigue performance, and damage tolerance. This review adopts a constraint-first perspective and organizes the literature along a processing-linked constraint pathway. The performance of LPBF-processed AMPCs is interpreted in terms of a hierarchy of coupled physical constraints that become active at different stages. These include processing stability associated with melting behavior, interfacial mechanical and chemical compatibility under rapid thermal cycling, particle redistribution during melt-pool transport and solidification, and the transition of crack initiation control among competing defect populations. Evidence is synthesized across the full processing chain, from energy coupling at the powder bed to melt-pool dynamics, particle redistribution, and defect evolution. This framework helps explain why particle additions lead to improved mechanical performance in some cases, but not in others where processing-induced constraints become dominant. Based on this synthesis, a transferable design framework is proposed. It emphasizes stable processing conditions, interface states that sustain load transfer, control of particle clustering, and performance evaluation based on defect severity rather than average properties. Overall, this review frames LPBF-processed AMPCs as a constraint-governed system, and provides a basis for interpreting scattered results and improving cross-study comparability.",
+    "facets": [
+      "other_metals"
+    ],
+    "report": "report-20261029.html",
+    "published_score": 0.59,
+    "previous_priority": [
+      "其他相关研究",
+      0.9
+    ]
+  },
+  {
+    "issue": 26,
+    "doi": "10.5750/ijme.v168ia5(s).1988",
+    "title": "Experimental Investigation of the Mechanical Properties and Microstructure of Selective Laser Melted Ti-6Al-4V/TiC Composite",
+    "abstract": "This research examines the microstructure and mechanical behavior of Ti-6Al-4V/TiC components produced throughSelective Laser Melting (SLM). Four critical process variables-laser power (250–350 W), scan speed (700–1500 mm/s),layer thickness (40–60 μm), and hatch spacing (100 –150 μm) were systematically analyzed via Response SurfaceMethodology (RSM), and second-order predictive models were built to correlate these parameters with the resultingmechanical properties. Under optimal processing conditions, the fabricated specimens achieved peak values of 1195.69 MPa in tensile strength and 1284.45 MPa in flexural strength. Microstructural analysis, conducted using SEM, X-ray and EDX, revealed strong interlayer fusion, uniform distribution of alloying elements, and a low incidence of internal defects, while the material’s deformation characteristics were further evaluated through true stress–true strain curves and strainhardening behavior.",
+    "facets": [
+      "lpbf_tc4"
+    ],
+    "report": "report-20261029.html",
+    "published_score": 0.58,
+    "previous_priority": [
+      "其他相关研究",
+      0.9
+    ]
+  },
+  {
+    "issue": 27,
+    "doi": "10.1080/17452759.2026.2753957",
+    "title": "Bead-resolved prediction of warpage, residual stress, and high-stress locations in metal-filled PLA additive manufacturing",
+    "abstract": "Green metal-filled PLA parts are fragile in the as-printed state, and part-scale simulation tools cannot resolve where bead-level stresses concentrate. We present a bead-resolved thermo-viscoelastic eigenstrain framework that ingests a pre-computed thermal history and predicts the as-printed geometry, residual stress field, and highest-stress locations of green metal-PLA parts. The solver chain is validated against the ABS planar-spring benchmark of Cattenone et al., reproducing the eleven-probe experimental mean to −5.2% with a lower normalised RMSE (20.7% vs 23.5% of the experimental mean) than the benchmark’s Abaqus simulation, with two quantities calibrated to the benchmark and no rescaling. Predicted geometry matches 3D scans of IN718-PLA and Cu-PLA specimens to 0.07–0.10 mm typical lateral and 0.04–0.09 mm vertical deviation, measured against six separately fabricated specimens per material. A three-case sequential-isolation design recovers the closed-form cross-material stress ratio σ_Cu/σ_IN = (E_Cu/E_IN)·(α_Cu/α_IN), with α the along-raster contraction coefficient, to within 6% and verifies numerically that displacement is decoupled from modulus: a 2.2× modulus change alters the predicted geometry by under 0.002 mm. The bead-level map of elastic stress demand is robust to joint constitutive perturbation (ρ ≥ 0.98), and 195 of the top 200 highest-stress beads coincide between materials, which motivates single-simulation feedstock screening.",
+    "facets": [
+      "umat_implementation"
+    ],
+    "report": "report-20261105.html",
+    "published_score": 0.58,
+    "previous_priority": [
+      "跨金属方法参考",
+      1
+    ]
+  },
+  {
+    "issue": 28,
+    "doi": "10.1016/j.matdes.2026.117446",
+    "title": "Substructure–enabled dynamic strain aging and κ-carbide nano-precipitation in a high-SFE Fe–Mn–Al–C lightweight steel",
+    "abstract": "Classical theories predict that dynamic-strain-aging (DSA) should be strongly suppressed in high stacking-fault-energy (SFE) Fe–Mn–Al–C steels, because narrow, temperature-sensitive stacking-fault widths limit solute–dislocation interaction times. Contrary to these expectations, we demonstrate that a high-SFE lightweight steel exhibits pronounced DSA from 100-to-500 °C, a regime traditionally considered unlikely. Despite serrated-flow and negative strain-rate-sensitivity, the alloy retains remarkably stable ductility and work-hardening capability, revealing a fundamentally non-classical DSA response that is not governed by conventional stacking-fault-mediated solute–dislocation interactions. Electron-backscatter-diffraction shows rapid formation of a boundary-rich substructure consisting of dense low-angle-boundaries and refined subgrains that concentrate mobile dislocations at interfaces. This deformation-generated-network acts as a fast-diffusion scaffold that enables stress-assisted pipe and boundary diffusion of interstitial and substitutional solutes, activating a DSA mechanism independent of stacking-fault-mediated interactions. Transmission electron microscopy and selected-area diffraction reveal ordering-like nanoscale domains consistent with deformation-assisted short-range-ordering near 300 °C and a transition to κ-carbide(L′1 2 ) nanoprecipitation above 500 °C, indicating that deformation-induced solute redistribution associated with the DSA regime may facilitate subsequent κ-phase formation at higher temperatures. These findings uncover a previously unreported substructure-assisted DSA mechanism in high-SFE steels, explain the coexistence of strong DSA and sustained ductility, and establish a mechanistic link between warm-temperature DSA, dynamic ordering, and κ-carbide precipitation.",
+    "facets": [
+      "strain_rate"
+    ],
+    "report": "report-20261112.html",
+    "published_score": 0.61,
+    "previous_priority": [
+      "跨金属方法参考",
+      1
+    ]
+  },
+  {
+    "issue": 29,
+    "doi": "10.71422/jeit.0007",
+    "title": "Machine Learning–Based Flow Stress Prediction and Processing Map Optimization of Al/SiCp Metal Matrix Composites",
+    "abstract": "This study establishes a high-accuracy machine learning framework for predicting flow stress in 2124 Al/10% SiCp composites during hot deformation. Eight advanced algorithms—including XGBoost, Gradient Boosting, and an Enhanced Ensemble model—were thoroughly optimized and evaluated using experimental data spanning 300–500 and strain rates of 0.001–1.0 . Physics-informed feature engineering, centered on the Zener–Hollomon parameter, significantly enhanced prediction accuracy. The XGBoost model achieved exceptional performance ( = 0.9985, MAPE = 3.26%), outperforming traditional regression by 75% and fuzzy logic by 46%. Interpretability analysis confirmed the dominance of thermally activated deformation mechanisms, validating the physical consistency of the models. The predicted flow stresses enabled the development of reliable processing maps, identifying optimal hot working conditions at 400–450 and 0.01–0.1 . This work demonstrates a robust, interpretable, and industrially applicable data-driven approach for optimizing the thermomechanical processing of metal matrix composites.",
+    "facets": [
+      "temperature",
+      "strain_rate",
+      "plasticity_hardening"
+    ],
+    "report": "report-20261112.html",
+    "published_score": 0.6,
+    "previous_priority": [
+      "跨金属方法参考",
+      1
+    ]
+  },
+  {
+    "issue": 30,
+    "doi": "10.1108/rpj-01-2026-0038",
+    "title": "Energy-saving optimized parameters for 3D selective laser melting using dimensionless model and ANN surrogate mapping",
+    "abstract": "Purpose This study aims to identify energy-efficient selective laser melting (SLM) parameters that achieve high relative density and mechanical performance while reducing trial-and-error experiments. Design/methodology/approach The proposed workflow integrates dimensionless process mapping, an analytical melt-pool geometry model, specific energy consumption (SEC, Es) evaluation, and an artificial neural network (ANN) surrogate map. For Ti6Al4V, the selected parameter set was further evaluated by increasing hatch spacing based on powder-entrainment and melt-pool-width considerations, followed by density and tensile tests. The same SEC-guided screening strategy was also applied to an IN718 dataset to check cross-material applicability. Findings For Ti6Al4V at 80 µm hatch spacing, the optimized condition achieved 99.98% relative density, 1201 MPa tensile strength and 8.2% elongation. The experimentally assessed 120 µm energy-efficient hatch-spacing extension reduced model-estimated SEC by 36.2% while maintaining 99.95% relative density. Tensile strength increased to 1299 MPa, whereas elongation decreased to 6.22%, indicating a strength–ductility tradeoff. Originality/value This work proposes a physics-informed and data-assisted optimization workflow linking dimensionless modeling, melt-pool geometry screening, SEC-based energy evaluation, ANN surrogate mapping and experimental testing. Unlike approaches that apply dimensionless analysis or machine learning separately, the proposed method selects low-Es parameter sets within a physically constrained process window and assesses their density and tensile performance.",
+    "facets": [
+      "lpbf_tc4"
+    ],
+    "report": "report-20261112.html",
+    "published_score": 0.59,
+    "previous_priority": [
+      "TC4核心研究",
+      1
+    ]
+  },
+  {
+    "issue": 31,
+    "doi": "10.1007/s44500-026-00023-y",
+    "title": "Explainable artificial intelligence for laser powder bed fusion alloys: breaking the formability–performance trade-off via collaborative control",
+    "abstract": "Laser powder bed fusion (LPBF) enables the fabrication of metallic components with complex geometries and high performance. However, achieving coordinated control of formability including defect suppression and cracking resistance together with mechanical properties such as strength, ductility, and fatigue life remains a critical challenge for LPBF alloys. Although artificial intelligence (AI) has been widely adopted for process optimization, defect prediction, and performance evaluation, conventional AI models often lack physical metallurgical interpretability, leading to limited generalization and unreliable extrapolation beyond training domains. This review focuses on the role of explainable artificial intelligence (XAI) in addressing the formability–performance trade-off in LPBF alloys. We first introduce four knowledge domains that establish physical interpretability in metallic materials: physical metallurgy principles, cross-scale numerical information, microstructure image analysis, and causal physical mechanisms. Subsequently, we systematically examine XAI applications across representative LPBF alloy systems. In performance-oriented alloys such as steels and titanium alloys, XAI facilitates mechanism–aware control of non-equilibrium phase transformations, microstructural anisotropy, and defect-sensitive fatigue behavior. In formability-oriented alloys including aluminum alloys and nickel-based superalloys, XAI supports cracking susceptibility prediction, process–window identification, and printable alloy design. Despite these advances, most current studies remain task-specific and single-objective, with limited integration of formability and performance optimization. To overcome this limitation, we propose a unified multi-objective optimization framework incorporating physically constrained modeling, standardized multimodal databases, and causal reasoning. This review provides guidance for the intelligent, reliable, and collaborative design of LPBF alloys with both high formability and excellent mechanical performance.",
+    "facets": [
+      "lpbf_tc4",
+      "calibration",
+      "other_metals"
+    ],
+    "report": "report-20261112.html",
+    "published_score": 0.59,
+    "previous_priority": [
+      "TC4核心研究",
+      1
+    ]
+  },
+  {
+    "issue": 32,
+    "doi": "10.1016/j.jmrt.2026.10.262",
+    "title": "Microstructure-controlled nanoscale deformation and scratch-induced damage evolution in a spark plasma sintered TiVAlNbHfCr high-entropy alloy: Experimental characterization and physics-guided analysis",
+    "abstract": "Understanding the relationship among microstructure, deformation, and damage evolution is essential for evaluating the scratch response of high-entropy alloys (HEAs). In this study, a TiVAlNbHfCr HEA fabricated by spark plasma sintering (SPS) was investigated to elucidate the influence of microstructure on nanoscale deformation and scratch-induced damage. CALPHAD (Thermo-Calc, TCHEA2) calculations predicted BCC_2 and HCP_A3 as equilibrium phases, with an Al 3 Zr 4 -labelled (Zr 4 Al 3 -type) intermetallic at lower temperature, whereas XRD of the SPS-consolidated alloy indicated a BCC matrix with NbAl 3 and Ti 3 Al-type secondary phases; the calculation is therefore used as a qualitative guide to phase stability rather than as a prediction of the as-sintered constitution. Nanoindentation yielded a hardness (H_IT) of 7.49 ± 0.82 GPa and an indentation modulus (E_IT) of 155.10 ± 10.99 GPa, while the (H/E) and (Hˆ3/Eˆ2) ratios indicated high elastic strain tolerance and resistance to plastic deformation. Scratch testing identified distinct elastic, plastic, and failure regimes, demonstrating that microstructural heterogeneity influences strain localization, pile-up formation, and crack initiation. A physics-guided analysis was subsequently used to relate the experimentally measured mechanical and scratch-response parameters to the observed deformation and damage behavior. The analysis does not yield wear rates, wear life, or service-life predictions. Bootstrap resampling of the 16 nanoindentation measurements was used to quantify sampling uncertainty in the indentation-derived parameters. Bootstrap resampling was used to quantify variability and uncertainty in the derived relationships. Overall, the combined experimental, CALPHAD-guided, and physics-informed analysis provides a mechanistic framework for interpreting microstructure-dependent nanoscale deformation and scratch-induced damage in TiVAlNbHfCr HEA.",
+    "facets": [
+      "ductile_fracture",
+      "damage_evolution",
+      "other_metals"
+    ],
+    "report": "report-20261112.html",
+    "published_score": 0.57,
+    "previous_priority": [
+      "跨金属方法参考",
+      1
+    ]
+  },
+  {
+    "issue": 33,
+    "doi": "10.1016/j.rineng.2026.113906",
+    "title": "Effect of volume fraction with high fiber and high resin composite targets on ballistic impact of rigid and deformable projectiles",
+    "abstract": "Ballistic impact is a terminal ballistic phenomenon wherein a high-velocity projectile interacts with armour or protective systems, leading to material deformation, disintegration and perforation. This study investigates the ballistic impact response of KFRP and epoxy layered targets subjected to rigid and deformable projectile cores extracted from 7N31 armour-piercing (AP) ammunition. Four target–projectile configurations are considered, comprising KFRP with epoxy and epoxy with KFRP target arrangements impacted by arne steel and copper-plated steel (Cu–Steel) projectiles. The simulations are performed using the finite element method (FEM) in ANSYS/Autodyn. In this ballistic impact analysis, the ammunition core is modelled as a projectile impacting the target at a velocity of 600 m/s. Composite targets comprising 3, 5, and 7 layers are considered, with epoxy volume fractions of 10%, 20%, and 30% in KFRP with epoxy targets, as well as KFRP volume fractions of 10%, 20%, and 30% in epoxy with KFRP targets. For all simulation cases, the target plates are clamped (fixed) along their edges. The study shows that velocity attenuation is greater in high-KFRP targets as the number of layers increases at constant volume, compared with high-epoxy configurations. Thus the lowest residual velocities were 491.921 m/s for the Arne projectile and 285.649 m/s for the Cu–Steel projectile, both occurring in the high-KFRP configuration. Furthermore, the higher deformability of the projectile results in a larger back-face perforation diameter across all target configurations compared with the more rigid projectile.",
+    "facets": [
+      "impact_validation",
+      "other_metals"
+    ],
+    "report": "report-20261112.html",
+    "published_score": 0.56,
+    "previous_priority": [
+      "其他相关研究",
+      0.9
+    ]
+  },
+  {
+    "issue": 34,
+    "doi": "10.1016/j.addma.2026.105432",
+    "title": "New microstructural insights on the mechanisms underlying crack initiation and growth in high-density laser powder bed fusion alloys",
+    "abstract": "High-density (>99.9% bulk density) additively manufactured (AM) alloys persistently suffer from premature failure under mechanical loading, severely restricting their deployment in safety-critical applications. While this deficit is historically attributed largely to processing defects such as porosity or residual stresses, this study uncovers the fundamental role of as-built microstructure on damage tolerance in wrought and laser powder bed fusion (PBF-LB) austenitic stainless steel as a model material. Using a state-of-the-art in situ multimodal 3D synchrotron X-ray approach, we directly resolve the spatial evolution of dislocation densities and internal stress fields inside bulk samples during crack initiation, something veiled to conventional characterization methods. These data reveal that while the wrought material dynamically generates dislocations to form a stress-shielding process zone that blunts cracks, the AM microstructure rapidly exhausts the capacity for dislocation generation. This stagnation of local dislocation density forces abnormally high stresses to persist, driving premature crack initiation even without significant porosity. These findings demonstrate that the evolution of local plasticity plays a fundamental role in damage tolerance of high-density PBF-LB alloys, providing new 3D microstructural insights on improving reliability of AM structural alloys.",
+    "facets": [
+      "impact_validation",
+      "other_metals"
+    ],
+    "report": "report-20261112.html",
+    "published_score": 0.56,
+    "previous_priority": [
+      "机制参考",
+      0.85
+    ]
+  }
+]

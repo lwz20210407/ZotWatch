@@ -257,6 +257,9 @@ class ResearchPriority(BaseModel):
     # Ti-6Al-4V under dynamic loading" loses 30% to the word "coated".
     authoritative: bool = False
     match_fields: Literal["title", "title_abstract"] = "title_abstract"
+    # Focused method contributions in the title can exempt a contextual demotion.
+    # Incidental abstract mentions of FE/parameters cannot.
+    unless_title_terms: List[str] = Field(default_factory=list)
 
     @validator("required_groups")
     def validate_groups(cls, value: List[List[str]]) -> List[List[str]]:

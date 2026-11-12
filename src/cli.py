@@ -31,7 +31,7 @@ from .report_html import render_html
 from .digest_email import render_digest, render_text
 from .enrich_zh import enrich_chinese
 from .utils import beijing_now
-from .research_features import FeedbackModel, RetrievalWarnings, coverage_report, feedback_links, load_feedback, propose_tracking, save_feedback, collaboration_groups
+from .research_features import FeedbackModel, RetrievalWarnings, coverage_report, feedback_links, load_feedback, propose_tracking, save_feedback, collaboration_groups, feedback_delivery_candidates
 from .problem_ranking import diverse_select
 from .network_budget import BudgetSession
 from .research_evidence import attach_evidence
@@ -265,7 +265,7 @@ def _run_watch(
         history.state, settings), []) if config.enabled and config.collaboration_analysis else []
     ranked = history.filter(ranked)
     if config.enabled:
-        ranked = [w for w in ranked if not w.extra.get("feedback_read")]
+        ranked = feedback_delivery_candidates(ranked)
     aminer_applicability = {}
     aminer_live = settings.sources.aminer.enabled and settings.sources.aminer.mode == "live"
     if aminer_live:
