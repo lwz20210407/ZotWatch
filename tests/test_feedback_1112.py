@@ -183,4 +183,39 @@ class NovemberFeedbackTests(unittest.TestCase):
             self.assertFalse((root/'data/watch-state/state.json').exists())
 
 
+class November19FeedbackTests(unittest.TestCase):
+    def setUp(self):
+        self.settings = load_settings(ROOT)
+
+    def test_reported_tc4_papers_are_demoted_without_a_doi_blocklist(self):
+        cases = (
+            (36, 'Development and experimental validation of element node-based overstressed '
+             'fraction method for predicting the torsional load capacity of LB-PBF Ti6Al4V complex components',
+             'Ti6Al4V components were tested under torsional loading. The ratio of elements '
+             'above the stress threshold was used to predict torque at fracture failure.'),
+            (37, 'Effect of low-power remelting process on the formed specimen of TC4 titanium alloy '
+             'by selective laser melting',
+             'We compare direct high power forming quality with the low-power remelting process '
+             'for producing specimens with good surface quality and density.'),
+        )
+        for issue, title, abstract in cases:
+            with self.subTest(issue=issue):
+                work = CandidateWork(source='fixture', identifier=str(issue), title=title, abstract=abstract)
+                category, factor = research_priority(work, self.settings.scoring)
+                self.assertNotEqual(category, 'TC4核心研究')
+                self.assertLessEqual(factor, 0.55)
+
+    def test_torsion_fracture_and_process_effects_keep_their_mechanics_value(self):
+        titles = (
+            'Torsional ductile fracture of LPBF Ti-6Al-4V under combined stress states',
+            'Effects of low-power remelting process on dynamic tensile fracture of TC4 specimens',
+            'A constitutive model for torsional load capacity of complex steel components',
+            'Inverse identification of fracture parameters in remelted aluminum specimens',
+        )
+        for title in titles:
+            with self.subTest(title=title):
+                work = CandidateWork(source='fixture', identifier=title, title=title)
+                self.assertEqual(research_priority(work, self.settings.scoring)[1], 1.0)
+
+
 if __name__ == '__main__': unittest.main()
