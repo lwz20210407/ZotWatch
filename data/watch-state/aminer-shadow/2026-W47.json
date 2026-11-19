@@ -1,0 +1,114 @@
+{
+  "schema_version": 1,
+  "week": "2026-W47",
+  "items": [
+    {
+      "work_id": "doi:10.1016/j.ijimpeng.2013.01.007",
+      "title": "Perforation experiments of concrete targets with residual velocity measurements",
+      "doi": "10.1016/j.ijimpeng.2013.01.007",
+      "url": "https://www.aminer.cn/pub/5488e63745ce147a86e5d362",
+      "aminer_id": "5488e63745ce147a86e5d362",
+      "venue": "International Journal of Impact Engineering",
+      "year": 2013
+    },
+    {
+      "work_id": "aminer:56d85717dabfae2eee312521",
+      "title": "Semi-empirical procedures for estimation of residual velocity and ballistic limit for impact on mild steel plates by projectiles",
+      "doi": null,
+      "url": "https://www.aminer.cn/pub/56d85717dabfae2eee312521",
+      "aminer_id": "56d85717dabfae2eee312521",
+      "venue": "LATIN AMERICAN JOURNAL OF SOLIDS AND STRUCTURES",
+      "year": 2010
+    },
+    {
+      "work_id": "aminer:5488e1b945ce147a86e09d1c",
+      "title": "Investigation of residual velocity of aluminum projectiles at hypervelocity impact on woven of basalt fiber",
+      "doi": null,
+      "url": "https://www.aminer.cn/pub/5488e1b945ce147a86e09d1c",
+      "aminer_id": "5488e1b945ce147a86e09d1c",
+      "venue": "Gaoya Wuli Xuebao/Chinese Journal of High Pressure Physics",
+      "year": 2012
+    },
+    {
+      "work_id": "doi:10.1007/s10704-005-3061-5",
+      "title": "A CDM Approach of Ductile Damage with Plastic Compressibility",
+      "doi": "10.1007/s10704-005-3061-5",
+      "url": "https://www.aminer.cn/pub/53e9b206b7602d9703c9de09",
+      "aminer_id": "53e9b206b7602d9703c9de09",
+      "venue": "International Journal of Fracture",
+      "year": 2006
+    },
+    {
+      "work_id": "doi:10.1243/0309324991513894",
+      "title": "Identification and Measurement of Ductile Damage Parameters",
+      "doi": "10.1243/0309324991513894",
+      "url": "https://www.aminer.cn/pub/53e9b9e1b7602d97045d9dab",
+      "aminer_id": "53e9b9e1b7602d97045d9dab",
+      "venue": "JOURNAL OF STRAIN ANALYSIS FOR ENGINEERING DESIGN",
+      "year": 1999
+    },
+    {
+      "work_id": "doi:10.1016/j.matdes.2012.09.032",
+      "title": "Parameter Identification of A Mechanical Ductile Damage Using Artificial Neural Networks in Sheet Metal Forming",
+      "doi": "10.1016/j.matdes.2012.09.032",
+      "url": "https://www.aminer.cn/pub/56d908afdabfae2eee07d862",
+      "aminer_id": "56d908afdabfae2eee07d862",
+      "venue": "MATERIALS & DESIGN",
+      "year": 2013
+    },
+    {
+      "work_id": "doi:10.1016/s0927-0256(02)00402-0",
+      "title": "A Non-Local Extension of Gurson-based Ductile Damage Modeling",
+      "doi": "10.1016/s0927-0256(02)00402-0",
+      "url": "https://www.aminer.cn/pub/53e99e4cb7602d970270daef",
+      "aminer_id": "53e99e4cb7602d970270daef",
+      "venue": "COMPUTATIONAL MATERIALS SCIENCE",
+      "year": 2003
+    },
+    {
+      "work_id": "doi:10.1016/j.actbio.2009.11.011",
+      "title": "Influence of Porosity on Mechanical Properties and in Vivo Response of Ti6Al4V Implants",
+      "doi": "10.1016/j.actbio.2009.11.011",
+      "url": "https://www.aminer.cn/pub/53e9b091b7602d9703afb787",
+      "aminer_id": "53e9b091b7602d9703afb787",
+      "venue": "Acta biomaterialia",
+      "year": 2009
+    },
+    {
+      "work_id": "doi:10.1016/j.addma.2014.12.006",
+      "title": "Crack propagation and fracture toughness of Ti6Al4V alloy produced by selective laser melting",
+      "doi": "10.1016/j.addma.2014.12.006",
+      "url": "https://www.aminer.cn/pub/56d870dcdabfae2eeef3a9d7",
+      "aminer_id": "56d870dcdabfae2eeef3a9d7",
+      "venue": "Additive Manufacturing",
+      "year": 2015
+    },
+    {
+      "work_id": "doi:10.1016/j.jmatprotec.2012.11.001",
+      "title": "The Effect of Hardening Laws and Thermal Softening on Modeling Residual Stresses in FSW of Aluminum Alloy 2024-T3",
+      "doi": "10.1016/j.jmatprotec.2012.11.001",
+      "url": "https://www.aminer.cn/pub/56d82f09dabfae2eee1646e7",
+      "aminer_id": "56d82f09dabfae2eee1646e7",
+      "venue": "Journal of Materials Processing Technology",
+      "year": 2012
+    },
+    {
+      "work_id": "doi:10.1007/bf00662556",
+      "title": "Thermal Softening of G13L Steel with Niobium",
+      "doi": "10.1007/bf00662556",
+      "url": "https://www.aminer.cn/pub/53e9ba0bb7602d970460b797",
+      "aminer_id": "53e9ba0bb7602d970460b797",
+      "venue": "Metal Science and Heat Treatment",
+      "year": 1967
+    },
+    {
+      "work_id": "doi:10.1063/1.1707363",
+      "title": "Effect of Strain Rate Upon Plastic Flow of Steel",
+      "doi": "10.1063/1.1707363",
+      "url": "https://www.aminer.cn/pub/56d8356adabfae2eee3c6212",
+      "aminer_id": "56d8356adabfae2eee3c6212",
+      "venue": "JOURNAL OF APPLIED PHYSICS",
+      "year": 1944
+    }
+  ]
+}
