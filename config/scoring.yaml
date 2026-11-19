@@ -186,9 +186,19 @@ research_priorities:
     required_groups:
       - ["processing map", "process window optimization", "process window optimisation",
          "energy-saving optimized parameters", "energy-efficient process parameters",
+         "low-power remelting process", "低功率重熔工艺",
          "formability-performance trade-off", "nano-precipitation", "nanodispersions",
          "microstructural insights", "microstructure-controlled nanoscale deformation",
          "加工图", "工艺窗口优化", "纳米析出"]
+  # #36: a component-level torsional capacity check can mention fracture in the
+  # abstract without studying the material's fracture response or failure model.
+  - name: "构件承载能力评估"
+    multiplier: 0.55
+    match_fields: title
+    unless_title_terms: *mechanics_method_title
+    required_groups:
+      - ["torsional load capacity", "扭转载荷承载能力", "抗扭承载力"]
+      - ["complex component", "complex part", "复杂构件", "复杂零件"]
   - name: "表面划痕与聚合物打印"
     multiplier: 0.55
     match_fields: title
