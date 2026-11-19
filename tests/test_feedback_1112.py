@@ -218,4 +218,41 @@ class November19FeedbackTests(unittest.TestCase):
                 self.assertEqual(research_priority(work, self.settings.scoring)[1], 1.0)
 
 
+class SurfaceFinishingFeedbackTests(unittest.TestCase):
+    def setUp(self):
+        self.scoring = load_settings(ROOT).scoring
+
+    def priority(self, title, abstract=''):
+        work = CandidateWork(source='fixture', identifier=title, title=title, abstract=abstract)
+        return research_priority(work, self.scoring)
+
+    def test_dry_run_surface_finishing_papers_are_demoted(self):
+        cases = (
+            ('Effect of a low plasticity ball burnishing tooling system with low plasticity on the '
+             'surface integrity of Ti-6Al-4V alloy',
+             'Fatigue fractures often initiate and culminate in failure. The experiment compares '
+             'burnishing passes and pressure for surface roughness and microhardness.'),
+            ('Finite Element Simulation of the Polishing Process for Aluminum Workpieces in the LS-DYNA Software',
+             'The Johnson-Cook constitutive and fracture relations model the surface generated '
+             'during belt polishing. The objective is to select polishing conditions.'),
+        )
+        for title, abstract in cases:
+            with self.subTest(title=title):
+                self.assertEqual(self.priority(title, abstract), ('表面精加工工艺', 0.55))
+
+    def test_mechanics_contribution_is_preserved_for_surface_finished_materials(self):
+        cases = (
+            ('Ductile fracture of ball-burnished Ti-6Al-4V under dynamic loading', ''),
+            ('Cyclic plasticity of steel after roller burnishing', 'A constitutive model predicts hardening.'),
+            ('Constitutive model calibration of aluminum after belt polishing', ''),
+            ('Ductile fracture criterion for steel after mechanical polishing', ''),
+            ('Stress-state-dependent plasticity of 6061 aluminum after belt polishing',
+             'The flow stress was measured under plane strain and shear.'),
+            ('Ductile fracture of LPBF Ti-6Al-4V', 'Specimens underwent mechanical polishing prior to testing.'),
+        )
+        for title, abstract in cases:
+            with self.subTest(title=title):
+                self.assertEqual(self.priority(title, abstract)[1], 1.0)
+
+
 if __name__ == '__main__': unittest.main()
