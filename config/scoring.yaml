@@ -199,6 +199,21 @@ research_priorities:
     required_groups:
       - ["torsional load capacity", "扭转载荷承载能力", "抗扭承载力"]
       - ["complex component", "complex part", "复杂构件", "复杂零件"]
+  # Surface finishing papers can use constitutive and fracture laws as inputs.
+  # Keep papers whose title identifies a mechanics contribution after finishing.
+  - name: "表面精加工工艺"
+    multiplier: 0.55
+    match_fields: title
+    unless_title_terms:
+      ["constitutive", "stress state dependent plasticity", "cyclic plasticity",
+       "rate dependent plasticity", "strain hardening", "flow stress", "post-necking",
+       "ductile fracture", "fracture strain", "fracture toughness", "fracture criterion",
+       "fracture model", "damage evolution", "inverse identification", "parameter calibration",
+       "本构", "循环塑性", "应变率相关塑性", "应变硬化", "延性断裂", "断裂韧性", "断裂准则", "参数反演"]
+    required_groups:
+      - ["ball burnishing", "ball burnished", "roller burnishing", "roller burnished",
+         "low plasticity burnishing", "belt polishing", "polishing process",
+         "polishing processes", "mechanical polishing", "滚压光整", "滚珠光整", "抛光工艺", "砂带抛光"]
   - name: "表面划痕与聚合物打印"
     multiplier: 0.55
     match_fields: title
