@@ -45,6 +45,10 @@ on:
         type: choice
         options: [manual, scheduled]
         default: manual
+      recover_run:
+        description: "Optional run ID of a completed, unsent weekly digest to deliver"
+        type: string
+        default: ""
 
 jobs:
   # Cheap gate: has this week's scheduled digest already gone out? Costs a few
@@ -105,14 +109,11 @@ jobs:
             echo "should_run=true" >> "$GITHUB_OUTPUT"
             exit 0
           fi
-          # A failed fetch must not fail the guard -- that would skip the week outright.
-          # Fall back to the checked-out copy, which is older but still a ledger.
+          # Read the authoritative ledger. An unreadable ledger must not allow a resend.
           ledger_path=data/watch-state/scheduled-deliveries.json
-          if git fetch --quiet origin "$BRANCH" && git cat-file -e "origin/$BRANCH:$ledger_path" 2>/dev/null; then
+          git fetch --quiet origin "$BRANCH"
+          if git cat-file -e "origin/$BRANCH:$ledger_path" 2>/dev/null; then
             ledger="$(git show "origin/$BRANCH:$ledger_path")"
-          elif [ -f "$ledger_path" ]; then
-            echo "::warning::Could not read the ledger from origin/$BRANCH; using the checked-out copy."
-            ledger="$(cat "$ledger_path")"
           else
             ledger='{}'
           fi
@@ -131,10 +132,15 @@ jobs:
             echo "::notice::The $week digest was already delivered. Skipping this scheduled run."
             echo "should_run=false" >> "$GITHUB_OUTPUT"
           elif [ "$status" -eq 2 ]; then
-            # Deliver rather than skip: a duplicate email is recoverable, a lost week is not.
-            echo "::warning::The delivery ledger is unreadable; delivering, which may duplicate this week's digest."
-            echo "should_run=true" >> "$GITHUB_OUTPUT"
+            echo "::error::The delivery ledger is unreadable. Check delivery before retrying."
+            exit 1
           else
+            reservation=$(git ls-remote origin "refs/tags/zotwatch-mail-$week")
+            if [ -n "$reservation" ]; then
+              echo "::warning::SMTP was already attempted for $week. Check that run before attempting delivery again."
+              echo "should_run=false" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
             echo "No delivery recorded for $week yet; this run delivers."
             echo "should_run=true" >> "$GITHUB_OUTPUT"
           fi
@@ -154,6 +160,7 @@ jobs:
       id-token: write
     env:
       DRY_RUN: ${{ inputs.dry_run && 'true' || 'false' }}
+      RECOVER_RUN: ${{ inputs.recover_run }}
       ZOTERO_API_KEY: ${{ secrets.ZOTERO_API_KEY }}
       ZOTERO_USER_ID: ${{ secrets.ZOTERO_USER_ID }}
       ALTMETRIC_KEY: ${{ secrets.ALTMETRIC_KEY }}
@@ -187,8 +194,28 @@ jobs:
         run: mkdir -p data reports data/watch-state
       - run: pip install -r requirements.txt
 
+      - name: Restore an unsent weekly digest
+        id: recover
+        if: env.RECOVER_RUN != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          WEEK: ${{ needs.guard.outputs.week }}
+          SCHEDULED: ${{ needs.guard.outputs.scheduled }}
+        run: |
+          set -euo pipefail
+          [[ "$RECOVER_RUN" =~ ^[0-9]+$ ]]
+          [[ "$SCHEDULED" == 'true' && "$DRY_RUN" != 'true' ]]
+          workflow_id=$(gh api "repos/$GITHUB_REPOSITORY/actions/workflows/daily_watch.yml" --jq '.id')
+          gh api "repos/$GITHUB_REPOSITORY/actions/runs/$RECOVER_RUN" \
+            | jq -e --argjson workflow "$workflow_id" '.workflow_id == $workflow and .head_branch == "main" and .status == "completed" and .conclusion == "failure"' >/dev/null
+          gh api "repos/$GITHUB_REPOSITORY/actions/runs/$RECOVER_RUN/jobs?filter=all" \
+            | jq -e '([.jobs[].steps[] | select(.name == "Watch" and .conclusion == "success")] | length > 0) and ([.jobs[].steps[] | select(.name == "Email digest")] | length > 0 and all(.conclusion == "skipped"))' >/dev/null
+          gh run download "$RECOVER_RUN" --repo "$GITHUB_REPOSITORY" --name watch-state-v1 --dir "$RUNNER_TEMP/recovered-zotwatch"
+          python -m src.weekly_delivery restore --week "$WEEK" --artifact "$RUNNER_TEMP/recovered-zotwatch"
+
       - name: Resolve embedding signature
         id: model
+        if: env.RECOVER_RUN == ''
         run: |
           python - <<'PY' >> "$GITHUB_OUTPUT"
           import hashlib, pathlib, yaml
@@ -202,9 +229,9 @@ jobs:
           print(f"slug={hashlib.sha256(sig.encode()).hexdigest()[:12]}")
           PY
 
-      # Fail here rather than 40 minutes in. Email is the last step, after the
-      # Pages deploy, so a missing value discovered there wastes the whole run.
+      # Validate credentials before discovery starts.
       - name: Check required configuration
+        if: env.RECOVER_RUN == ''
         run: |
           missing=0
           if [ -z "${EMBEDDING_API_KEY}" ]; then
@@ -225,6 +252,7 @@ jobs:
       # as a draft release asset, which only accounts with write access can read.
       - name: Fetch prebuilt profile
         id: prebuilt
+        if: env.RECOVER_RUN == ''
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -280,7 +308,7 @@ jobs:
       # produced were discarded and every run restarted from the same snapshot.
       - name: Restore profile
         id: cache-profile
-        if: steps.prebuilt.outputs.found != 'true'
+        if: env.RECOVER_RUN == '' && steps.prebuilt.outputs.found != 'true'
         uses: actions/cache/restore@v4
         with:
           path: |
@@ -292,6 +320,7 @@ jobs:
             profile-${{ steps.model.outputs.slug }}-
 
       - uses: actions/cache/restore@v4
+        if: env.RECOVER_RUN == ''
         with:
           path: data/network-state
           key: network-v1-${{ github.ref_name }}-${{ github.run_id }}-${{ github.run_attempt }}
@@ -307,6 +336,7 @@ jobs:
           fi
 
       - name: Restore discovery and candidate vectors
+        if: env.RECOVER_RUN == ''
         uses: actions/cache/restore@v4
         with:
           path: |
@@ -320,11 +350,13 @@ jobs:
             candidate-v1-${{ github.ref_name }}-${{ steps.model.outputs.slug }}-
 
       - name: Test topic matching and ranking
+        if: env.RECOVER_RUN == ''
         env:
           AMINER_API_KEY: ""  # Unit tests must not consume the production AMiner credential.
         run: python -B tools/run_offline_tests.py
 
       - name: Read owner feedback
+        if: env.RECOVER_RUN == ''
         env:
           GH_TOKEN: ${{ github.token }}
         shell: bash
@@ -337,12 +369,14 @@ jobs:
           fi
 
       - name: Build Zotero profile
-        if: steps.prebuilt.outputs.found != 'true' && steps.cache-profile.outputs.cache-matched-key == ''
+        if: env.RECOVER_RUN == '' && steps.prebuilt.outputs.found != 'true' && steps.cache-profile.outputs.cache-matched-key == ''
         run: python -m src.cli profile --full
 
       # --prebuilt-profile skips the Web API sync and the re-embed: the profile
       # already covers the whole library and this runner cannot see the rest of it.
       - name: Watch
+        id: build_digest
+        if: env.RECOVER_RUN == ''
         run: |
           if [ "${{ steps.prebuilt.outputs.found }}" = "true" ]; then
             python -m src.cli watch --rss --report --top 20 --defer-history --prebuilt-profile
@@ -351,7 +385,7 @@ jobs:
           fi
 
       - name: Save profile
-        if: always() && steps.prebuilt.outputs.found != 'true'
+        if: always() && env.RECOVER_RUN == '' && steps.prebuilt.outputs.found != 'true'
         uses: actions/cache/save@v4
         with:
           path: |
@@ -361,14 +395,14 @@ jobs:
           key: profile-${{ steps.model.outputs.slug }}-${{ github.run_id }}
 
       - name: Save retrieval checkpoint even on failure
-        if: always()
+        if: always() && env.RECOVER_RUN == ''
         uses: actions/cache/save@v4
         with:
           path: data/network-state
           key: network-v1-${{ github.ref_name }}-${{ github.run_id }}-${{ github.run_attempt }}
 
       - name: Save discovery and candidate vectors even on failure
-        if: always()
+        if: always() && env.RECOVER_RUN == ''
         uses: actions/cache/save@v4
         with:
           path: |
@@ -379,43 +413,19 @@ jobs:
             data/cache/aminer-abstracts
           key: candidate-v1-${{ github.ref_name }}-${{ steps.model.outputs.slug }}-${{ github.run_id }}-${{ github.run_attempt }}
 
-      - name: Prepare Pages
-        if: env.DRY_RUN != 'true'
-        run: |
-          set -euo pipefail
-          mkdir -p public
-          cp -r reports/* public/ 2>/dev/null || true
-          # Reports carry a YYYYMMDD stamp, so sort by name. The previous version
-          # used `ls -t`, but `cp -r` rewrites every mtime to the copy time, so
-          # index.html was whichever file the copy happened to touch last.
-          latest=$(ls -1 public/report-*.html 2>/dev/null | sort | tail -n 1 || true)
-          if [ -n "$latest" ]; then
-            cp "$latest" public/index.html
-            echo "index.html <- $latest"
-          fi
-          {
-            echo '<!DOCTYPE html><html lang="zh"><head><meta charset="utf-8">'
-            echo '<meta name="viewport" content="width=device-width, initial-scale=1">'
-            echo '<title>ZotWatch 历史推送</title></head><body>'
-            echo '<h1>ZotWatch 历史推送</h1><ul>'
-            for f in $(ls -1 public/report-*.html 2>/dev/null | sort -r); do
-              n=$(basename "$f")
-              echo "<li><a href=\"$n\">${n%.html}</a></li>"
-            done
-            echo '</ul><p><a href="feed.xml">RSS</a></p></body></html>'
-          } > public/archive.html
-
-      - uses: actions/upload-pages-artifact@v3
-        if: env.DRY_RUN != 'true'
-        with:
-          path: ./public
-      - uses: actions/deploy-pages@v4
-        if: env.DRY_RUN != 'true'
-
       - name: Email digest
         id: email
-        if: env.DRY_RUN != 'true'
-        run: python -m src.cli notify
+        if: ${{ !cancelled() && env.DRY_RUN != 'true' && (steps.build_digest.outcome == 'success' || steps.recover.outcome == 'success') }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          WEEK: ${{ needs.guard.outputs.week }}
+          SCHEDULED: ${{ needs.guard.outputs.scheduled }}
+        run: |
+          if [ "$SCHEDULED" = "true" ]; then
+            python -m src.weekly_delivery send --week "$WEEK"
+          else
+            python -m src.weekly_delivery send --week "$WEEK" --manual
+          fi
 
       - name: Build email preview only
         if: env.DRY_RUN == 'true'
@@ -424,7 +434,7 @@ jobs:
         run: python -m src.cli notify --dry-run
 
       - name: Commit successful delivery history
-        if: env.DRY_RUN != 'true'
+        if: ${{ !cancelled() && steps.email.outcome == 'success' }}
         run: python -m src.cli commit-history
 
       # The guard's ledger. Written only after the mail went out, only for a
@@ -499,7 +509,7 @@ jobs:
       # without a delivered digest -- whatever the cause: the external trigger, GitHub,
       # the job or SMTP. Without the secret this step does nothing.
       - name: Heartbeat
-        if: env.DRY_RUN != 'true' && needs.guard.outputs.scheduled == 'true'
+        if: ${{ !cancelled() && steps.email.outcome == 'success' && needs.guard.outputs.scheduled == 'true' }}
         env:
           HC_PING_URL: ${{ secrets.HC_PING_URL }}
         run: |
@@ -507,12 +517,64 @@ jobs:
             curl -fsS -m 10 --retry 3 "${HC_PING_URL}" > /dev/null || echo "::warning::Heartbeat ping failed"
           fi
 
+      # Email and its receipt are handled before Pages publication.
+      - name: Prepare Pages
+        id: prepare_pages
+        if: ${{ !cancelled() && env.DRY_RUN != 'true' && (steps.build_digest.outcome == 'success' || steps.recover.outcome == 'success') }}
+        run: |
+          set -euo pipefail
+          mkdir -p public
+          cp -r reports/* public/
+          # Reports carry a YYYYMMDD stamp, so sort by name. The previous version
+          # used `ls -t`, but `cp -r` rewrites every mtime to the copy time, so
+          # index.html was whichever file the copy happened to touch last.
+          latest=$(ls -1 public/report-*.html 2>/dev/null | sort | tail -n 1 || true)
+          if [ -n "$latest" ]; then
+            cp "$latest" public/index.html
+            echo "index.html <- $latest"
+          fi
+          {
+            echo '<!DOCTYPE html><html lang="zh"><head><meta charset="utf-8">'
+            echo '<meta name="viewport" content="width=device-width, initial-scale=1">'
+            echo '<title>ZotWatch 历史推送</title></head><body>'
+            echo '<h1>ZotWatch 历史推送</h1><ul>'
+            for f in $(ls -1 public/report-*.html 2>/dev/null | sort -r); do
+              n=$(basename "$f")
+              echo "<li><a href=\"$n\">${n%.html}</a></li>"
+            done
+            echo '</ul><p><a href="feed.xml">RSS</a></p></body></html>'
+          } > public/archive.html
+
+      - uses: actions/upload-pages-artifact@v3
+        id: upload_pages
+        if: ${{ !cancelled() && steps.prepare_pages.outcome == 'success' }}
+        with:
+          path: ./public
+      - name: Deploy Pages
+        id: deploy_pages
+        if: ${{ !cancelled() && steps.upload_pages.outcome == 'success' }}
+        continue-on-error: true
+        uses: actions/deploy-pages@v4
+        with:
+          timeout: 120000
+
+      - name: Retry Pages deployment
+        if: ${{ !cancelled() && steps.deploy_pages.outcome == 'failure' }}
+        run: sleep 10
+
+      - name: Deploy Pages again
+        if: ${{ !cancelled() && steps.deploy_pages.outcome == 'failure' }}
+        uses: actions/deploy-pages@v4
+        with:
+          timeout: 120000
+
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: watch-state-v1
           path: |
             data/watch-state/state.json
+            data/watch-state/pending.json
             reports/
           if-no-files-found: warn
           retention-days: 90

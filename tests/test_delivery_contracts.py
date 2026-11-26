@@ -218,6 +218,41 @@ class RecipientRefusalTests(unittest.TestCase):
         with patch.object(notify_email.smtplib, "SMTP_SSL", lambda *a, **k: FakeServer()):
             notify_email.send(msg, self.config(), attempts=1)
 
+    def test_connection_lost_after_submission_does_not_retry(self):
+        from src import notify_email
+        from unittest.mock import Mock
+
+        server = Mock()
+        server.send_message.side_effect = notify_email.smtplib.SMTPServerDisconnected()
+        reservation = Mock()
+        with patch.object(notify_email.smtplib, "SMTP_SSL", return_value=server) as connect:
+            server.__enter__ = Mock(return_value=server)
+            server.__exit__ = Mock(return_value=False)
+            with self.assertRaisesRegex(RuntimeError, "could have succeeded"):
+                notify_email.send(EmailMessage(), self.config(), before_submission=reservation)
+        connect.assert_called_once()
+        reservation.assert_called_once()
+        server.send_message.assert_called_once()
+
+    def test_scheduled_retry_cannot_submit_again_when_reservation_exists(self):
+        import subprocess
+        from src import notify_email, weekly_delivery
+        from unittest.mock import Mock
+
+        server = Mock()
+        server.__enter__ = Mock(return_value=server)
+        server.__exit__ = Mock(return_value=False)
+        server.send_message.return_value = {}
+        conflict = subprocess.CalledProcessError(1, "create-ref")
+        with patch.object(notify_email.smtplib, "SMTP_SSL", return_value=server), \
+             patch.object(weekly_delivery, "reserve_delivery", side_effect=[None, conflict]), \
+             patch.object(weekly_delivery, "notify", side_effect=lambda base, before_submission:
+                          notify_email.send(EmailMessage(), self.config(), before_submission=before_submission)):
+            weekly_delivery.deliver_digest(Path("."), "2026-W48")
+            with self.assertRaises(subprocess.CalledProcessError):
+                weekly_delivery.deliver_digest(Path("."), "2026-W48")
+        server.send_message.assert_called_once()
+
 
 if __name__ == "__main__":
     unittest.main()
