@@ -20,6 +20,7 @@ import re
 import smtplib
 import ssl
 import time
+from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import datetime
 from email.message import EmailMessage
@@ -194,22 +195,30 @@ def _inline_body(report_html: str, pages_url: str, feed_url: str, run_url: str) 
     return report_html + footer
 
 
-def send(msg: EmailMessage, config: SmtpConfig, *, attempts: int = SEND_ATTEMPTS) -> None:
+def send(msg: EmailMessage, config: SmtpConfig, *, attempts: int = SEND_ATTEMPTS,
+         before_submission: Callable[[], None] | None = None) -> None:
     """Send with bounded retries; a single flaky SMTP session used to fail the run."""
     context = ssl.create_default_context()
     last_error: Optional[Exception] = None
     for attempt in range(1, attempts + 1):
+        submitting = False
         try:
             if config.port == 465:
                 with smtplib.SMTP_SSL(
                     config.host, config.port, context=context, timeout=SMTP_TIMEOUT_SECONDS
                 ) as server:
                     server.login(config.username, config.password)
+                    if before_submission:
+                        before_submission()
+                    submitting = True
                     refused = server.send_message(msg)
             else:
                 with smtplib.SMTP(config.host, config.port, timeout=SMTP_TIMEOUT_SECONDS) as server:
                     server.starttls(context=context)
                     server.login(config.username, config.password)
+                    if before_submission:
+                        before_submission()
+                    submitting = True
                     refused = server.send_message(msg)
             # send_message only RAISES when every recipient is refused; a partial
             # refusal comes back as a dict and used to be discarded, so a run where one
@@ -227,10 +236,15 @@ def send(msg: EmailMessage, config: SmtpConfig, *, attempts: int = SEND_ATTEMPTS
                 )
             logger.info("Sent digest to %s", ", ".join(config.recipients))
             return
-        except (smtplib.SMTPAuthenticationError, smtplib.SMTPRecipientsRefused):
-            # Credentials and recipients will not become valid by retrying.
+        except (smtplib.SMTPAuthenticationError, smtplib.SMTPRecipientsRefused,
+                smtplib.SMTPSenderRefused, smtplib.SMTPDataError):
+            # SMTP explicitly rejected the connection or transaction.
             raise
         except (smtplib.SMTPException, OSError) as exc:
+            if submitting:
+                # A lost response or failing QUIT can follow successful acceptance.
+                # Retrying here may deliver the same message twice.
+                raise RuntimeError("SMTP submission could have succeeded; automatic retry stopped") from exc
             last_error = exc
             if attempt == attempts:
                 break
@@ -243,7 +257,8 @@ def send(msg: EmailMessage, config: SmtpConfig, *, attempts: int = SEND_ATTEMPTS
     raise RuntimeError(f"SMTP delivery failed after {attempts} attempts") from last_error
 
 
-def notify(base_dir: Path, *, dry_run: bool = False) -> Optional[Path]:
+def notify(base_dir: Path, *, dry_run: bool = False,
+           before_submission: Callable[[], None] | None = None) -> Optional[Path]:
     """Build and send the digest. In dry-run mode write the message to disk instead."""
     reports_dir = Path(base_dir) / "reports"
     report_path = latest_digest(reports_dir)
@@ -265,7 +280,7 @@ def notify(base_dir: Path, *, dry_run: bool = False) -> Optional[Path]:
 
     config = SmtpConfig.from_env()
     msg = build_message(config, report_path=report_path, feed_path=feed_path)
-    send(msg, config)
+    send(msg, config, before_submission=before_submission)
     return None
 
 
